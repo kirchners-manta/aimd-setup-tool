@@ -1,11 +1,13 @@
 #!/bin/bash
+
+# CP2K 8.1 run script
+# written by Tom Frömbgen 2023-01-11
+
 # PBS Job
-#PBS -V
-#PBS -N dmso-bulk
-#PBS -m ae
+#PBS -N PROJECT_NAME
 #PBS -l nodes=1:ppn=64
 #PBS -q hedy
-#
+
 # For iris and hedy (only one node)
 
 # load software
@@ -18,18 +20,22 @@ mkdir /tmp1/$USER/$PBS_JOBID
 
 # copy files to scratch
 cp -r $PBS_O_WORKDIR/* /tmp1/$USER/$PBS_JOBID
-cd /tmp1/$USER/$PBS_JOBID
 
-# generate hostfile
+# change to scratch and generate hostfile
+cd /tmp1/$USER/$PBS_JOBID
 echo $(pwd) >hosts_file
 export PARNODES=$(wc -l $PBS_NODEFILE | gawk '{print $1}')
 cat $PBS_NODEFILE >hosts_file
 
 # execute job
 which mpirun
+# first, an energy minimization to remove hot spots
 mpirun $CP2K_PATH geoopt.inp >geoopt.out
+# then an equilibration with massive thermostats at higher temperature
 mpirun $CP2K_PATH eq.inp >eq.out
+# a relaxation (second equilibration) at the target temperature
 mpirun $CP2K_PATH relax.inp >relax.out
+# finally, production run
 mpirun $CP2K_PATH prod.inp >prod.out
 
 # copy files back and clean up

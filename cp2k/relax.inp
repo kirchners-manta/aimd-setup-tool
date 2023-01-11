@@ -1,12 +1,14 @@
 # CP2K input file for an AIMD simulation
 # written by Tom Frömbgen, 2023-01-05
 
-# the sections are ordered as GLOBAL, FORCE_EVAL, MOTION, EXT_RESTART
+# the sections are ordered as GLOBAL, MOTION, FORCE_EVAL, EXT_RESTART
 # the subsections are ordered alphabetically
 # within a subsection, keywords are ordered alphabetically and given first, followed by more subsections
 
 # define variables
-@SET PROJECT_NAME YYYY
+@SET PROJECT_NAME project_name
+@SET BOX_LENGTH box_length
+@SET SIMBOX_XYZ simbox_xyz
 
 # global settings
 &GLOBAL
@@ -14,7 +16,7 @@
   FFTW_PLAN_TYPE PATIENT          # FFTW plan type, PATIENT is recommended for long AIMD runs
   PREFERRED_FFT_LIBRARY FFTW      # use FFTW for FFTs        
   PRINT_LEVEL LOW                 # print level, low is sufficient
-  PROJECT ${PROJECT_NAME}               # project name  
+  PROJECT ${PROJECT_NAME}         # project name  
   RUN_TYPE MD                     # MD simulation
 &END GLOBAL
 
@@ -211,7 +213,7 @@
 
     # define cell
     &CELL
-      ABC 24.44 24.44 24.44     # cell dimensions in Angstrom
+      ABC ${BOX_LENGTH} ${BOX_LENGTH} ${BOX_LENGTH}     # cell dimensions in Angstrom
     &END CELL
 
     # define species
@@ -242,7 +244,7 @@
 
     # define molecular geometry
     &TOPOLOGY
-      COORD_FILE_NAME simbox.xyz
+      COORD_FILE_NAME ${SIMBOX_XYZ}
       COORD_FILE_FORMAT XYZ
     &END TOPOLOGY
 
