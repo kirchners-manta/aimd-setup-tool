@@ -1,0 +1,256 @@
+# CP2K input file for an AIMD simulation
+# written by Tom Frömbgen, 2023-01-05
+
+# the sections are ordered as GLOBAL, FORCE_EVAL, MOTION, EXT_RESTART
+# the subsections are ordered alphabetically
+# within a subsection, keywords are ordered alphabetically and given first, followed by more subsections
+
+# define variables
+@SET PROJECT_NAME YYYY
+
+# global settings
+&GLOBAL
+  ALLTOALL_SGL YES                # use single precision for alltoall communication
+  FFTW_PLAN_TYPE PATIENT          # FFTW plan type, PATIENT is recommended for long AIMD runs
+  PREFERRED_FFT_LIBRARY FFTW      # use FFTW for FFTs        
+  PRINT_LEVEL LOW                 # print level, low is sufficient
+  PROJECT ${PROJECT_NAME}               # project name  
+  RUN_TYPE MD                     # MD simulation
+&END GLOBAL
+
+# Motions of nuclei
+&MOTION
+
+  # AIMD settings
+  &MD
+    ENSEMBLE NVT                # ensemble
+    STEPS 20000                 # number of MD steps
+    TIMESTEP 0.5                # time step in fs
+    TEMPERATURE 400.0           # temperature in K
+
+    # thermostat settings
+    &THERMOSTAT
+      REGION MASSIVE             # thermostat region, GLOBAL is recommended for AIMD production, MASSIVE for AIMD equilibration
+      TYPE CSVR                 # thermostat type, e.g. CSVR or NOSE (Nose-Hoover)
+
+      # CSVR thermostat settings
+      &CSVR
+       TIMECON 10              # time constant in fs
+      &END CSVR
+
+    &END THERMOSTAT
+
+  &END MD
+
+  # print settings of simulation
+  &PRINT
+    
+    # print settings of cell
+    &CELL
+
+      # frequency of printing cell
+      &EACH
+        MD 1
+      &END EACH
+
+    &END CELL
+  
+    # print settings of forces
+    &FORCES
+
+      # frequency of printing forces
+      &EACH
+        MD 1
+      &END EACH
+
+    &END FORCES
+
+    # print settings of restart file
+    &RESTART
+
+      # frequency of printing restart file
+      &EACH
+        MD 1
+      &END EACH
+
+    &END RESTART
+
+    # print settings of restart history 
+    &RESTART_HISTORY
+
+      # frequency of printing restart history
+      &EACH
+        MD 500
+      &END EACH
+
+    &END RESTART_HISTORY
+
+    # print settings of trajectory
+    &TRAJECTORY
+
+      # frequency of printing trajectory
+      &EACH
+        MD 1
+      &END EACH
+
+    &END TRAJECTORY
+
+    # print settings of velocities
+    &VELOCITIES
+
+      # frequency of printing velocities
+      &EACH
+        MD 1
+      &END EACH
+
+    &END VELOCITIES
+
+  &END PRINT
+
+&END MOTION
+
+# calculate energy and forces
+&FORCE_EVAL
+  METHOD QS                       # for AIMD, use QS (Quickstep)
+
+  # DFT settings
+  &DFT
+    # basis set file, potential file. no comment after file name!
+    BASIS_SET_FILE_NAME BASIS_MOLOPT
+    POTENTIAL_FILE_NAME GTH_POTENTIALS
+
+    # localization of electrons
+    &LOCALIZE
+      MAX_ITER 2000               # maximum number of iterations of method chosen below
+      METHOD CRAZY                # localization method, falls back to JACOBI method after fail
+      USE_HISTORY                 # uses history for speedup
+
+      # print settings for localization 
+      &PRINT
+
+        # print settings for wannier centers
+        &WANNIER_CENTERS
+          IONS+CENTERS            # use ions+centers
+          FILENAME =wannier.xyz
+          
+          # frequency of printing wannier centers
+          &EACH
+            MD 1
+          &END EACH
+
+        &END WANNIER_CENTERS
+
+     &END PRINT
+
+    &END LOCALIZE
+    
+    # multigrid settings
+    &MGRID
+      CUTOFF 280                  # cutoff for multigrid
+      NGRIDS 5                    # number of multigrid levels
+      REL_CUTOFF 50               # relative cutoff for multigrid
+    &END MGRID
+    
+    # quickstep settings
+    &QS
+      EPS_DEFAULT 1.0E-12         # default convergence threshold
+      EXTRAPOLATION_ORDER 4       # extrapolation order
+    &END QS
+    
+    # SCF settings
+    &SCF
+      EPS_SCF 1.0E-6              # SCF convergence threshold
+      MAX_SCF 20                  # maximum number of SCF cycles
+      SCF_GUESS RESTART           # restart from previous SCF cycle
+
+      # orbital transformation settings
+      &OT
+        MINIMIZER DIIS            # use DIIS minimizer
+        PRECONDITIONER FULL_SINGLE_INVERSE
+      &END OT
+
+      # outer SCF settings
+      &OUTER_SCF
+        MAX_SCF 20                # maximum number of outer SCF cycles
+        EPS_SCF 1.0E-6            # outer SCF convergence threshold, take care: this value must be equal or smaller than the value for EPS_SCF in the &SCF section
+      &END OUTER_SCF
+
+    &END SCF
+    
+    # exchange-correlation settings
+    &XC
+      
+      # dispersion correction
+      &VDW_POTENTIAL
+        POTENTIAL_TYPE PAIR_POTENTIAL     # use pair potential
+
+        # define pairwise dispersion correction
+        &PAIR_POTENTIAL
+          PARAMETER_FILE_NAME dftd3.dat
+          REFERENCE_FUNCTIONAL BLYP       # use parameters for functional defined in &XC_FUNCTIONAL
+          TYPE DFTD3(BJ)                  # use D3 dispersion correction with Becke-Johnson damping
+        &END PAIR_POTENTIAL
+
+      &END VDW_POTENTIAL
+
+      # functional
+      &XC_FUNCTIONAL BLYP                 # functional
+      &END XC_FUNCTIONAL
+
+      # grid settings
+      &XC_GRID
+        XC_DERIV NN10_SMOOTH        # grid for XC derivatives
+        XC_SMOOTH_RHO NN10          # grid for XC smoothing
+      &END XC_GRID
+    &END XC
+
+  &END DFT
+
+  # molecular geometry
+  &SUBSYS
+
+    # define cell
+    &CELL
+      ABC 24.44 24.44 24.44     # cell dimensions in Angstrom
+    &END CELL
+
+    # define species
+    &KIND C
+      BASIS_SET DZVP-MOLOPT-SR-GTH  # basis set
+      POTENTIAL GTH-BLYP-q4         # pseudopotential
+    &END KIND
+
+    &KIND H
+      BASIS_SET DZVP-MOLOPT-SR-GTH  # basis set
+      POTENTIAL GTH-BLYP-q1         # pseudopotential
+    &END KIND
+
+    &KIND N
+      BASIS_SET DZVP-MOLOPT-SR-GTH  # basis set
+      POTENTIAL GTH-BLYP-q5         # pseudopotential
+    &END KIND
+
+    &KIND O
+      BASIS_SET DZVP-MOLOPT-SR-GTH  # basis set
+      POTENTIAL GTH-BLYP-q6         # pseudopotential
+    &END KIND
+
+    &KIND S
+      BASIS_SET DZVP-MOLOPT-SR-GTH  # basis set
+      POTENTIAL GTH-BLYP-q6         # pseudopotential
+    &END KIND
+
+    # define molecular geometry
+    &TOPOLOGY
+      COORD_FILE_NAME simbox.xyz
+      COORD_FILE_FORMAT XYZ
+    &END TOPOLOGY
+
+  &END SUBSYS
+
+&END FORCE_EVAL
+
+# restart settings
+&EXT_RESTART
+  RESTART_FILE_NAME ${PROJECT_NAME}-1.restart
+&END EXT_RESTART
