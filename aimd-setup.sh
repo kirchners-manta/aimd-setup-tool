@@ -100,7 +100,7 @@ for file in ${infiles[@]}; do
     sed -i "s@project_name@$PNAME@g" $file
     sed -i "s@box_length@$BLENGTH@g" $file
     sed -i "s@simbox_xyz@$COORDS@g" $file
-    sed -i "s@thermostat@$THERMO@g" $file
+    sed -i "s@thermostat_type@$THERMO@g" $file
 done
 
 # copy the cluster run script and adjust it

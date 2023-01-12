@@ -9,7 +9,7 @@
 @SET PROJECT_NAME project_name
 @SET BOX_LENGTH box_length
 @SET SIMBOX_XYZ simbox_xyz
-@SET THERMO thermostat
+@SET THERMO thermostat_type
 
 # global settings
 &GLOBAL
@@ -34,9 +34,9 @@
     # thermostat settings
     &THERMOSTAT
       REGION GLOBAL             # thermostat region, GLOBAL is recommended for AIMD production, MASSIVE for AIMD equilibration
-      TYPE ${THERMO}                 # thermostat type, e.g. ${THERMO} or NOSE (Nose-Hoover)
+      TYPE ${THERMO}                 # thermostat type, e.g. CSVR or NOSE (Nose-Hoover)
 
-      # ${THERMO} thermostat settings
+      # coupling constant settings
       &${THERMO}
        TIMECON 100              # time constant in fs
       &END ${THERMO}
