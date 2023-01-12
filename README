@@ -1,4 +1,19 @@
 # AIMD template
 ---
 
-collection of input files to setup an AIMD simulation
+Script and collection of input files to set up an AIMD simulation.
+
+I recommend adding the script `aimd-setup.py` to your path, e.g. by creating a symlink to your bin. 
+
+```bash
+ln -s ABSOLUTE_PATH_TO_THIS_DIR/aimd-setup.py ~/bin/aimd-setup
+```
+
+Doing so, you can use the script by:
+    
+```bash
+aimd-setup ARGUMENTS
+```
+
+Information on the program is printed when calling it without arguments or with the -h option.
+

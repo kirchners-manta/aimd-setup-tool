@@ -11,6 +11,8 @@
 @SET BOX_LENGTH box_length
 @SET SIMBOX_XYZ simbox_xyz
 @SET THERMO thermostat_type
+@SET TEMP temperature
+@SET NSTEPS number_of_steps
 
 # global settings
 &GLOBAL
@@ -28,9 +30,9 @@
   # AIMD settings
   &MD
     ENSEMBLE NVT                # ensemble
-    STEPS 10000                 # number of MD steps
+    STEPS ${NSTEPS}             # number of MD steps
     TIMESTEP 0.5                # time step in fs
-    TEMPERATURE 330.0           # temperature in K
+    TEMPERATURE ${TEMP}         # temperature in K
 
     # thermostat settings
     &THERMOSTAT
