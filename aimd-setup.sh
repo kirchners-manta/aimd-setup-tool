@@ -11,6 +11,13 @@ set -eo pipefail
 # -b: box length
 # -c: coordinates of system
 # -t: thermostat
+# -te: temperature of equilibration run
+# -tr: temperature of relaxation run
+# -tp: temperature of production run
+# -se: number of steps in equilibration run
+# -sr: number of steps in relaxation run
+# -sp: number of steps in production run
+
 while getopts "p:b:c:t:" opt; do
     case $opt in
     p)
