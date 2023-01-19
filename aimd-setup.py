@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
 # Script to setup an AIMD simualtion with CP2K
-# written by Tom Frömbgen 2023-01-12
+# Written by Tom Frömbgen
+# Last modified 2023-01-19
 
 #############################################
 
@@ -52,7 +53,7 @@ parser.add_argument("-b", "--boxsize", type=float,
 parser.add_argument("-c", "--coord", type=str,
                     help="coordinate file", default="simbox.xyz")
 parser.add_argument("-t", "--thermo", type=str,
-                    help="thermostat", default="nose")
+                    help="thermostat", default="NOSE")
 parser.add_argument("--t-equi", type=float,
                     help="equilibration temperature in K", default=400.0)
 parser.add_argument("--t-relax", type=float,
@@ -65,6 +66,10 @@ parser.add_argument("--steps-relax", type=int,
                     help="number of relaxation steps", default=10000)
 parser.add_argument("--steps-prod", type=int,
                     help="number of production steps", default=60000)
+parser.add_argument("-f", "--func", type=str,
+                    help="density functional", default="BLYP")
+parser.add_argument("-b", "--basis", type=str,
+                    help="basis set", default="DZVP")
 
 # parse arguments
 args = parser.parse_args()
@@ -79,13 +84,15 @@ print("The following arguments were given (including defaults):")
 print("Project name:", args.project)
 print("Box size [Angstrom]:", args.boxsize)
 print("Coordinate file:", args.coord)
-print("Thermostat:", args.thermo)
+print("Thermostat:", args.thermo.upper())
 print("Equilibration temperature [K]:", args.t_equi)
 print("Relaxation temperature [K]:", args.t_relax)
 print("Production temperature [K]:", args.t_prod)
 print("Equilibration steps:", args.steps_equi)
 print("Relaxation steps:", args.steps_relax)
 print("Production steps:", args.steps_prod)
+print("Density functional:", args.func.upper())
+print("Basis set:", args.basis.upper() + "MOLOPT-SR-GTH")
 print("")
 
 # check if the project directory exists
