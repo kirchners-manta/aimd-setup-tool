@@ -43,7 +43,7 @@ def getFileList(path: str, regex: str) -> list:
 # define command line arguments
 parser = argparse.ArgumentParser(prog="aimd-setup.py",
                                  description="Script to setup an AIMD simualtion with CP2K",
-                                 epilog="Written for the Kirchner group by Tom Frömbgen. Last modified 2023-01-12.",
+                                 epilog="Written for the Kirchner group by Tom Frömbgen. Last modified 2023-01-19.",
                                  add_help=True)
 
 parser.add_argument("-p", "--project", type=str,
