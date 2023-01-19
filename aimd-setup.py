@@ -52,7 +52,7 @@ parser.add_argument("-b", "--boxsize", type=float,
                     help="box size in Angstrom", default=20.0)
 parser.add_argument("-c", "--coord", type=str,
                     help="coordinate file", default="simbox.xyz")
-parser.add_argument("-t", "--thermo", type=str,
+parser.add_argument("--thermo", type=str,
                     help="thermostat", default="NOSE")
 parser.add_argument("--t-equi", type=float,
                     help="equilibration temperature in K", default=400.0)
@@ -66,9 +66,9 @@ parser.add_argument("--steps-relax", type=int,
                     help="number of relaxation steps", default=10000)
 parser.add_argument("--steps-prod", type=int,
                     help="number of production steps", default=60000)
-parser.add_argument("-f", "--func", type=str,
+parser.add_argument("--func", type=str,
                     help="density functional", default="BLYP")
-parser.add_argument("-b", "--basis", type=str,
+parser.add_argument("--basis", type=str,
                     help="basis set", default="DZVP")
 
 # parse arguments
