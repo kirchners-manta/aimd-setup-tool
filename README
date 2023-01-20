@@ -9,13 +9,11 @@ I recommend adding the script `aimd-setup.py` to your path, e.g. by creating a s
 ln -s ABSOLUTE_PATH_TO_THIS_DIR/aimd-setup.py ~/bin/aimd-setup
 ```
 
-Doing so, you can use the script by:
+Doing so, you can call the program from anywhere. Calling it with the `-h` option will print a help message with all the options.
     
 ```bash
-aimd-setup ARGUMENTS
+aimd-setup -h
 ```
-
-Information on the program is printed when calling it without arguments or with the -h option.
 
 At the moment, this program does the following, when properly called:
 * It creates a new directory with the project name
@@ -26,3 +24,4 @@ At the moment, this program does the following, when properly called:
   * [Production](input/prod.inp) input file 
   * CP2K data files ([basis set](data/BASIS_MOLOPT), [pseudopotentials](data/GTH_POTENTIALS), [dispersion correction](data/dftd3.dat))
   * A [runscript](execute/run_cp2k_hedy.sh) to run the simulation on hedy
+* It lets you know about a successful or erroneous setup

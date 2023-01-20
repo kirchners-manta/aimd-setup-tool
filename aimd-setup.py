@@ -43,7 +43,7 @@ def getFileList(path: str, regex: str) -> list:
 # define command line arguments
 parser = argparse.ArgumentParser(prog="aimd-setup.py",
                                  description="Script to setup an AIMD simualtion with CP2K",
-                                 epilog="Written for the Kirchner group by Tom Frömbgen. Last modified 2023-01-20.",
+                                 epilog="Written for the Kirchner group by Tom Frömbgen. Internal use only.",
                                  add_help=True)
 
 parser.add_argument("-p", "--project", type=str, metavar="PROJECT_NAME",
@@ -79,22 +79,6 @@ if len(sys.argv) == 1:
     parser.print_help()
     sys.exit()
 
-# print the arguments
-print("The following arguments were given (including defaults):")
-print("Project name:", args.project)
-print("Box size [Angstrom]:", args.boxsize)
-print("Coordinate file:", args.coord)
-print("Thermostat:", args.thermo.upper())
-print("Equilibration temperature [K]:", args.t_equi)
-print("Relaxation temperature [K]:", args.t_relax)
-print("Production temperature [K]:", args.t_prod)
-print("Equilibration steps:", args.steps_equi)
-print("Relaxation steps:", args.steps_relax)
-print("Production steps:", args.steps_prod)
-print("Density functional:", args.func.upper())
-print("Basis set:", args.basis.upper() + "MOLOPT-SR-GTH")
-print("")
-
 # check if the project directory exists
 # if yes, ask if it should be overwritten
 # if no, create it
@@ -112,23 +96,85 @@ else:
     print("Creating project directory '" + args.project + "'.\n")
     os.system("mkdir " + args.project)
 
-# check if the coordinate file exists
-if not os.path.isfile(args.coord):
-    print(" *** Warning: coordinate file '" + args.coord + "' does not exist.")
-    print("     This will cause an error in CP2K if you do not add it afterwards.\n")
-
-# check if a valid thermostat was given. If no, print warning.
-if args.thermo != "nose" and args.thermo != "csvr":
+# check if a valid thermostat was given
+# If yes, capitalize it
+if args.thermo.upper() == "NOSE" or args.thermo.upper() == "CSVR":
+    args.thermo = args.thermo.upper()
+# else, print warning and exit
+else:
     print(" *** Warning: thermostat '" + args.thermo + "' is not valid.")
     print("     Valid options are 'NOSE' (Nose-Hoover) and 'CSVR'.\n")
-# else, capitalize the thermostat name
+    sys.exit()
+
+# check if a valid density functional was given
+# If yes, capitalize it
+functionals = ["BLYP", "BP", "PADE", "PBE", "REVPBE"]
+if args.func.upper() in functionals:
+    args.func = args.func.upper()
+    # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
+    if args.func == "REVPBE":
+        pp_func = "PBE"
+    # else use the given functional
+    else:
+        pp_func = args.func
+# else, print warning and exit
 else:
-    args.thermo = args.thermo.upper()
+    print(" *** Warning: density functional '" + args.func + "' is not valid.")
+    print("     Valid options are:")
+    for f in functionals:
+        print("     ", f)
+    print("")
+    sys.exit()
+
+# check if a valid basis set was given
+# If yes, capitalize it
+basis_sets = ["SVZ", "DZVP", "TZVP", "TZV2P", "TZV2PX", ]
+if args.basis.upper() in basis_sets:
+    # if a cardinal number > 2 is given, print warning
+    if args.basis.upper() in ["TZVP", "TZV2P", "TZV2PX", ]:
+        print(" *** Warning: basis set '" + args.basis +
+              "' is valid, but not available in the short range form. This may lead to drastically increased computation time.\n")
+        args.basis = args.basis.upper() + "-MOLOPT-GTH"
+    else:
+        args.basis = args.basis.upper() + "-MOLOPT-SR-GTH"
+# else, print warning and exit
+else:
+    print(" *** Warning: basis set '" + args.basis + "' is not valid.")
+    print("     Valid options are:")
+    for b in basis_sets:
+        print("     ", b)
+    print("")
+    sys.exit()
+
+# print the arguments
+print("The following arguments were given (including defaults):")
+print("Project name:", args.project)
+print("Box size [Angstrom]:", args.boxsize)
+print("Coordinate file:", args.coord)
+print("Thermostat:", args.thermo)
+print("Equilibration temperature [K]:", args.t_equi)
+print("Relaxation temperature [K]:", args.t_relax)
+print("Production temperature [K]:", args.t_prod)
+print("Equilibration steps:", args.steps_equi)
+print("Relaxation steps:", args.steps_relax)
+print("Production steps:", args.steps_prod)
+print("Density functional:", args.func)
+print("Basis set:", args.basis)
+print("")
 
 #############################################
 
 # get the absolute path of the directory where the script is located
 script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# check if all relevant files are present in the script directory
+# if not, print warning and exit
+files = [script_dir + "/input/geoopt.inp", script_dir + "/input/eq.inp",
+         script_dir + "/input/relax.inp", script_dir + "/input/prod.inp", script_dir + "/data/BASIS_MOLOPT", script_dir + "/data/GTH_POTENTIALS", script_dir + "/data/dftd3.dat", script_dir + "/execute/run_cp2k_hedy.sh"]
+for f in files:
+    if not os.path.isfile(f):
+        sys.exit(" *** Warning: Input file '" + f +
+                 "' does not exist. Reinstall this setup tool. Exiting.")
 
 # get the absolute path of the project directory
 project_dir = os.path.abspath(args.project)
@@ -136,8 +182,22 @@ project_dir = os.path.abspath(args.project)
 # get the abs path of the directory from which the script is called
 start_dir = os.getcwd()
 
+# get absolute path of the coordinate file
+abs_coord = os.path.abspath(args.coord)
+# get basename of the coordinate file
+coord_basename = os.path.basename(abs_coord)
+
 # change to the project directory
 os.chdir(project_dir)
+
+# check if the coordinate file exists
+# if yes, copy it to the project directory
+if os.path.isfile(abs_coord):
+    os.system("cp " + abs_coord + " .")
+# print warning if not
+else:
+    print(" *** Warning: coordinate file '" + abs_coord + "' does not exist.")
+    print("     This will cause an error in CP2K if you do not add it afterwards.\n")
 
 # copy the template files to the project directory
 os.system("cp " + script_dir + "/input/* .")
@@ -161,65 +221,89 @@ for i, file in enumerate(cp2k_infiles):
         lines = []
         lines = f.readlines()
 
-        # for the geometry optimization: adjust project name, box length, coord file
+        # for the geometry optimization: adjust project name, box length, coord file, density functional, basis set, pseudopotential
         if i == 0:
             lines = [line.replace(
                 "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
             lines = [line.replace(
                 "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
             lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(args.coord)) for line in lines]
+                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
+            lines = [line.replace("FUNC density_functional", "FUNC " +
+                                  str(args.func)) for line in lines]
+            lines = [line.replace("BASIS basis_set", "BASIS " +
+                                  str(args.basis)) for line in lines]
+            lines = [line.replace(
+                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
             with open(file, "w") as g:
                 g.writelines(lines)
 
-        # for the equilibration: adjust project name, box length, coord file, thermostat, temperature and number of steps
+        # for the equilibration: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
         elif i == 1:
             lines = [line.replace(
-                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.boxsize)) for line in lines]
+                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
             lines = [line.replace(
                 "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
             lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(args.coord)) for line in lines]
+                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
             lines = [line.replace("THERMO thermostat_type",
                                   "THERMO " + str(args.thermo)) for line in lines]
             lines = [line.replace(
                 "TEMP temperature", "TEMP " + str(args.t_equi)) for line in lines]
             lines = [line.replace(
                 "NSTEPS number_of_steps", "NSTEPS " + str(args.steps_equi)) for line in lines]
+            lines = [line.replace("FUNC density_functional", "FUNC " +
+                                  str(args.func)) for line in lines]
+            lines = [line.replace("BASIS basis_set", "BASIS " +
+                                  str(args.basis)) for line in lines]
+            lines = [line.replace(
+                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
             with open(file, "w") as g:
                 g.writelines(lines)
 
-        # for the relaxation: adjust project name, box length, coord file, thermostat, temperature and number of steps
+        # for the relaxation: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
         elif i == 2:
             lines = [line.replace(
-                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.boxsize)) for line in lines]
+                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
             lines = [line.replace(
                 "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
             lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(args.coord)) for line in lines]
+                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
             lines = [line.replace("THERMO thermostat_type",
                                   "THERMO " + str(args.thermo)) for line in lines]
             lines = [line.replace(
                 "TEMP temperature", "TEMP " + str(args.t_relax)) for line in lines]
             lines = [line.replace(
                 "NSTEPS number_of_steps", "NSTEPS " + str(args.steps_relax)) for line in lines]
+            lines = [line.replace("FUNC density_functional", "FUNC " +
+                                  str(args.func)) for line in lines]
+            lines = [line.replace("BASIS basis_set", "BASIS " +
+                                  str(args.basis)) for line in lines]
+            lines = [line.replace(
+                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
             with open(file, "w") as g:
                 g.writelines(lines)
 
-        # for the production: adjust project name, box length, coord file, thermostat, temperature and number of steps
+        # for the production: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
         elif i == 3:
             lines = [line.replace(
-                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.boxsize)) for line in lines]
+                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
             lines = [line.replace(
                 "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
             lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(args.coord)) for line in lines]
+                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
             lines = [line.replace("THERMO thermostat_type",
                                   "THERMO " + str(args.thermo)) for line in lines]
             lines = [line.replace(
                 "TEMP temperature", "TEMP " + str(args.t_prod)) for line in lines]
             lines = [line.replace(
                 "NSTEPS number_of_steps", "NSTEPS " + str(args.steps_prod)) for line in lines]
+            lines = [line.replace("FUNC density_functional", "FUNC " +
+                                  str(args.func)) for line in lines]
+            lines = [line.replace("BASIS basis_set", "BASIS " +
+                                  str(args.basis)) for line in lines]
+            lines = [line.replace(
+                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
             with open(file, "w") as g:
                 g.writelines(lines)
 
