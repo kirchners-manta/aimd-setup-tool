@@ -70,6 +70,8 @@ parser.add_argument("--func", type=str, metavar="DENSITY_FUNCTIONAL",
                     help="density functional", default="BLYP")
 parser.add_argument("--basis", type=str, metavar="BASIS_SET",
                     help="basis set", default="DZVP")
+parser.add_argument("-w", "--wannier", help="calculate Wannier functions in production run",
+                    default=False, action="store_true")
 
 # parse arguments
 args = parser.parse_args()
@@ -160,6 +162,7 @@ print("Relaxation steps:", args.steps_relax)
 print("Production steps:", args.steps_prod)
 print("Density functional:", args.func)
 print("Basis set:", args.basis)
+print("Calculate Wannier functions:", args.wannier)
 print("")
 
 #############################################
@@ -304,6 +307,22 @@ for i, file in enumerate(cp2k_infiles):
                                   str(args.basis)) for line in lines]
             lines = [line.replace(
                 "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
+
+            # if wannier is requested, adjust the input file
+            # remove the comment symbols (#) from the wannier section
+            if args.wannier:
+                for j, line in enumerate(lines):
+                    # find start of wannier section
+                    if "&LOCALIZE" in line:
+                        # remove comment symbols from the following lines until the end of the section
+                        for k in range(j, len(lines)):
+                            if "&END LOCALIZE" in lines[k]:
+                                lines[k] = lines[k][1:]
+                                break
+                            # remove first comment symbol
+                            else:
+                                lines[k] = lines[k][1:]
+
             with open(file, "w") as g:
                 g.writelines(lines)
 
