@@ -2,7 +2,7 @@
 
 # Script to setup an AIMD simualtion with CP2K
 # Written by Tom Frömbgen
-# Last modified 2023-01-19
+# Last modified 2023-01-20
 
 #############################################
 
@@ -43,32 +43,32 @@ def getFileList(path: str, regex: str) -> list:
 # define command line arguments
 parser = argparse.ArgumentParser(prog="aimd-setup.py",
                                  description="Script to setup an AIMD simualtion with CP2K",
-                                 epilog="Written for the Kirchner group by Tom Frömbgen. Last modified 2023-01-19.",
+                                 epilog="Written for the Kirchner group by Tom Frömbgen. Last modified 2023-01-20.",
                                  add_help=True)
 
-parser.add_argument("-p", "--project", type=str,
-                    help="project name", default="myproject")
+parser.add_argument("-p", "--project", type=str, metavar="PROJECT_NAME",
+                    help="project name", required=True,)
 parser.add_argument("-b", "--boxsize", type=float,
-                    help="box size in Angstrom", default=20.0)
-parser.add_argument("-c", "--coord", type=str,
-                    help="coordinate file", default="simbox.xyz")
-parser.add_argument("--thermo", type=str,
+                    help="box size in Angstrom", required=True,)
+parser.add_argument("-c", "--coord", type=str, metavar="COORDINATE_FILE",
+                    help="coordinate file (xyz format)", required=True,)
+parser.add_argument("--thermo", type=str, metavar="THERMOSTAT",
                     help="thermostat", default="NOSE")
-parser.add_argument("--t-equi", type=float,
+parser.add_argument("--t-equi", type=float, metavar="TEMPERATURE",
                     help="equilibration temperature in K", default=400.0)
-parser.add_argument("--t-relax", type=float,
+parser.add_argument("--t-relax", type=float, metavar="TEMPERATURE",
                     help="relaxation temperature in K", default=350.0)
-parser.add_argument("--t-prod", type=float,
+parser.add_argument("--t-prod", type=float, metavar="TEMPERATURE",
                     help="production temperature in K", default=350.0)
-parser.add_argument("--steps-equi", type=int,
+parser.add_argument("--steps-equi", type=int, metavar="N_STEPS",
                     help="number of equilibration steps", default=20000)
-parser.add_argument("--steps-relax", type=int,
+parser.add_argument("--steps-relax", type=int, metavar="N_STEPS",
                     help="number of relaxation steps", default=10000)
-parser.add_argument("--steps-prod", type=int,
+parser.add_argument("--steps-prod", type=int, metavar="N_STEPS",
                     help="number of production steps", default=60000)
-parser.add_argument("--func", type=str,
+parser.add_argument("--func", type=str, metavar="DENSITY_FUNCTIONAL",
                     help="density functional", default="BLYP")
-parser.add_argument("--basis", type=str,
+parser.add_argument("--basis", type=str, metavar="BASIS_SET",
                     help="basis set", default="DZVP")
 
 # parse arguments
@@ -120,7 +120,7 @@ if not os.path.isfile(args.coord):
 # check if a valid thermostat was given. If no, print warning.
 if args.thermo != "nose" and args.thermo != "csvr":
     print(" *** Warning: thermostat '" + args.thermo + "' is not valid.")
-    print("     Valid options are 'nose' (Nose-Hoover) and 'csvr'.\n")
+    print("     Valid options are 'NOSE' (Nose-Hoover) and 'CSVR'.\n")
 # else, capitalize the thermostat name
 else:
     args.thermo = args.thermo.upper()
