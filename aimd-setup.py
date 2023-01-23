@@ -2,7 +2,7 @@
 
 # Script to setup an AIMD simualtion with CP2K
 # Written by Tom Frömbgen
-# Last modified 2023-01-20
+# Last modified 2023-01-23
 
 #############################################
 
@@ -12,8 +12,10 @@ import argparse
 import os
 from pathlib import Path
 
-# define useful functions
+# import routines
+import routines
 
+# define useful functions
 
 def getFileList(path: str, regex: str) -> list:
     """Get a list of files in a directory.
@@ -106,7 +108,7 @@ if args.thermo.upper() == "NOSE" or args.thermo.upper() == "CSVR":
 else:
     print(" *** Warning: thermostat '" + args.thermo + "' is not valid.")
     print("     Valid options are 'NOSE' (Nose-Hoover) and 'CSVR'.\n")
-    sys.exit()
+    sys.exit("")
 
 # check if a valid density functional was given
 # If yes, capitalize it
@@ -125,8 +127,7 @@ else:
     print("     Valid options are:")
     for f in functionals:
         print("     ", f)
-    print("")
-    sys.exit()
+    sys.exit("")
 
 # check if a valid basis set was given
 # If yes, capitalize it
@@ -145,8 +146,7 @@ else:
     print("     Valid options are:")
     for b in basis_sets:
         print("     ", b)
-    print("")
-    sys.exit()
+    sys.exit("")
 
 # print the arguments
 print("The following arguments were given (including defaults):")
@@ -161,9 +161,14 @@ print("Equilibration steps:", args.steps_equi)
 print("Relaxation steps:", args.steps_relax)
 print("Production steps:", args.steps_prod)
 print("Density functional:", args.func)
+print("Pseudopotential:", pp_func)
 print("Basis set:", args.basis)
 print("Calculate Wannier functions:", args.wannier)
 print("")
+
+# create a dictionary with the arguments and add pp_func
+args_dict = vars(args)
+args_dict["pp_func"] = pp_func
 
 #############################################
 
@@ -215,127 +220,14 @@ if len(cp2k_infiles) != 4:
 cp2k_infiles = [cp2k_infiles[1], cp2k_infiles[0],
                 cp2k_infiles[3], cp2k_infiles[2]]
 
-# loop over the cp2k input files and adjust them according to user input
-for i, file in enumerate(cp2k_infiles):
-
-    # open the file
-    with open(file, "r") as f:
-        # the file is read into a list of lines, the string is changed and the file is written again
-        lines = []
-        lines = f.readlines()
-
-        # for the geometry optimization: adjust project name, box length, coord file, density functional, basis set, pseudopotential
-        if i == 0:
-            lines = [line.replace(
-                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
-            lines = [line.replace(
-                "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
-            lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
-            lines = [line.replace("FUNC density_functional", "FUNC " +
-                                  str(args.func)) for line in lines]
-            lines = [line.replace("BASIS basis_set", "BASIS " +
-                                  str(args.basis)) for line in lines]
-            lines = [line.replace(
-                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
-            with open(file, "w") as g:
-                g.writelines(lines)
-
-        # for the equilibration: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
-        elif i == 1:
-            lines = [line.replace(
-                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
-            lines = [line.replace(
-                "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
-            lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
-            lines = [line.replace("THERMO thermostat_type",
-                                  "THERMO " + str(args.thermo)) for line in lines]
-            lines = [line.replace(
-                "TEMP temperature", "TEMP " + str(args.t_equi)) for line in lines]
-            lines = [line.replace(
-                "NSTEPS number_of_steps", "NSTEPS " + str(args.steps_equi)) for line in lines]
-            lines = [line.replace("FUNC density_functional", "FUNC " +
-                                  str(args.func)) for line in lines]
-            lines = [line.replace("BASIS basis_set", "BASIS " +
-                                  str(args.basis)) for line in lines]
-            lines = [line.replace(
-                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
-            with open(file, "w") as g:
-                g.writelines(lines)
-
-        # for the relaxation: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
-        elif i == 2:
-            lines = [line.replace(
-                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
-            lines = [line.replace(
-                "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
-            lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
-            lines = [line.replace("THERMO thermostat_type",
-                                  "THERMO " + str(args.thermo)) for line in lines]
-            lines = [line.replace(
-                "TEMP temperature", "TEMP " + str(args.t_relax)) for line in lines]
-            lines = [line.replace(
-                "NSTEPS number_of_steps", "NSTEPS " + str(args.steps_relax)) for line in lines]
-            lines = [line.replace("FUNC density_functional", "FUNC " +
-                                  str(args.func)) for line in lines]
-            lines = [line.replace("BASIS basis_set", "BASIS " +
-                                  str(args.basis)) for line in lines]
-            lines = [line.replace(
-                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
-            with open(file, "w") as g:
-                g.writelines(lines)
-
-        # for the production: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
-        elif i == 3:
-            lines = [line.replace(
-                "PROJECT_NAME project_name", "PROJECT_NAME " + str(args.project)) for line in lines]
-            lines = [line.replace(
-                "BOX_LENGTH box_length", "BOX_LENGTH " + str(args.boxsize)) for line in lines]
-            lines = [line.replace(
-                "SIMBOX_XYZ simbox_xyz", "SIMBOX_XYZ " + str(coord_basename)) for line in lines]
-            lines = [line.replace("THERMO thermostat_type",
-                                  "THERMO " + str(args.thermo)) for line in lines]
-            lines = [line.replace(
-                "TEMP temperature", "TEMP " + str(args.t_prod)) for line in lines]
-            lines = [line.replace(
-                "NSTEPS number_of_steps", "NSTEPS " + str(args.steps_prod)) for line in lines]
-            lines = [line.replace("FUNC density_functional", "FUNC " +
-                                  str(args.func)) for line in lines]
-            lines = [line.replace("BASIS basis_set", "BASIS " +
-                                  str(args.basis)) for line in lines]
-            lines = [line.replace(
-                "PP_FUNC pseudopotential_functional", "PP_FUNC " + str(pp_func)) for line in lines]
-
-            # if wannier is requested, adjust the input file
-            # remove the comment symbols (#) from the wannier section
-            if args.wannier:
-                for j, line in enumerate(lines):
-                    # find start of wannier section
-                    if "&LOCALIZE" in line:
-                        # remove comment symbols from the following lines until the end of the section
-                        for k in range(j, len(lines)):
-                            if "&END LOCALIZE" in lines[k]:
-                                lines[k] = lines[k][1:]
-                                break
-                            # remove first comment symbol
-                            else:
-                                lines[k] = lines[k][1:]
-
-            with open(file, "w") as g:
-                g.writelines(lines)
+# adjust the input files
+routines.adjust_cp2k_input(cp2k_infiles, args_dict)
 
 # copy run script to project directory
 os.system("cp " + script_dir + "/execute/run_cp2k_hedy.sh .")
 
 # adjust the job name in the run script
-with open("./run_cp2k_hedy.sh", "r") as f:
-    lines = []
-    lines = f.readlines()
-    lines = [line.replace("PROJECT_NAME", str(args.project)) for line in lines]
-    with open("./run_cp2k_hedy.sh", "w") as g:
-        g.writelines(lines)
+routines.adjust_runscript("run_cp2k_hedy.sh", args.project)
 
 # copy the cp2k data files to the project directory
 os.system("cp " + script_dir + "/data/* .")

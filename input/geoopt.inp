@@ -6,14 +6,6 @@
 # the subsections are ordered alphabetically
 # within a subsection, keywords are ordered alphabetically and given first, followed by more subsections
 
-# define variables
-@SET PROJECT_NAME project_name
-@SET BOX_LENGTH box_length
-@SET SIMBOX_XYZ simbox_xyz
-@SET FUNC density_functional
-@SET BASIS basis_set
-@SET PP_FUNC pseudopotential_functional
-
 # global settings
 &GLOBAL
   ALLTOALL_SGL YES                # use single precision for alltoall communication
