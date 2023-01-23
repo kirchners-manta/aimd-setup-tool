@@ -220,6 +220,9 @@ if len(cp2k_infiles) != 4:
 cp2k_infiles = [cp2k_infiles[1], cp2k_infiles[0],
                 cp2k_infiles[3], cp2k_infiles[2]]
 
+# adjust the input files
+routines.adjust_cp2k_input(cp2k_infiles, args_dict)
+
 # copy run script to project directory
 os.system("cp " + script_dir + "/execute/run_cp2k_hedy.sh .")
 
