@@ -1,5 +1,6 @@
 # AIMD template
 ---
+*This project is still under development. Regularly updating your repo and reading this document is recommended.*
 
 Script and collection of input files to set up an AIMD simulation.
 
@@ -25,3 +26,5 @@ At the moment, this program does the following, when properly called:
   * CP2K data files ([basis set](data/BASIS_MOLOPT), [pseudopotentials](data/GTH_POTENTIALS), [dispersion correction](data/dftd3.dat))
   * A [runscript](execute/run_cp2k_hedy.sh) to run the simulation on hedy
 * It lets you know about a successful or erroneous setup
+
+**Currently, all you need as input is the project name, a file with the molecular structure / coordinates (in `.xyz` format) and box size.**
