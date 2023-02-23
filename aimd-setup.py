@@ -49,18 +49,18 @@ parser = argparse.ArgumentParser(prog="aimd-setup.py",
                                  epilog="Written for the Kirchner group by Tom Frömbgen. Internal use only.",
                                  add_help=True)
 
-parser.add_argument("-p", "--project", type=str, metavar="PROJECT_NAME",
-                    help="project name", required=True,)
-parser.add_argument("-t", "--type", type=str, metavar="JOB_TYPE",
-                    help="type of calculation to perform",
-                    options=["aimd", "bqb", "single-point"], default="aimd",)
-parser.add_argument("-s", "--boxsize", type=float,
-                    help="box size in Angstrom", metavar="A", default=10.0)
-parser.add_argument("-c", "--coord-file", type=str, metavar="COORDINATE_FILE",
+parser.add_argument("-p", type=str, metavar="PROJECT_NAME",
+                    help="project name", required=True, dest="project",)
+parser.add_argument("-t", type=str, metavar="JOB_TYPE",
+                    help="type of calculation to perform", dest="type",
+                    choices=["aimd", "bqb", "single-point"], default="aimd",)
+parser.add_argument("-s", type=float, dest="boxsize",
+                    help="box edge length in Angstrom", metavar="SIZE", default=10.0)
+parser.add_argument("-c", type=str, metavar="COORDINATE_FILE", dest="coord",
                     help="coordinate file (xyz format)", default="input.xyz",)
 parser.add_argument("--thermo", type=str, metavar="THERMOSTAT",
                     help="thermostat", default="nose",
-                    options=["nose", "csvr"])
+                    choices=["nose", "csvr"])
 parser.add_argument("--t-equi", type=float, metavar="TEMPERATURE",
                     help="equilibration temperature in K", default=400.0)
 parser.add_argument("--t-relax", type=float, metavar="TEMPERATURE",
@@ -73,14 +73,14 @@ parser.add_argument("--steps-relax", type=int, metavar="N_STEPS",
                     help="number of relaxation steps", default=10000)
 parser.add_argument("--steps-prod", type=int, metavar="N_STEPS",
                     help="number of production steps", default=60000)
-parser.add_argument("-f", "--func", type=str, metavar="DENSITY_FUNCTIONAL",
-                    help="density functional", default="BLYP",
-                    options=["blyp", "bp", "pade", "pbe", "revpbe"])
-parser.add_argument("-b", "--basis", type=str, metavar="BASIS_SET",
-                    help="basis set", default="DZVP",
-                    options=["svz", "dzvp", "tzvp", "tzv2p", "tzv2px"])
-parser.add_argument("-w", "--wannier", help="calculate Wannier functions in production run",
-                    default=False, action="store_true")
+parser.add_argument("-f", type=str, metavar="DENSITY_FUNCTIONAL",
+                    help="density functional", default="BLYP", dest="func",
+                    choices=["blyp", "bp", "pade", "pbe", "revpbe"])
+parser.add_argument("-b", type=str, metavar="BASIS_SET",
+                    help="basis set", default="DZVP", dest="basis",
+                    choices=["svz", "dzvp", "tzvp", "tzv2p", "tzv2px"])
+parser.add_argument("-w", help="calculate Wannier functions in production run",
+                    default=False, action="store_true", dest="wannier",)
 
 # parse arguments
 args = parser.parse_args()
@@ -112,6 +112,8 @@ args.func = args.func.upper()
 # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
 if args.func == "REVPBE":
     pp_func = "PBE"
+else:
+    pp_func = args.func
 
 # capitalize the basis set
 # if a cardinal number > 2 is given, print warning
@@ -128,8 +130,12 @@ args.thermo = args.thermo.upper()
 # print the arguments
 print("The following arguments were given (including defaults):")
 print("Project name:", args.project)
+print("Job type:", args.type)
 print("Box size [Angstrom]:", args.boxsize)
 print("Coordinate file:", args.coord)
+print("Density functional:", args.func)
+print("Pseudopotential:", pp_func)
+print("Basis set:", args.basis)
 print("Thermostat:", args.thermo)
 print("Equilibration temperature [K]:", args.t_equi)
 print("Relaxation temperature [K]:", args.t_relax)
@@ -137,9 +143,6 @@ print("Production temperature [K]:", args.t_prod)
 print("Equilibration steps:", args.steps_equi)
 print("Relaxation steps:", args.steps_relax)
 print("Production steps:", args.steps_prod)
-print("Density functional:", args.func)
-print("Pseudopotential:", pp_func)
-print("Basis set:", args.basis)
 print("Calculate Wannier functions:", args.wannier)
 print("")
 
