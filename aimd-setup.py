@@ -51,12 +51,16 @@ parser = argparse.ArgumentParser(prog="aimd-setup.py",
 
 parser.add_argument("-p", "--project", type=str, metavar="PROJECT_NAME",
                     help="project name", required=True,)
+parser.add_argument("-t", "--type", type=str, metavar="JOB_TYPE",
+                    help="type of calculation to perform",
+                    options=["aimd", "bqb", "single-point"], default="aimd",)
 parser.add_argument("-s", "--boxsize", type=float,
-                    help="box size in Angstrom", required=True,)
-parser.add_argument("-c", "--coord", type=str, metavar="COORDINATE_FILE",
-                    help="coordinate file (xyz format)", required=True,)
+                    help="box size in Angstrom", metavar="A", default=10.0)
+parser.add_argument("-c", "--coord-file", type=str, metavar="COORDINATE_FILE",
+                    help="coordinate file (xyz format)", default="input.xyz",)
 parser.add_argument("--thermo", type=str, metavar="THERMOSTAT",
-                    help="thermostat", default="NOSE")
+                    help="thermostat", default="nose",
+                    options=["nose", "csvr"])
 parser.add_argument("--t-equi", type=float, metavar="TEMPERATURE",
                     help="equilibration temperature in K", default=400.0)
 parser.add_argument("--t-relax", type=float, metavar="TEMPERATURE",
@@ -70,9 +74,11 @@ parser.add_argument("--steps-relax", type=int, metavar="N_STEPS",
 parser.add_argument("--steps-prod", type=int, metavar="N_STEPS",
                     help="number of production steps", default=60000)
 parser.add_argument("-f", "--func", type=str, metavar="DENSITY_FUNCTIONAL",
-                    help="density functional", default="BLYP")
+                    help="density functional", default="BLYP",
+                    options=["blyp", "bp", "pade", "pbe", "revpbe"])
 parser.add_argument("-b", "--basis", type=str, metavar="BASIS_SET",
-                    help="basis set", default="DZVP")
+                    help="basis set", default="DZVP",
+                    options=["svz", "dzvp", "tzvp", "tzv2p", "tzv2px"])
 parser.add_argument("-w", "--wannier", help="calculate Wannier functions in production run",
                     default=False, action="store_true")
 
@@ -101,53 +107,23 @@ else:
     print("Creating project directory '" + args.project + "'.\n")
     os.system("mkdir " + args.project)
 
-# check if a valid thermostat was given
-# If yes, capitalize it
-if args.thermo.upper() == "NOSE" or args.thermo.upper() == "CSVR":
-    args.thermo = args.thermo.upper()
-# else, print warning and exit
-else:
-    print(" *** Warning: thermostat '" + args.thermo + "' is not valid.")
-    print("     Valid options are 'NOSE' (Nose-Hoover) and 'CSVR'.\n")
-    sys.exit("")
+# capitalize the functional
+args.func = args.func.upper()
+# if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
+if args.func == "REVPBE":
+    pp_func = "PBE"
 
-# check if a valid density functional was given
-# If yes, capitalize it
-functionals = ["BLYP", "BP", "PADE", "PBE", "REVPBE"]
-if args.func.upper() in functionals:
-    args.func = args.func.upper()
-    # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
-    if args.func == "REVPBE":
-        pp_func = "PBE"
-    # else use the given functional
-    else:
-        pp_func = args.func
-# else, print warning and exit
+# capitalize the basis set
+# if a cardinal number > 2 is given, print warning
+if args.basis in ["tzvp", "tzv2p", "tzv2px", ]:
+    print(" *** Warning: basis set '" + args.basis +
+          "' is valid, but not available in the short range form. This may lead to drastically increased computation time.\n")
+    args.basis = args.basis + "-MOLOPT-GTH"
 else:
-    print(" *** Warning: density functional '" + args.func + "' is not valid.")
-    print("     Valid options are:")
-    for f in functionals:
-        print("     ", f)
-    sys.exit("")
+    args.basis = args.basis + "-MOLOPT-SR-GTH"
 
-# check if a valid basis set was given
-# If yes, capitalize it
-basis_sets = ["SVZ", "DZVP", "TZVP", "TZV2P", "TZV2PX", ]
-if args.basis.upper() in basis_sets:
-    # if a cardinal number > 2 is given, print warning
-    if args.basis.upper() in ["TZVP", "TZV2P", "TZV2PX", ]:
-        print(" *** Warning: basis set '" + args.basis +
-              "' is valid, but not available in the short range form. This may lead to drastically increased computation time.\n")
-        args.basis = args.basis.upper() + "-MOLOPT-GTH"
-    else:
-        args.basis = args.basis.upper() + "-MOLOPT-SR-GTH"
-# else, print warning and exit
-else:
-    print(" *** Warning: basis set '" + args.basis + "' is not valid.")
-    print("     Valid options are:")
-    for b in basis_sets:
-        print("     ", b)
-    sys.exit("")
+# capitalize the thermostat
+args.thermo = args.thermo.upper()
 
 # print the arguments
 print("The following arguments were given (including defaults):")
