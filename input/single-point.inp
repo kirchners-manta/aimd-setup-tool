@@ -1,0 +1,164 @@
+# CP2K input file for a single point calculation
+# as part of the AIMD setup tool
+# written by Tom Frömbgen, 2023-02-23
+
+# the sections are ordered as GLOBAL, FORCE_EVAL, EXT_RESTART
+# the subsections are ordered alphabetically
+# within a subsection, keywords are ordered alphabetically and given first, followed by more subsections
+
+# global settings
+&GLOBAL
+  ALLTOALL_SGL YES                # use single precision for alltoall communication
+  FFTW_PLAN_TYPE PATIENT          # FFTW plan type, PATIENT is recommended for long AIMD runs
+  PREFERRED_FFT_LIBRARY FFTW      # use FFTW for FFTs        
+  PRINT_LEVEL LOW                 # print level, low is sufficient
+  PROJECT ${PROJECT_NAME}         # project name  
+  RUN_TYPE ENERGY                 # type of calculation, e.g. GEO_OPT, MD, ENERGY
+&END GLOBAL
+
+# calculate energy and forces
+&FORCE_EVAL
+  METHOD QS                       # for AIMD, use QS (Quickstep)
+
+  # DFT settings
+  &DFT
+    BASIS_SET_FILE_NAME BASIS_MOLOPT
+    POTENTIAL_FILE_NAME GTH_POTENTIALS
+    
+    # multigrid settings
+    &MGRID
+      CUTOFF 280                  # cutoff for multigrid
+      NGRIDS 5                    # number of multigrid levels
+      REL_CUTOFF 50               # relative cutoff for multigrid
+    &END MGRID
+    
+    # quickstep settings
+    &QS
+      EPS_DEFAULT 1.0E-12         # default convergence threshold
+      EXTRAPOLATION_ORDER 4       # extrapolation order
+    &END QS
+    
+    # SCF settings
+    &SCF
+      EPS_SCF 1.0E-6              # SCF convergence threshold
+      MAX_SCF 20                  # maximum number of SCF cycles
+      SCF_GUESS RESTART           # restart from previous SCF cycle
+
+      # orbital transformation settings
+      &OT
+        MINIMIZER DIIS            # use DIIS minimizer
+        PRECONDITIONER FULL_SINGLE_INVERSE      # use full single inverse preconditioner
+      &END OT
+
+      # outer SCF settings
+      &OUTER_SCF
+        MAX_SCF 20                # maximum number of outer SCF cycles
+        EPS_SCF 1.0E-6            # outer SCF convergence threshold, take care: this value must be equal or smaller than the value for EPS_SCF in the &SCF section
+      &END OUTER_SCF
+
+    &END SCF
+    
+    # exchange-correlation settings
+    &XC
+      
+      # dispersion correction
+      &VDW_POTENTIAL
+        POTENTIAL_TYPE PAIR_POTENTIAL     # use pair potential
+
+        # define pairwise dispersion correction
+        &PAIR_POTENTIAL
+          PARAMETER_FILE_NAME dftd3.dat
+          REFERENCE_FUNCTIONAL ${FUNC}       # use parameters for functional defined in &XC_FUNCTIONAL
+          TYPE DFTD3(BJ)                  # use D3 dispersion correction with Becke-Johnson damping
+        &END PAIR_POTENTIAL
+
+      &END VDW_POTENTIAL
+
+      # functional
+      &XC_FUNCTIONAL ${FUNC}                 # functional
+      &END XC_FUNCTIONAL
+
+      # grid settings
+      &XC_GRID
+        XC_DERIV NN10_SMOOTH        # grid for XC derivatives
+        XC_SMOOTH_RHO NN10          # grid for XC smoothing
+      &END XC_GRID
+    &END XC
+
+  &END DFT
+
+  # molecular geometry
+  &SUBSYS
+
+    # define cell
+    &CELL
+      ABC ${BOX_LENGTH} ${BOX_LENGTH} ${BOX_LENGTH}     # cell dimensions in Angstrom
+      PERIODIC NONE                 # no periodic boundary conditions
+    &END CELL
+
+    # include coordinates from file
+    &COORD
+      @INCLUDE ${COORD_FILE}
+    &END COORD
+
+    # define species
+    &KIND H
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
+    &END KIND
+
+    &KIND D
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
+      ELEMENT H                           # element symbol
+      MASS 2.0141                         # mass in atomic mass units
+    &END KIND
+
+    &KIND B
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q3         # pseudopotential
+    &END KIND
+
+    &KIND C
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q4         # pseudopotential
+    &END KIND
+
+    &KIND N
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q5         # pseudopotential
+    &END KIND
+
+    &KIND P 
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q5         # pseudopotential
+    &END KIND
+
+    &KIND O
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q6         # pseudopotential
+    &END KIND
+
+    &KIND S
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q6         # pseudopotential
+    &END KIND
+
+    &KIND F
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
+    &END KIND
+
+    &KIND Cl
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
+    &END KIND
+
+    &KIND Br
+      BASIS_SET ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
+    &END KIND
+
+  &END SUBSYS
+
+&END FORCE_EVAL
