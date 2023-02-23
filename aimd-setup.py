@@ -17,6 +17,7 @@ import routines
 
 # define useful functions
 
+
 def getFileList(path: str, regex: str) -> list:
     """Get a list of files in a directory.
 
@@ -50,7 +51,7 @@ parser = argparse.ArgumentParser(prog="aimd-setup.py",
 
 parser.add_argument("-p", "--project", type=str, metavar="PROJECT_NAME",
                     help="project name", required=True,)
-parser.add_argument("-b", "--boxsize", type=float,
+parser.add_argument("-s", "--boxsize", type=float,
                     help="box size in Angstrom", required=True,)
 parser.add_argument("-c", "--coord", type=str, metavar="COORDINATE_FILE",
                     help="coordinate file (xyz format)", required=True,)
@@ -68,9 +69,9 @@ parser.add_argument("--steps-relax", type=int, metavar="N_STEPS",
                     help="number of relaxation steps", default=10000)
 parser.add_argument("--steps-prod", type=int, metavar="N_STEPS",
                     help="number of production steps", default=60000)
-parser.add_argument("--func", type=str, metavar="DENSITY_FUNCTIONAL",
+parser.add_argument("-f", "--func", type=str, metavar="DENSITY_FUNCTIONAL",
                     help="density functional", default="BLYP")
-parser.add_argument("--basis", type=str, metavar="BASIS_SET",
+parser.add_argument("-b", "--basis", type=str, metavar="BASIS_SET",
                     help="basis set", default="DZVP")
 parser.add_argument("-w", "--wannier", help="calculate Wannier functions in production run",
                     default=False, action="store_true")
