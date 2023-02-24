@@ -1,8 +1,9 @@
 # AIMD template
 ---
-*This project is still under development. Regularly updating your repo and reading this document is recommended.*
+*This project is still under development. 
+Regularly updating your repo and reading this document is recommended.*
 
-Script and collection of input files to set up an AIMD simulation.
+Python3 script and collection of input files to set up single point calculations, AIMD simulations or bqb file productions in CP2K.
 
 I recommend adding the script `aimd-setup.py` to your path, e.g. by creating a symlink to your bin. 
 
@@ -10,21 +11,26 @@ I recommend adding the script `aimd-setup.py` to your path, e.g. by creating a s
 ln -s ABSOLUTE_PATH_TO_THIS_DIR/aimd-setup.py ~/bin/aimd-setup
 ```
 
-Doing so, you can call the program from anywhere. Calling it with the `-h` option will print a help message with all the options.
+Doing so, you can call the program from anywhere. 
+Calling it with the `-h` option will print a help message with all the options.
     
 ```bash
 aimd-setup -h
 ```
+There is one required argument, the project name (using the `-p` flag). 
+This is the name of the directory in which all the files will be stored. 
 
-At the moment, this program does the following, when properly called:
-* It creates a new directory with the project name
-* Inside this directory, all the necessary input files are created
-  * [Geometry optimization](input/geoopt.inp) input file
-  * [Equilibration](input/eq.inp) input file 
-  * [Relaxation](input/relax.inp) input file 
-  * [Production](input/prod.inp) input file 
-  * CP2K data files ([basis set](data/BASIS_MOLOPT), [pseudopotentials](data/GTH_POTENTIALS), [dispersion correction](data/dftd3.dat))
-  * A [runscript](execute/run_cp2k_hedy.sh) to run the simulation on hedy
-* It lets you know about a successful or erroneous setup
+```bash
+aimd-setup -p PROJECT_NAME
+``` 
+If the directory already exists, the program will ask you if you want to overwrite it.
+Then, you can specify which type of calculation you want to set up with the `-t` flag.
+The options are:
+* `single-point`
+* `aimd` (default)
+* `bqb` (under development)
 
-**Currently, all you need as input is the project name, a file with the molecular structure / coordinates (in `.xyz` format) and box size.**
+There are more options to specify the calculation, e.g. energy cutoff, the number of steps, the time step, the temperature, etc.
+All of these options have default values. 
+Once you call the program and set up a calculation, the chosen options (including the default ones) will be printed to the screen.
+
