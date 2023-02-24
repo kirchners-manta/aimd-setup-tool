@@ -287,6 +287,18 @@ elif args.type == "single-point":
     # if yes, copy it to the project directory
     if os.path.isfile(abs_coord):
         os.system("cp " + abs_coord + " .")
+        # then, check if the coordinate file has two lines before the first atom
+        # if yes, remove the first two lines
+        with open(args.coord, "r") as f:
+            lines = f.readlines()
+            # if the first entry in the first line is a number, the file has two lines before the first atom
+            if lines[0].split()[0].isdigit():
+                # remove the first two lines
+                lines = lines[2:]
+                # write the new file
+                with open(args.coord, "w") as f:
+                    f.writelines(lines)
+
     # print warning if not
     else:
         print(" *** Warning: coordinate file '" +
