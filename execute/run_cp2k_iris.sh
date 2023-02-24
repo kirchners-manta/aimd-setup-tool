@@ -29,7 +29,7 @@ cat $PBS_NODEFILE >hosts_file
 
 # execute job
 which mpirun
-mpirun $CP2K_PATH single_point.inp >single_point.out
+mpirun $CP2K_PATH single-point.inp >single-point.out
 
 # copy files back and clean up
 cd $PBS_O_WORKDIR
