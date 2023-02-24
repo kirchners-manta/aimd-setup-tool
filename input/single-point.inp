@@ -99,7 +99,7 @@
 
     # include coordinates from file
     &COORD
-      @INCLUDE input.xyz
+      @INCLUDE ${COORD_FILE}
     &END COORD
 
     # define species
