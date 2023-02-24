@@ -157,6 +157,12 @@ runscript_name = "run_cp2k_" + args.queue + ".sh"
 project_dir = os.path.abspath(args.project)
 args.project = os.path.basename(args.project)
 
+# get absolute path of the coordinate file
+abs_coord = os.path.abspath(args.coord)
+
+# get basename of the coordinate file
+args.coord = os.path.basename(abs_coord)
+
 # print the arguments relevant for the type of calculation
 print("The following arguments were given (including defaults):")
 
@@ -214,12 +220,6 @@ for f in files:
 
 # get the abs path of the directory from which the script is called
 start_dir = os.getcwd()
-
-# get absolute path of the coordinate file
-abs_coord = os.path.abspath(args.coord)
-
-# get basename of the coordinate file
-coord_basename = os.path.basename(abs_coord)
 
 #############################################
 # setting up the calculation
