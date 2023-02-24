@@ -66,11 +66,23 @@ parser.add_argument("-f", type=str, metavar="FUNCTIONAL",
                     help="density functional", default="BLYP", dest="func",
                     choices=["blyp", "bp", "pade", "pbe", "revpbe"])
 
+parser.add_argument("--n-bqb", type=int, metavar="N",
+                    help="number of bqb files to generate", default=6,
+                    dest="n_bqb",)
+
 parser.add_argument("-q", type=str, metavar="QUEUE",
                     help="queue to submit the job to", default="hedy", dest="queue", choices=["hedy", "iris", ])
 
 parser.add_argument("-s", type=float, dest="boxsize",
                     help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
+
+parser.add_argument("--spec", type=str, metavar="SPECTRUM",
+                    dest="spectrum", help="spectrum to calculate", default="ir",
+                    choices=["ir", "vcd", "raman", "roa"],)
+
+parser.add_argument("--steps-bqb", type=int, metavar="N",
+                    help="number of steps per bqb file", default=10000,
+                    dest="steps_bqb",)
 
 parser.add_argument("--steps-equi", type=int, metavar="N",
                     help="number of equilibration steps", default=20000)
