@@ -6,7 +6,7 @@
 # PBS Job
 #PBS -N PROJECT_NAME
 #PBS -l nodes=1:ppn=64
-#PBS -q hedy
+#PBS -q QUEUE_NAME
 
 # For iris and hedy (only one node)
 

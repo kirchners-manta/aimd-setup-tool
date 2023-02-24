@@ -66,6 +66,9 @@ parser.add_argument("-f", type=str, metavar="FUNCTIONAL",
                     help="density functional", default="BLYP", dest="func",
                     choices=["blyp", "bp", "pade", "pbe", "revpbe"])
 
+parser.add_argument("-q", type=str, metavar="QUEUE",
+                    help="queue to submit the job to", default="hedy", dest="queue", choices=["hedy", "iris", ])
+
 parser.add_argument("-s", type=float, dest="boxsize",
                     help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
 
@@ -147,6 +150,13 @@ args.thermo = args.thermo.upper()
 args_dict = vars(args)
 args_dict["pp_func"] = pp_func
 
+# runscript name
+runscript_name = "run_cp2k_" + args.queue + ".sh"
+
+# project path
+project_dir = os.path.abspath(args.project)
+args.project = os.path.basename(args.project)
+
 # print the arguments relevant for the type of calculation
 print("The following arguments were given (including defaults):")
 
@@ -169,13 +179,16 @@ if args.type == "aimd":
     print("Relaxation steps:", args.steps_relax)
     print("Production steps:", args.steps_prod)
     print("Calculate Wannier functions:", args.wannier)
-    print("")
 
 elif args.type == "bqb":
     print("")
 
 elif args.type == "single-point":
     print("Energy convergence criterion [Hartree]:", args.e_conv)
+
+print("Queue:", args.queue)
+print("Runscript:", runscript_name)
+print("")
 
 #############################################
 
@@ -199,9 +212,6 @@ for f in files:
         sys.exit(" *** Warning: Input file '" + f +
                  "' does not exist. Reinstall this setup tool. Exiting.")
 
-# get the absolute path of the project directory
-project_dir = os.path.abspath(args.project)
-
 # get the abs path of the directory from which the script is called
 start_dir = os.getcwd()
 
@@ -214,6 +224,8 @@ coord_basename = os.path.basename(abs_coord)
 #############################################
 # setting up the calculation
 # depending on the type of calculation, different input files are needed
+
+# AIMD
 if args.type == "aimd":
 
     # change to the project directory
@@ -240,13 +252,62 @@ if args.type == "aimd":
         os.system("cp " + f + " .")
 
     # adjust the input files
-    routines.adjust_cp2k_input(cp2k_infiles, args_dict)
+    routines.adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles,
+                                    data=args_dict)
 
     # copy run script to project directory
-    os.system("cp " + script_dir + "/execute/run_cp2k_hedy.sh .")
+    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
 
     # adjust the job name in the run script
-    routines.adjust_runscript("run_cp2k_hedy.sh", args.project)
+    routines.adjust_runscript(runscript=runscript_name,
+                              project=args.project,
+                              queue=args.queue,)
+
+    # copy the cp2k data files to the project directory
+    os.system("cp " + script_dir + "/data/* .")
+
+    # in the end, change back to the directory from which the script was called
+    os.chdir(start_dir)
+
+# BQB
+elif args.type == "bqb":
+
+    sys.exit(" *** Warning: BQB calculation not yet implemented. Exiting.\n")
+
+# single-point
+elif args.type == "single-point":
+
+    # change to the project directory
+    os.chdir(project_dir)
+
+    # check if the coordinate file exists
+    # if yes, copy it to the project directory
+    if os.path.isfile(abs_coord):
+        os.system("cp " + abs_coord + " .")
+    # print warning if not
+    else:
+        print(" *** Warning: coordinate file '" +
+              abs_coord + "' does not exist.")
+        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+
+    # define the input files
+    cp2k_infiles = [script_dir + "/input/single-point.inp", ]
+
+    # copy the template files to the project directory
+    for f in cp2k_infiles:
+        os.system("cp " + f + " .")
+
+    # adjust the input files
+    routines.adjust_cp2k_input_sp(cp2k_infiles=cp2k_infiles,
+                                  data=args_dict,)
+
+    # copy run script to project directory
+    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
+
+    # adjust the job name in the run script
+    routines.adjust_runscript(runscript=runscript_name,
+                              project=args.project,
+                              queue=args.queue,)
 
     # copy the cp2k data files to the project directory
     os.system("cp " + script_dir + "/data/* .")
@@ -255,4 +316,5 @@ if args.type == "aimd":
     os.chdir(start_dir)
 
 # print a message that the script has finished
-print("Finished setting up the project '" + str(args.project) + "'.")
+print("Finished setting up the project '" +
+      args.project + "' in " + project_dir + " .")
