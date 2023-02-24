@@ -13,7 +13,7 @@
   FFTW_PLAN_TYPE PATIENT          # FFTW plan type, PATIENT is recommended for long AIMD runs
   PREFERRED_FFT_LIBRARY FFTW      # use FFTW for FFTs        
   PRINT_LEVEL LOW                 # print level, low is sufficient
-  PROJECT /home/froembgen/test/abc         # project name  
+  PROJECT ${PROJECT_NAME}         # project name  
   RUN_TYPE ENERGY                 # type of calculation, e.g. GEO_OPT, MD, ENERGY
 &END GLOBAL
 
