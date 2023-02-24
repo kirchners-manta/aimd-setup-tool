@@ -51,34 +51,50 @@ parser = argparse.ArgumentParser(prog="aimd-setup.py",
 
 parser.add_argument("-p", type=str, metavar="PROJECT_NAME",
                     help="project name", required=True, dest="project",)
-parser.add_argument("-t", type=str, metavar="JOB_TYPE",
-                    help="type of calculation to perform", dest="type",
-                    choices=["aimd", "bqb", "single-point"], default="aimd",)
-parser.add_argument("-s", type=float, dest="boxsize",
-                    help="box edge length in Angstrom", metavar="SIZE", default=10.0)
-parser.add_argument("-c", type=str, metavar="COORDINATE_FILE", dest="coord",
-                    help="coordinate file (xyz format)", default="input.xyz",)
-parser.add_argument("--thermo", type=str, metavar="THERMOSTAT",
-                    help="thermostat", default="nose",
-                    choices=["nose", "csvr"])
-parser.add_argument("--t-equi", type=float, metavar="TEMPERATURE",
-                    help="equilibration temperature in K", default=400.0)
-parser.add_argument("--t-relax", type=float, metavar="TEMPERATURE",
-                    help="relaxation temperature in K", default=350.0)
-parser.add_argument("--t-prod", type=float, metavar="TEMPERATURE",
-                    help="production temperature in K", default=350.0)
-parser.add_argument("--steps-equi", type=int, metavar="N_STEPS",
-                    help="number of equilibration steps", default=20000)
-parser.add_argument("--steps-relax", type=int, metavar="N_STEPS",
-                    help="number of relaxation steps", default=10000)
-parser.add_argument("--steps-prod", type=int, metavar="N_STEPS",
-                    help="number of production steps", default=60000)
-parser.add_argument("-f", type=str, metavar="DENSITY_FUNCTIONAL",
-                    help="density functional", default="BLYP", dest="func",
-                    choices=["blyp", "bp", "pade", "pbe", "revpbe"])
+
 parser.add_argument("-b", type=str, metavar="BASIS_SET",
                     help="basis set", default="DZVP", dest="basis",
                     choices=["svz", "dzvp", "tzvp", "tzv2p", "tzv2px"])
+
+parser.add_argument("-c", type=str, metavar="COORD_FILE", dest="coord",
+                    help="coordinate file (xyz format)", default="input.xyz",)
+
+parser.add_argument("--e-conv", type=float, metavar="CUTOFF",
+                    dest="e_conv", help="energy convergence criterion in Hartree", default=1.0e-6)
+
+parser.add_argument("-f", type=str, metavar="FUNCTIONAL",
+                    help="density functional", default="BLYP", dest="func",
+                    choices=["blyp", "bp", "pade", "pbe", "revpbe"])
+
+parser.add_argument("-s", type=float, dest="boxsize",
+                    help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
+
+parser.add_argument("--steps-equi", type=int, metavar="N",
+                    help="number of equilibration steps", default=20000)
+
+parser.add_argument("--steps-relax", type=int, metavar="N",
+                    help="number of relaxation steps", default=10000)
+
+parser.add_argument("--steps-prod", type=int, metavar="N",
+                    help="number of production steps", default=60000)
+
+parser.add_argument("-t", type=str, metavar="JOB_TYPE",
+                    help="type of calculation to perform", dest="type",
+                    choices=["aimd", "bqb", "single-point"], default="aimd",)
+
+parser.add_argument("--thermo", type=str, metavar="THERMO",
+                    help="thermostat", default="nose",
+                    choices=["nose", "csvr"])
+
+parser.add_argument("--t-equi", type=float, metavar="TEMP",
+                    help="equilibration temperature in K", default=400.0)
+
+parser.add_argument("--t-relax", type=float, metavar="TEMP",
+                    help="relaxation temperature in K", default=350.0)
+
+parser.add_argument("--t-prod", type=float, metavar="TEMP",
+                    help="production temperature in K", default=350.0)
+
 parser.add_argument("-w", help="calculate Wannier functions in production run",
                     default=False, action="store_true", dest="wannier",)
 
@@ -127,8 +143,14 @@ else:
 # capitalize the thermostat
 args.thermo = args.thermo.upper()
 
-# print the arguments
+# create a dictionary with the arguments and add pp_func
+args_dict = vars(args)
+args_dict["pp_func"] = pp_func
+
+# print the arguments relevant for the type of calculation
 print("The following arguments were given (including defaults):")
+
+# arguments that are always needed, printed first
 print("Project name:", args.project)
 print("Job type:", args.type)
 print("Box size [Angstrom]:", args.boxsize)
@@ -136,19 +158,24 @@ print("Coordinate file:", args.coord)
 print("Density functional:", args.func)
 print("Pseudopotential:", pp_func)
 print("Basis set:", args.basis)
-print("Thermostat:", args.thermo)
-print("Equilibration temperature [K]:", args.t_equi)
-print("Relaxation temperature [K]:", args.t_relax)
-print("Production temperature [K]:", args.t_prod)
-print("Equilibration steps:", args.steps_equi)
-print("Relaxation steps:", args.steps_relax)
-print("Production steps:", args.steps_prod)
-print("Calculate Wannier functions:", args.wannier)
-print("")
 
-# create a dictionary with the arguments and add pp_func
-args_dict = vars(args)
-args_dict["pp_func"] = pp_func
+# arguments that are only needed for a certain type of calculation are printed last
+if args.type == "aimd":
+    print("Thermostat:", args.thermo)
+    print("Equilibration temperature [K]:", args.t_equi)
+    print("Relaxation temperature [K]:", args.t_relax)
+    print("Production temperature [K]:", args.t_prod)
+    print("Equilibration steps:", args.steps_equi)
+    print("Relaxation steps:", args.steps_relax)
+    print("Production steps:", args.steps_prod)
+    print("Calculate Wannier functions:", args.wannier)
+    print("")
+
+elif args.type == "bqb":
+    print("")
+
+elif args.type == "single-point":
+    print("Energy convergence criterion [Hartree]:", args.e_conv)
 
 #############################################
 
@@ -157,8 +184,16 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 
 # check if all relevant files are present in the script directory
 # if not, print warning and exit
-files = [script_dir + "/input/geoopt.inp", script_dir + "/input/eq.inp",
-         script_dir + "/input/relax.inp", script_dir + "/input/prod.inp", script_dir + "/data/BASIS_MOLOPT", script_dir + "/data/GTH_POTENTIALS", script_dir + "/data/dftd3.dat", script_dir + "/execute/run_cp2k_hedy.sh"]
+files = [script_dir + "/input/geoopt.inp",
+         script_dir + "/input/eq.inp",
+         script_dir + "/input/relax.inp",
+         script_dir + "/input/prod.inp",
+         script_dir + "/input/single-point.inp",
+         script_dir + "/data/BASIS_MOLOPT",
+         script_dir + "/data/GTH_POTENTIALS",
+         script_dir + "/data/dftd3.dat",
+         script_dir + "/execute/run_cp2k_hedy.sh",
+         script_dir + "/execute/run_cp2k_iris.sh", ]
 for f in files:
     if not os.path.isfile(f):
         sys.exit(" *** Warning: Input file '" + f +
@@ -172,48 +207,52 @@ start_dir = os.getcwd()
 
 # get absolute path of the coordinate file
 abs_coord = os.path.abspath(args.coord)
+
 # get basename of the coordinate file
 coord_basename = os.path.basename(abs_coord)
 
-# change to the project directory
-os.chdir(project_dir)
+#############################################
+# setting up the calculation
+# depending on the type of calculation, different input files are needed
+if args.type == "aimd":
 
-# check if the coordinate file exists
-# if yes, copy it to the project directory
-if os.path.isfile(abs_coord):
-    os.system("cp " + abs_coord + " .")
-# print warning if not
-else:
-    print(" *** Warning: coordinate file '" + abs_coord + "' does not exist.")
-    print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+    # change to the project directory
+    os.chdir(project_dir)
 
-# copy the template files to the project directory
-os.system("cp " + script_dir + "/input/* .")
+    # check if the coordinate file exists
+    # if yes, copy it to the project directory
+    if os.path.isfile(abs_coord):
+        os.system("cp " + abs_coord + " .")
+    # print warning if not
+    else:
+        print(" *** Warning: coordinate file '" +
+              abs_coord + "' does not exist.")
+        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
 
-# get a list of the input files and check it
-cp2k_infiles = getFileList(".", "*.inp")
-if len(cp2k_infiles) != 4:
-    sys.exit(
-        " *** Error: There should be 4 CP2K input files in the project directory.")
+    # define the input files
+    cp2k_infiles = [script_dir + "/input/geoopt.inp",
+                    script_dir + "/input/eq.inp",
+                    script_dir + "/input/relax.inp",
+                    script_dir + "/input/prod.inp", ]
 
-# reorder the list of input files: geometry, equilibration, relaxation, production
-cp2k_infiles = [cp2k_infiles[1], cp2k_infiles[0],
-                cp2k_infiles[3], cp2k_infiles[2]]
+    # copy the template files to the project directory
+    for f in cp2k_infiles:
+        os.system("cp " + f + " .")
 
-# adjust the input files
-routines.adjust_cp2k_input(cp2k_infiles, args_dict)
+    # adjust the input files
+    routines.adjust_cp2k_input(cp2k_infiles, args_dict)
 
-# copy run script to project directory
-os.system("cp " + script_dir + "/execute/run_cp2k_hedy.sh .")
+    # copy run script to project directory
+    os.system("cp " + script_dir + "/execute/run_cp2k_hedy.sh .")
 
-# adjust the job name in the run script
-routines.adjust_runscript("run_cp2k_hedy.sh", args.project)
+    # adjust the job name in the run script
+    routines.adjust_runscript("run_cp2k_hedy.sh", args.project)
 
-# copy the cp2k data files to the project directory
-os.system("cp " + script_dir + "/data/* .")
+    # copy the cp2k data files to the project directory
+    os.system("cp " + script_dir + "/data/* .")
 
-# in the end, change back to the directory from which the script was called
-os.chdir(start_dir)
+    # in the end, change back to the directory from which the script was called
+    os.chdir(start_dir)
 
 # print a message that the script has finished
 print("Finished setting up the project '" + str(args.project) + "'.")
