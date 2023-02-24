@@ -146,10 +146,6 @@ else:
 # capitalize the thermostat
 args.thermo = args.thermo.upper()
 
-# create a dictionary with the arguments and add pp_func
-args_dict = vars(args)
-args_dict["pp_func"] = pp_func
-
 # runscript name
 runscript_name = "run_cp2k_" + args.queue + ".sh"
 
@@ -195,6 +191,10 @@ elif args.type == "single-point":
 print("Queue:", args.queue)
 print("Runscript:", runscript_name)
 print("")
+
+# create a dictionary with the arguments and add pp_func
+args_dict = vars(args)
+args_dict["pp_func"] = pp_func
 
 #############################################
 
@@ -242,14 +242,17 @@ if args.type == "aimd":
         print("     This will cause an error in CP2K if you do not add it afterwards.\n")
 
     # define the input files
-    cp2k_infiles = [script_dir + "/input/geoopt.inp",
-                    script_dir + "/input/eq.inp",
-                    script_dir + "/input/relax.inp",
-                    script_dir + "/input/prod.inp", ]
+    cp2k_infiles_templates = [script_dir + "/input/geoopt.inp",
+                              script_dir + "/input/eq.inp",
+                              script_dir + "/input/relax.inp",
+                              script_dir + "/input/prod.inp", ]
 
     # copy the template files to the project directory
-    for f in cp2k_infiles:
+    for f in cp2k_infiles_templates:
         os.system("cp " + f + " .")
+
+    # get a list with the input files in the project directory
+    cp2k_infiles = getFileList(project_dir, "*.inp")
 
     # adjust the input files
     routines.adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles,
@@ -291,11 +294,14 @@ elif args.type == "single-point":
         print("     This will cause an error in CP2K if you do not add it afterwards.\n")
 
     # define the input files
-    cp2k_infiles = [script_dir + "/input/single-point.inp", ]
+    cp2k_infiles_templates = [script_dir + "/input/single-point.inp", ]
 
     # copy the template files to the project directory
-    for f in cp2k_infiles:
+    for f in cp2k_infiles_templates:
         os.system("cp " + f + " .")
+
+    # get a list with the input files in the project directory
+    cp2k_infiles = getFileList(project_dir, "*.inp")
 
     # adjust the input files
     routines.adjust_cp2k_input_sp(cp2k_infiles=cp2k_infiles,
