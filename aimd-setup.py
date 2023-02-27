@@ -43,6 +43,32 @@ def getFileList(path: str, regex: str) -> list:
     return filelist
 
 
+def make_project_dir(project_directory: str) -> None:
+    """Create a project directory. Check if the project directory exists; if yes, ask if it should be overwritten; if no, create it
+
+    Parameters
+    ----------
+    project_directory : str
+        path to the project directory
+    """
+
+    if os.path.isdir(project_directory):
+        print("Project directory '" + project_directory +
+              "' already exists. Shall is be overwritten? [y/n]")
+        answer = input()
+        if answer in ["y", "Y", "j", "J"]:
+            os.system("rm -rf " + project_directory)
+            print("Creating project directory '" + project_directory + "'.\n")
+            os.system("mkdir " + project_directory)
+        else:
+            sys.exit("Project directory not overwritten. Exiting.\n")
+    else:
+        print("Creating project directory '" + project_directory + "'.\n")
+        os.system("mkdir " + project_directory)
+
+#############################################
+
+
 # define command line arguments
 parser = argparse.ArgumentParser(prog="aimd-setup.py",
                                  description="Script to setup an AIMD simualtion with CP2K",
@@ -75,6 +101,10 @@ parser.add_argument("-q", type=str, metavar="QUEUE",
 
 parser.add_argument("-s", type=float, dest="boxsize",
                     help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
+
+parser.add_argument("--reftraj", type=str, metavar="FILE",
+                    help="reference trajectory to calculate the spectrum from",
+                    dest="reftraj")
 
 parser.add_argument("--spec", type=str, metavar="SPECTRUM",
                     dest="spectrum", help="spectrum to calculate", default="ir",
@@ -121,23 +151,6 @@ if len(sys.argv) == 1:
     parser.print_help()
     sys.exit()
 
-# check if the project directory exists
-# if yes, ask if it should be overwritten
-# if no, create it
-if os.path.isdir(args.project):
-    print("Project directory '" + args.project +
-          "' already exists. Shall is be overwritten? [y/n]")
-    answer = input()
-    if answer in ["y", "Y", "j", "J"]:
-        os.system("rm -rf " + args.project)
-        print("Creating project directory '" + args.project + "'.\n")
-        os.system("mkdir " + args.project)
-    else:
-        sys.exit("Project directory not overwritten. Exiting.\n")
-else:
-    print("Creating project directory '" + args.project + "'.\n")
-    os.system("mkdir " + args.project)
-
 # capitalize the functional
 args.func = args.func.upper()
 # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
@@ -171,6 +184,10 @@ abs_coord = os.path.abspath(args.coord)
 # get basename of the coordinate file
 args.coord = os.path.basename(abs_coord)
 
+# if no reference trajectory is given, use project name
+if args.reftraj is None:
+    args.reftraj = args.project + "-pos-1.xyz"
+
 # print the arguments relevant for the type of calculation
 print("The following arguments were given (including defaults):")
 
@@ -195,7 +212,10 @@ if args.type == "aimd":
     print("Calculate Wannier functions:", args.wannier)
 
 elif args.type == "bqb":
-    print("")
+    print("Reference trajectory:", args.reftraj)
+    print("Bqb files:", args.n_bqb)
+    print("Steps per bqb file:", args.steps_bqb)
+    print("Spectrum:", args.spectrum)
 
 elif args.type == "single-point":
     print("Energy convergence criterion [Hartree]:", args.e_conv)
@@ -239,6 +259,9 @@ start_dir = os.getcwd()
 
 # AIMD
 if args.type == "aimd":
+
+    # generate a project directory
+    make_project_dir(project_dir)
 
     # change to the project directory
     os.chdir(project_dir)
@@ -291,6 +314,9 @@ elif args.type == "bqb":
 
 # single-point
 elif args.type == "single-point":
+
+    # generate a project directory
+    make_project_dir(project_dir)
 
     # change to the project directory
     os.chdir(project_dir)
