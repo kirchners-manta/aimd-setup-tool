@@ -60,14 +60,14 @@ def make_project_dir(project_directory: str, overwrite: bool) -> None:
         answer = input()
         if answer in ["y", "Y", "j", "J"]:
             os.system("rm -rf " + project_directory)
-            print("Creating new project directory '" +
+            print("Overwriting old project directory '" +
                   project_directory + "'.\n")
             os.system("mkdir " + project_directory)
         else:
             sys.exit("Project directory not overwritten. Exiting.\n")
     elif os.path.isdir(project_directory) and overwrite:
         os.system("rm -rf " + project_directory)
-        print("Creating new project directory '" + project_directory + "'.\n")
+        print("Overwriting old project directory '" + project_directory + "'.\n")
         os.system("mkdir " + project_directory)
     else:
         print("Creating new project directory '" + project_directory + "'.\n")
