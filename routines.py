@@ -6,6 +6,7 @@
 
 import sys
 import re
+import os
 
 # Modify the CP2K input files for the AIMD simulation
 
@@ -153,6 +154,116 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
 
             with open(file, "w") as g:
                 g.writelines(lines)
+
+# modify the CP2K input file for the bqb calculations
+
+
+def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict) -> None:
+    """Adjust the CP2K input file for the bqb file production
+
+    Parameters
+    ----------
+    cp2k_infiles : str
+        filename of the CP2K input file
+    data : dict
+        dictionary containing the data for the calculation
+    """
+
+    # check if this function was called for the correct type of calculation
+    if data["type"] != "bqb":
+        sys.exit(
+            "Error: adjust_cp2k_input_bqb() was called for the wrong type of calculation.")
+
+    # determine important parameters according to type of spectrum
+    # taken from: https://brehm-research.de/files/spec_tutorial_2018.pdf
+    if data["spectrum"] == "ir":
+        calc_efield = False
+        stride = 8
+        overlap = 0
+    elif data["spectrum"] == "raman":
+        calc_efield = True
+        stride = 8
+        overlap = 0
+    elif data["spectrum"] == "vcd":
+        calc_efield = False
+        stride = 1
+        overlap = 2
+    elif data["spectrum"] == "roa":
+        calc_efield = True
+        stride = 1
+        overlap = 2
+
+    for i, file in enumerate(cp2k_infiles):
+
+        with open(file, "r") as f:
+
+            if i == 0:
+
+                # the file is read into a list of lines, the string is changed and the file is written again
+                lines = []
+                lines = f.read()
+                lines = re.sub("\$\{PROJECT_NAME\}",
+                               str(data["project"]), lines)
+                lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
+                lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
+                lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
+                lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
+                lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
+                lines = re.sub("\$\{NSTEPS\}", str(
+                    data["steps_bqb"] + overlap), lines)
+                lines = re.sub("\$\{STRIDE\}", str(stride), lines)
+                lines = re.sub("\$\{TRAJ_FILE_NAME\}", str(
+                    os.path.basename(data["reftraj"])), lines)
+
+                with open(file, "w") as g:
+                    g.writelines(lines)
+
+                # generate n_bqb directories for the bqb calculations
+                for j in range(data["n_bqb"]):
+
+                    # if no e field is needed, one directory per bqb is enough
+                    if calc_efield == False:
+                        os.mkdir("bqb_" + str(j + 1))
+
+                        # change into the directory
+                        os.chdir("bqb_" + str(j + 1))
+
+                        # copy the bqb input file
+                        os.system("cp ../bqb.inp .")
+
+                        # adjust the bqb input file
+                        with open("bqb.inp", "r") as h:
+
+                            first_step = data["start_from"] + \
+                                j * data["steps_bqb"] * stride
+                            last_step = data["start_from"] + j * \
+                                data["steps_bqb"] * stride + \
+                                data["steps_bqb"] * stride + \
+                                overlap - 1 * stride
+
+                            lines = []
+                            lines = h.read()
+                            lines = re.sub("\$\{FIRST_SNAPSHOT\}",
+                                           str(first_step), lines)
+                            lines = re.sub("\$\{LAST_SNAPSHOT\}",
+                                           str(last_step), lines)
+
+                            # write the adjusted bqb input file
+                            with open("bqb.inp", "w") as k:
+                                k.writelines(lines)
+
+                        # change back to the main directory
+                        os.chdir("..")
+
+                    # if an e field is needed, three additional directories are needed
+                    elif calc_efield == True:
+                        os.mkdir("bqb_" + str(j + 1) + "_no-field")
+                        os.mkdir("bqb_" + str(j + 1) + "_x-field")
+                        os.mkdir("bqb_" + str(j + 1) + "_y-field")
+                        os.mkdir("bqb_" + str(j + 1) + "_z-field")
+
+
+# modify the bash runscript for the queue system
 
 
 def adjust_runscript(runscript: str, project: str, queue: str) -> None:

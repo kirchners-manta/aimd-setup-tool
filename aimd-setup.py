@@ -103,6 +103,10 @@ parser.add_argument("--n-bqb", type=int, metavar="N",
                     help="number of bqb files to generate", default=6,
                     dest="n_bqb",)
 
+parser.add_argument("--no-copy",
+                    help="do not trajectory file to project directory",
+                    action="store_true", default=False, dest="no_copy",)
+
 parser.add_argument("-o", help="overwrite existing files",
                     action="store_true", default=False, dest="overwrite",)
 
@@ -116,12 +120,16 @@ parser.add_argument("--reftraj", type=str, metavar="FILE",
 parser.add_argument("-s", type=float, dest="boxsize",
                     help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
 
+parser.add_argument("--start-from", type=int, metavar="N",
+                    help="start processing trajectory from step N",
+                    default=1, dest="start_from",)
+
 parser.add_argument("--spec", type=str, metavar="SPECTRUM",
                     dest="spectrum", help="spectrum to calculate", default="ir",
                     choices=["ir", "vcd", "raman", "roa"],)
 
 parser.add_argument("--steps-bqb", type=int, metavar="N",
-                    help="number of steps per bqb file", default=10000,
+                    help="number of steps per bqb file (without overlap)", default=10000,
                     dest="steps_bqb",)
 
 parser.add_argument("--steps-equi", type=int, metavar="N",
@@ -156,9 +164,6 @@ parser.add_argument("-w", help="calculate Wannier functions in production run",
 
 # parse arguments
 args = parser.parse_args()
-
-# debug
-print(args.overwrite)
 
 # print help if no arguments are given
 if len(sys.argv) == 1:
@@ -249,7 +254,8 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 
 # check if all relevant files are present in the script directory
 # if not, print warning and exit
-files = [script_dir + "/input/geoopt.inp",
+files = [script_dir + "/input/bqb.inp",
+         script_dir + "/input/geoopt.inp",
          script_dir + "/input/eq.inp",
          script_dir + "/input/relax.inp",
          script_dir + "/input/prod.inp",
@@ -324,13 +330,55 @@ if args.type == "aimd":
 # BQB
 elif args.type == "bqb":
 
-    sys.exit(" *** Warning: BQB calculation not yet implemented. Exiting.\n")
+    # generate a project directory
+    make_project_dir(project_dir, args.overwrite)
+
+    # change to the project directory
+    os.chdir(project_dir)
+
+    # check if the coordinate file exists
+    # if yes, copy it to the project directory
+    if os.path.isfile(abs_coord):
+        os.system("cp " + abs_coord + " .")
+    # print warning if not
+    else:
+        print(" *** Warning: coordinate file '" +
+              abs_coord + "' does not exist.")
+        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+
+    # define the input files
+    cp2k_infiles_templates = [script_dir + "/input/bqb.inp", ]
+
+    # copy the template files to the project directory
+    for f in cp2k_infiles_templates:
+        os.system("cp " + f + " .")
+
+    # get a list with the input files in the project directory
+    cp2k_infiles = getFileList(project_dir, "*.inp")
+
+    # adjust the input files
+    routines.adjust_cp2k_input_bqb(cp2k_infiles=cp2k_infiles,
+                                   data=args_dict)
+
+    # copy run script to project directory
+    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
+
+    # adjust the job name in the run script
+    routines.adjust_runscript(runscript=runscript_name,
+                              project=args.project,
+                              queue=args.queue,)
+
+    # copy the cp2k data files to the project directory
+    os.system("cp " + script_dir + "/data/* .")
+
+    # in the end, change back to the directory from which the script was called
+    os.chdir(start_dir)
 
 # single-point
 elif args.type == "single-point":
 
     # generate a project directory
-    make_project_dir(project_dir)
+    make_project_dir(project_dir, args.overwrite)
 
     # change to the project directory
     os.chdir(project_dir)
