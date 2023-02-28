@@ -54,7 +54,7 @@ def make_project_dir(project_directory: str, overwrite: bool) -> None:
         if True, overwrite existing project directory
     """
 
-    if os.path.isdir(project_directory and not overwrite):
+    if os.path.isdir(project_directory) and not overwrite:
         print("Project directory '" + project_directory +
               "' already exists. Shall is be overwritten? [y/n]")
         answer = input()
@@ -65,7 +65,7 @@ def make_project_dir(project_directory: str, overwrite: bool) -> None:
             os.system("mkdir " + project_directory)
         else:
             sys.exit("Project directory not overwritten. Exiting.\n")
-    elif os.path.isdir(project_directory and overwrite):
+    elif os.path.isdir(project_directory) and overwrite:
         os.system("rm -rf " + project_directory)
         print("Creating new project directory '" + project_directory + "'.\n")
         os.system("mkdir " + project_directory)
@@ -156,6 +156,9 @@ parser.add_argument("-w", help="calculate Wannier functions in production run",
 
 # parse arguments
 args = parser.parse_args()
+
+# debug
+print(args.overwrite)
 
 # print help if no arguments are given
 if len(sys.argv) == 1:
