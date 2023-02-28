@@ -43,27 +43,34 @@ def getFileList(path: str, regex: str) -> list:
     return filelist
 
 
-def make_project_dir(project_directory: str) -> None:
+def make_project_dir(project_directory: str, overwrite: bool) -> None:
     """Create a project directory. Check if the project directory exists; if yes, ask if it should be overwritten; if no, create it
 
     Parameters
     ----------
     project_directory : str
         path to the project directory
+    overwrite : bool
+        if True, overwrite existing project directory
     """
 
-    if os.path.isdir(project_directory):
+    if os.path.isdir(project_directory and not overwrite):
         print("Project directory '" + project_directory +
               "' already exists. Shall is be overwritten? [y/n]")
         answer = input()
         if answer in ["y", "Y", "j", "J"]:
             os.system("rm -rf " + project_directory)
-            print("Creating project directory '" + project_directory + "'.\n")
+            print("Creating new project directory '" +
+                  project_directory + "'.\n")
             os.system("mkdir " + project_directory)
         else:
             sys.exit("Project directory not overwritten. Exiting.\n")
+    elif os.path.isdir(project_directory and overwrite):
+        os.system("rm -rf " + project_directory)
+        print("Creating new project directory '" + project_directory + "'.\n")
+        os.system("mkdir " + project_directory)
     else:
-        print("Creating project directory '" + project_directory + "'.\n")
+        print("Creating new project directory '" + project_directory + "'.\n")
         os.system("mkdir " + project_directory)
 
 #############################################
@@ -96,15 +103,18 @@ parser.add_argument("--n-bqb", type=int, metavar="N",
                     help="number of bqb files to generate", default=6,
                     dest="n_bqb",)
 
+parser.add_argument("-o", help="overwrite existing files",
+                    action="store_true", default=False, dest="overwrite",)
+
 parser.add_argument("-q", type=str, metavar="QUEUE",
                     help="queue to submit the job to", default="hedy", dest="queue", choices=["hedy", "iris", ])
 
+parser.add_argument("--reftraj", type=str, metavar="FILE",
+                    help="reference trajectory file to calculate the spectrum from",
+                    dest="reftraj")
+
 parser.add_argument("-s", type=float, dest="boxsize",
                     help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
-
-parser.add_argument("--reftraj", type=str, metavar="FILE",
-                    help="reference trajectory to calculate the spectrum from",
-                    dest="reftraj")
 
 parser.add_argument("--spec", type=str, metavar="SPECTRUM",
                     dest="spectrum", help="spectrum to calculate", default="ir",
@@ -142,6 +152,7 @@ parser.add_argument("--t-prod", type=float, metavar="TEMP",
 
 parser.add_argument("-w", help="calculate Wannier functions in production run",
                     default=False, action="store_true", dest="wannier",)
+
 
 # parse arguments
 args = parser.parse_args()
@@ -261,7 +272,7 @@ start_dir = os.getcwd()
 if args.type == "aimd":
 
     # generate a project directory
-    make_project_dir(project_dir)
+    make_project_dir(project_dir, args.overwrite)
 
     # change to the project directory
     os.chdir(project_dir)
