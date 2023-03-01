@@ -207,6 +207,12 @@ args.coord = os.path.basename(abs_coord)
 if args.reftraj is None:
     args.reftraj = args.project + "-pos-1.xyz"
 
+# get absolute path of the reference trajectory file
+abs_reftraj = os.path.abspath(args.reftraj)
+
+# get basename of the reference trajectory file
+args.reftraj = os.path.basename(abs_reftraj)
+
 # print the arguments relevant for the type of calculation
 print("The following arguments were given (including defaults):")
 
@@ -369,6 +375,17 @@ elif args.type == "bqb":
                                    runscript_name=runscript_name,
                                    queue=args.queue,
                                    template_dir=script_dir,)
+
+    # check if the coordinate file exists
+    # if yes, copy it to the project directory
+    if os.path.isfile(abs_reftraj):
+        os.system(
+            "for dir in $(ls -d bqb_[1-9]*); do cp " + abs_reftraj + " $dir; done")
+    # print warning if not
+    else:
+        print(" *** Warning: trajectory file '" +
+              abs_reftraj + "' does not exist.")
+        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
