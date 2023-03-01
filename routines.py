@@ -385,7 +385,6 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
 
                                 # remove comment symbols (#) from the periodic efield block if the direction is not "no"
                                 if k != 0:
-                                    print(k)
                                     # set the pointer to the beginning of the file
                                     h.seek(0)
                                     lines = h.readlines()
