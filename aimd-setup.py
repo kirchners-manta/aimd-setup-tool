@@ -308,13 +308,19 @@ if args.type == "aimd":
 
     # get a list with the input files in the project directory
     cp2k_infiles = getFileList(project_dir, "*.inp")
+    # sort the list in the order of the templates
+    cp2k_infiles = [cp2k_infiles[1], cp2k_infiles[0],
+                    cp2k_infiles[3], cp2k_infiles[2]]
 
     # adjust the input files
     routines.adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles,
                                     data=args_dict)
 
-    # copy run script to project directory
-    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
+    # copy run script and data files to the project directory
+    routines.copy_cp2k_data_and_runscript(
+        template_dir=script_dir,
+        project_dir=project_dir,
+        runscript=runscript_name)
 
     # adjust the job name in the run script
     routines.adjust_runscript(runscript=runscript_name,
@@ -322,7 +328,7 @@ if args.type == "aimd":
                               queue=args.queue,)
 
     # copy the cp2k data files to the project directory
-    os.system("cp " + script_dir + "/data/* .")
+    # os.system("cp " + script_dir + "/data/* .")
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
@@ -358,18 +364,11 @@ elif args.type == "bqb":
 
     # adjust the input files
     routines.adjust_cp2k_input_bqb(cp2k_infiles=cp2k_infiles,
-                                   data=args_dict)
-
-    # copy run script to project directory
-    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
-
-    # adjust the job name in the run script
-    routines.adjust_runscript(runscript=runscript_name,
-                              project=args.project,
-                              queue=args.queue,)
-
-    # copy the cp2k data files to the project directory
-    os.system("cp " + script_dir + "/data/* .")
+                                   data=args_dict,
+                                   project=args.project,
+                                   runscript_name=runscript_name,
+                                   queue=args.queue,
+                                   template_dir=script_dir,)
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
@@ -419,16 +418,16 @@ elif args.type == "single-point":
     routines.adjust_cp2k_input_sp(cp2k_infiles=cp2k_infiles,
                                   data=args_dict,)
 
-    # copy run script to project directory
-    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
+    # copy run script and data files to the project directory
+    routines.copy_cp2k_data_and_runscript(
+        template_dir=script_dir,
+        project_dir=project_dir,
+        runscript=runscript_name)
 
     # adjust the job name in the run script
     routines.adjust_runscript(runscript=runscript_name,
                               project=args.project,
                               queue=args.queue,)
-
-    # copy the cp2k data files to the project directory
-    os.system("cp " + script_dir + "/data/* .")
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
