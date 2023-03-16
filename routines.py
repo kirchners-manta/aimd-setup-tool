@@ -443,8 +443,8 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                                 adjust_runscript(runscript=runscript_name,
                                                  project=str(os.path.basename(os.getcwd())), queue=queue,)
 
-                                # change back to the main directory
-                                os.chdir("..")
+                            # change back to the main directory
+                            os.chdir("..")
 
                     # remove the bqb input file from the main directory
                     os.system("rm bqb.inp")

@@ -376,9 +376,10 @@ elif args.type == "bqb":
                                    queue=args.queue,
                                    template_dir=script_dir,)
 
-    # check if the coordinate file exists
+    # check if the trajectory file exists
     # if yes, copy it to the project directory
     if os.path.isfile(abs_reftraj):
+        print("Copying reference trajectory to bqbs...\n")
         os.system(
             "for dir in $(ls -d bqb_[1-9]*); do cp " + abs_reftraj + " $dir; done")
     # print warning if not
