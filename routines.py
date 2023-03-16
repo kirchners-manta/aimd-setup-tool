@@ -44,6 +44,11 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
+                # if REVPBE is used, add an addtional line to the CP2K input file
+                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
+                if data["func"] == "REVPBE":
+                    lines = re.sub(
+                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
@@ -61,6 +66,11 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
+                # if REVPBE is used, add an addtional line to the CP2K input file
+                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
+                if data["func"] == "REVPBE":
+                    lines = re.sub(
+                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
@@ -78,6 +88,11 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
+                # if REVPBE is used, add an addtional line to the CP2K input file
+                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
+                if data["func"] == "REVPBE":
+                    lines = re.sub(
+                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
@@ -95,6 +110,11 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
+                # if REVPBE is used, add an addtional line to the CP2K input file
+                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
+                if data["func"] == "REVPBE":
+                    lines = re.sub(
+                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
 
                 # if wannier is requested, adjust the input file
                 # remove the comment symbols (#) from the wannier section
@@ -150,6 +170,11 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
             lines = re.sub("\$\{ENERGY_CUTOFF\}", str(data["e_conv"]), lines)
             lines = re.sub("\$\{ENERGY_CUTOFF_2\}",
                            str(data["e_conv"]**2), lines)
+            # if REVPBE is used, add an addtional line to the CP2K input file
+            # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
+            if data["func"] == "REVPBE":
+                lines = re.sub(
+                    "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
 
             with open(file, "w") as g:
                 g.writelines(lines)
