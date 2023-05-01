@@ -67,7 +67,7 @@ parser.add_argument("-f", type=str, metavar="FUNCTIONAL",
                     choices=["blyp", "bp", "pade", "pbe", "revpbe"])
 
 parser.add_argument("-q", type=str, metavar="QUEUE",
-                    help="queue to submit the job to", default="hedy", dest="queue", choices=["hedy", "iris", ])
+                    help="queue to submit the job to", default="hedy", dest="queue", choices=["hedy", "iris", "noctua2"])
 
 parser.add_argument("-s", type=float, dest="boxsize",
                     help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
@@ -147,7 +147,7 @@ else:
 args.thermo = args.thermo.upper()
 
 # runscript name
-runscript_name = "run_cp2k_" + args.queue + ".sh"
+runscript_name = "run-cp2k-" + args.queue + ".sh"
 
 # project path
 project_dir = os.path.abspath(args.project)
@@ -211,8 +211,9 @@ files = [script_dir + "/input/geoopt.inp",
          script_dir + "/data/BASIS_MOLOPT",
          script_dir + "/data/GTH_POTENTIALS",
          script_dir + "/data/dftd3.dat",
-         script_dir + "/execute/run_cp2k_hedy.sh",
-         script_dir + "/execute/run_cp2k_iris.sh", ]
+         script_dir + "/execute/run-cp2k-hedy.sh",
+         script_dir + "/execute/run-cp2k-iris.sh",
+         script_dir + "/execute/run-cp2k-noctua2.sh", ]
 for f in files:
     if not os.path.isfile(f):
         sys.exit(" *** Warning: Input file '" + f +
@@ -252,7 +253,10 @@ if args.type == "aimd":
         os.system("cp " + f + " .")
 
     # get a list with the input files in the project directory
-    cp2k_infiles = getFileList(project_dir, "*.inp")
+    cp2k_infiles = [project_dir + "/geoopt.inp",
+                              project_dir + "/eq.inp",
+                              project_dir + "/relax.inp",
+                              project_dir + "/prod.inp", ]
 
     # adjust the input files
     routines.adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles,
@@ -313,7 +317,7 @@ elif args.type == "single-point":
         os.system("cp " + f + " .")
 
     # get a list with the input files in the project directory
-    cp2k_infiles = getFileList(project_dir, "*.inp")
+    cp2k_infiles = [project_dir + "/single-point.inp", ]
 
     # adjust the input files
     routines.adjust_cp2k_input_sp(cp2k_infiles=cp2k_infiles,

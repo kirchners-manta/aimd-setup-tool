@@ -83,8 +83,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
                 lines = re.sub("\$\{THERMO\}", str(data["thermo"]), lines)
-                lines = re.sub("\$\{TEMP\}", str(data["t_equi"]), lines)
-                lines = re.sub("\$\{NSTEPS\}", str(data["steps_equi"]), lines)
+                lines = re.sub("\$\{TEMP\}", str(data["t_relax"]), lines)
+                lines = re.sub("\$\{NSTEPS\}", str(data["steps_relax"]), lines)
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
@@ -119,9 +119,16 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 # if wannier is requested, adjust the input file
                 # remove the comment symbols (#) from the wannier section
                 if data["wannier"] == True:
+                    
+                    # set the pointer to the beginning of the file
+                    f.seek(0)
+                    lines = f.readlines()
+                    
                     for j, line in enumerate(lines):
+
                         # find start of wannier section
                         if "&LOCALIZE" in line:
+                            
                             # remove comment symbols from the following lines until the end of the section
                             for k in range(j, len(lines)):
                                 if "&END LOCALIZE" in lines[k]:
@@ -130,7 +137,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                                 # remove first comment symbol
                                 else:
                                     lines[k] = lines[k][1:]
-
+                                    
                 with open(file, "w") as g:
                     g.writelines(lines)
 
