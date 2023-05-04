@@ -1,9 +1,14 @@
-#!/usr/bin/python3
-
 # Part of the AIMD setup tool
 # Written by Tom Frömbgen
-# Last modified 2023-01-23
+# Last modified 2023-05-04
 
+"""
+Useful functions for the AIMD setup tool.
+"""
+
+#############################################
+
+# module imports
 import sys
 import re
 import os
@@ -11,8 +16,6 @@ import os
 #############################################
 
 # Copy the CP2K data files and the runscript to a directory
-
-
 def copy_cp2k_data_and_runscript(template_dir: str, project_dir: str, runscript: str) -> None:
     """Copy the CP2K data files and the runscript to a directory
 
@@ -34,8 +37,6 @@ def copy_cp2k_data_and_runscript(template_dir: str, project_dir: str, runscript:
               runscript + " " + project_dir)
 
 # Modify the CP2K input files for the AIMD simulation
-
-
 def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
     """Adjust the CP2K input files for an AIMD simulation
 
@@ -168,8 +169,6 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                     g.writelines(lines)
 
 # modify the CP2K input file for a single point calculation
-
-
 def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
     """Adjust the CP2K input file for a single point calculation
 
@@ -213,8 +212,6 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
                 g.writelines(lines)
 
 # modify the CP2K input file for the bqb calculations
-
-
 def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscript_name: str, queue: str, template_dir: str) -> None:
     """Adjust the CP2K input file for the bqb file production
 
@@ -452,8 +449,6 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                     os.system("rm bqb.inp")
 
 # modify the bash runscript for the queue system
-
-
 def adjust_runscript(runscript: str, project: str, queue: str) -> None:
     """Adjust the runscript for the queue system
 

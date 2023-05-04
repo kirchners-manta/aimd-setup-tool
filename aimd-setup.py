@@ -1,23 +1,21 @@
-#!/usr/bin/python3
+#!/home/froembgen/bin/miniforge3/bin/python
 
-# Script to setup an AIMD simualtion with CP2K
+# Script to setup an AIMD simulations and bqb productions with CP2K
 # Written by Tom Frömbgen
-# Last modified 2023-01-23
+# Last modified 2023-05-04
 
 #############################################
 
 # import modules
 import sys
-import argparse
 import os
 from pathlib import Path
 
-# import routines
-import routines
+# import own modules
+import routines # to adjust the cp2k input files
+import argparser # to parse the command line arguments
 
 # define useful functions
-
-
 def getFileList(path: str, regex: str) -> list:
     """Get a list of files in a directory.
 
@@ -75,117 +73,29 @@ def make_project_dir(project_directory: str, overwrite: bool) -> None:
 
 #############################################
 
+# parse arguments to make them available in the script
+args = argparser.parser().parse_args()
 
-# define command line arguments
-parser = argparse.ArgumentParser(prog="aimd-setup.py",
-                                 description="Script to setup an AIMD simualtion with CP2K",
-                                 epilog="Written for the Kirchner group by Tom Frömbgen. Internal use only.",
-                                 add_help=True)
-
-parser.add_argument("-p", type=str, metavar="PROJECT_NAME",
-                    help="project name", required=True, dest="project",)
-
-parser.add_argument("-b", type=str, metavar="BASIS_SET",
-                    help="basis set", default="DZVP", dest="basis",
-                    choices=["svz", "dzvp", "tzvp", "tzv2p", "tzv2px"])
-
-parser.add_argument("-c", type=str, metavar="COORD_FILE", dest="coord",
-                    help="coordinate file (xyz format)", default="input.xyz",)
-
-parser.add_argument("--e-conv", type=float, metavar="CUTOFF",
-                    dest="e_conv", help="energy convergence criterion in Hartree", default=1.0e-6)
-
-parser.add_argument("-f", type=str, metavar="FUNCTIONAL",
-                    help="density functional", default="BLYP", dest="func",
-                    choices=["blyp", "bp", "pade", "pbe", "revpbe"])
-
-parser.add_argument("--n-bqb", type=int, metavar="N",
-                    help="number of bqb files to generate", default=6,
-                    dest="n_bqb",)
-
-parser.add_argument("--no-copy",
-                    help="do not trajectory file to project directory",
-                    action="store_true", default=False, dest="no_copy",)
-
-parser.add_argument("-o", help="overwrite existing files",
-                    action="store_true", default=False, dest="overwrite",)
-
-parser.add_argument("-q", type=str, metavar="QUEUE",
-                    help="queue to submit the job to", default="hedy", dest="queue", choices=["hedy", "iris", "noctua2"])
-
-parser.add_argument("--reftraj", type=str, metavar="FILE",
-                    help="reference trajectory file to calculate the spectrum from",
-                    dest="reftraj")
-
-parser.add_argument("-s", type=float, dest="boxsize",
-                    help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
-
-parser.add_argument("--start-from", type=int, metavar="N",
-                    help="start processing trajectory from step N",
-                    default=1, dest="start_from",)
-
-parser.add_argument("--spec", type=str, metavar="SPECTRUM",
-                    dest="spectrum", help="spectrum to calculate", default="ir",
-                    choices=["ir", "vcd", "raman", "roa"],)
-
-parser.add_argument("--steps-bqb", type=int, metavar="N",
-                    help="number of steps per bqb file (without overlap)", default=10000,
-                    dest="steps_bqb",)
-
-parser.add_argument("--steps-equi", type=int, metavar="N",
-                    help="number of equilibration steps", default=20000)
-
-parser.add_argument("--steps-relax", type=int, metavar="N",
-                    help="number of relaxation steps", default=10000)
-
-parser.add_argument("--steps-prod", type=int, metavar="N",
-                    help="number of production steps", default=60000)
-
-parser.add_argument("-t", type=str, metavar="JOB_TYPE",
-                    help="type of calculation to perform", dest="type",
-                    choices=["aimd", "bqb", "single-point"], default="aimd",)
-
-parser.add_argument("--thermo", type=str, metavar="THERMO",
-                    help="thermostat", default="nose",
-                    choices=["nose", "csvr"])
-
-parser.add_argument("--t-equi", type=float, metavar="TEMP",
-                    help="equilibration temperature in K", default=400.0)
-
-parser.add_argument("--t-relax", type=float, metavar="TEMP",
-                    help="relaxation temperature in K", default=350.0)
-
-parser.add_argument("--t-prod", type=float, metavar="TEMP",
-                    help="production temperature in K", default=350.0)
-
-parser.add_argument("-w", help="calculate Wannier functions in production run",
-                    default=False, action="store_true", dest="wannier",)
+#############################################
 
 
-# parse arguments
-args = parser.parse_args()
-
-# print help if no arguments are given
-if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit()
+#############################################
 
 # capitalize the functional
 args.func = args.func.upper()
 # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
 if args.func == "REVPBE":
     pp_func = "PBE"
+# otherwise, use the functional for the pseudopotential
 else:
     pp_func = args.func
 
 # capitalize the basis set
 # if a cardinal number > 2 is given, print warning
-if args.basis in ["tzvp", "tzv2p", "tzv2px", ]:
-    print(" *** Warning: basis set '" + args.basis +
-          "' is valid, but not available in the short range form. This may lead to drastically increased computation time.\n")
-    args.basis = args.basis + "-MOLOPT-GTH"
+if args.basis in ["tzvp", "tzv2p", "tzv2px"]:
+    args.basis = args.basis.upper() + "-MOLOPT-GTH"
 else:
-    args.basis = args.basis + "-MOLOPT-SR-GTH"
+    args.basis = args.basis.upper() + "-MOLOPT-SR-GTH"
 
 # capitalize the thermostat
 args.thermo = args.thermo.upper()
@@ -203,15 +113,13 @@ abs_coord = os.path.abspath(args.coord)
 # get basename of the coordinate file
 args.coord = os.path.basename(abs_coord)
 
-# if no reference trajectory is given, use project name
-if args.reftraj is None:
-    args.reftraj = args.project + "-pos-1.xyz"
-
-# get absolute path of the reference trajectory file
-abs_reftraj = os.path.abspath(args.reftraj)
-
-# get basename of the reference trajectory file
-args.reftraj = os.path.basename(abs_reftraj)
+# if bqb calculation, get absolute path of the reference trajectory file
+if args.type == "bqb":
+    # get absolute path of the reference trajectory file
+    abs_reftraj = os.path.abspath(args.reftraj)
+    
+    # get basename of the reference trajectory file
+    args.reftraj = os.path.basename(abs_reftraj)
 
 # print the arguments relevant for the type of calculation
 print("The following arguments were given (including defaults):")
@@ -293,15 +201,8 @@ if args.type == "aimd":
     # change to the project directory
     os.chdir(project_dir)
 
-    # check if the coordinate file exists
-    # if yes, copy it to the project directory
-    if os.path.isfile(abs_coord):
-        os.system("cp " + abs_coord + " .")
-    # print warning if not
-    else:
-        print(" *** Warning: coordinate file '" +
-              abs_coord + "' does not exist.")
-        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+    #  copy the coordinate to the project directory
+    os.system("cp " + abs_coord + " .")
 
     # define the input files
     cp2k_infiles_templates = [script_dir + "/input/geoopt.inp",
@@ -330,12 +231,11 @@ if args.type == "aimd":
         runscript=runscript_name)
 
     # adjust the job name in the run script
-    routines.adjust_runscript(runscript=runscript_name,
-                              project=args.project,
-                              queue=args.queue,)
-
-    # copy the cp2k data files to the project directory
-    # os.system("cp " + script_dir + "/data/* .")
+    routines.adjust_runscript(
+        runscript=runscript_name,
+        project=args.project,
+        queue=args.queue,
+    )
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
@@ -348,16 +248,6 @@ elif args.type == "bqb":
 
     # change to the project directory
     os.chdir(project_dir)
-
-    # check if the coordinate file exists
-    # if yes, copy it to the project directory
-    if os.path.isfile(abs_coord):
-        os.system("cp " + abs_coord + " .")
-    # print warning if not
-    else:
-        print(" *** Warning: coordinate file '" +
-              abs_coord + "' does not exist.")
-        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
 
     # define the input files
     cp2k_infiles_templates = [script_dir + "/input/bqb.inp", ]
@@ -377,23 +267,20 @@ elif args.type == "bqb":
                                    queue=args.queue,
                                    template_dir=script_dir,)
 
-    # check if the trajectory file exists
-    # if yes, copy it to the project directory
-    if os.path.isfile(abs_reftraj):
-        print("Copying reference trajectory to bqbs...\n")
-        os.system(
-            "for dir in $(ls -d bqb_[1-9]*); do cp " + abs_reftraj + " $dir; done")
-    # print warning if not
-    else:
-        print(" *** Warning: trajectory file '" +
-              abs_reftraj + "' does not exist.")
-        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+    # copy the coordinates and trajectory files to the project directory
+    print("Copying coordinates and reference trajectory to bqbs...\n")
+    os.system(
+        "for dir in $(ls -d bqb_[1-9]*); do cp " + abs_reftraj + " $dir; cp " + abs_coord + " $dir; done"
+    )
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
 
 # single-point
 elif args.type == "single-point":
+    
+    # print warning
+    sys.exit("This feature is still under development.")
 
     # generate a project directory
     make_project_dir(project_dir, args.overwrite)
@@ -401,27 +288,20 @@ elif args.type == "single-point":
     # change to the project directory
     os.chdir(project_dir)
 
-    # check if the coordinate file exists
-    # if yes, copy it to the project directory
-    if os.path.isfile(abs_coord):
-        os.system("cp " + abs_coord + " .")
-        # then, check if the coordinate file has two lines before the first atom
-        # if yes, remove the first two lines
-        with open(args.coord, "r") as f:
-            lines = f.readlines()
-            # if the first entry in the first line is a number, the file has two lines before the first atom
-            if lines[0].split()[0].isdigit():
-                # remove the first two lines
-                lines = lines[2:]
-                # write the new file
-                with open(args.coord, "w") as f:
-                    f.writelines(lines)
-
-    # print warning if not
-    else:
-        print(" *** Warning: coordinate file '" +
-              abs_coord + "' does not exist.")
-        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+    # copy the coordinate file to the project directory
+    os.system("cp " + abs_coord + " .")
+    
+    # then, check if the coordinate file has two lines before the first atom
+    # if yes, remove the first two lines
+    with open(args.coord, "r") as f:
+        lines = f.readlines()
+        # if the first entry in the first line is a number, the file has two lines before the first atom
+        if lines[0].split()[0].isdigit():
+            # remove the first two lines
+            lines = lines[2:]
+            # write the new file
+            with open(args.coord, "w") as f:
+                f.writelines(lines)
 
     # define the input files
     cp2k_infiles_templates = [script_dir + "/input/single-point.inp", ]
