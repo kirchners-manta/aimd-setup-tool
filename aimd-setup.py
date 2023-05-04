@@ -43,6 +43,39 @@ def getFileList(path: str, regex: str) -> list:
     return filelist
 
 
+def make_project_dir(project_directory: str, overwrite: bool) -> None:
+    """Create a project directory. Check if the project directory exists; if yes, ask if it should be overwritten; if no, create it
+
+    Parameters
+    ----------
+    project_directory : str
+        path to the project directory
+    overwrite : bool
+        if True, overwrite existing project directory
+    """
+
+    if os.path.isdir(project_directory) and not overwrite:
+        print("Project directory '" + project_directory +
+              "' already exists. Shall is be overwritten? [y/n]")
+        answer = input()
+        if answer in ["y", "Y", "j", "J"]:
+            os.system("rm -rf " + project_directory)
+            print("Overwriting old project directory '" +
+                  project_directory + "'.\n")
+            os.system("mkdir " + project_directory)
+        else:
+            sys.exit("Project directory not overwritten. Exiting.\n")
+    elif os.path.isdir(project_directory) and overwrite:
+        os.system("rm -rf " + project_directory)
+        print("Overwriting old project directory '" + project_directory + "'.\n")
+        os.system("mkdir " + project_directory)
+    else:
+        print("Creating new project directory '" + project_directory + "'.\n")
+        os.system("mkdir " + project_directory)
+
+#############################################
+
+
 # define command line arguments
 parser = argparse.ArgumentParser(prog="aimd-setup.py",
                                  description="Script to setup an AIMD simualtion with CP2K",
@@ -66,11 +99,38 @@ parser.add_argument("-f", type=str, metavar="FUNCTIONAL",
                     help="density functional", default="BLYP", dest="func",
                     choices=["blyp", "bp", "pade", "pbe", "revpbe"])
 
+parser.add_argument("--n-bqb", type=int, metavar="N",
+                    help="number of bqb files to generate", default=6,
+                    dest="n_bqb",)
+
+parser.add_argument("--no-copy",
+                    help="do not trajectory file to project directory",
+                    action="store_true", default=False, dest="no_copy",)
+
+parser.add_argument("-o", help="overwrite existing files",
+                    action="store_true", default=False, dest="overwrite",)
+
 parser.add_argument("-q", type=str, metavar="QUEUE",
                     help="queue to submit the job to", default="hedy", dest="queue", choices=["hedy", "iris", "noctua2"])
 
+parser.add_argument("--reftraj", type=str, metavar="FILE",
+                    help="reference trajectory file to calculate the spectrum from",
+                    dest="reftraj")
+
 parser.add_argument("-s", type=float, dest="boxsize",
                     help="box edge length in Angstrom", metavar="LENGTH", default=10.0)
+
+parser.add_argument("--start-from", type=int, metavar="N",
+                    help="start processing trajectory from step N",
+                    default=1, dest="start_from",)
+
+parser.add_argument("--spec", type=str, metavar="SPECTRUM",
+                    dest="spectrum", help="spectrum to calculate", default="ir",
+                    choices=["ir", "vcd", "raman", "roa"],)
+
+parser.add_argument("--steps-bqb", type=int, metavar="N",
+                    help="number of steps per bqb file (without overlap)", default=10000,
+                    dest="steps_bqb",)
 
 parser.add_argument("--steps-equi", type=int, metavar="N",
                     help="number of equilibration steps", default=20000)
@@ -101,6 +161,7 @@ parser.add_argument("--t-prod", type=float, metavar="TEMP",
 parser.add_argument("-w", help="calculate Wannier functions in production run",
                     default=False, action="store_true", dest="wannier",)
 
+
 # parse arguments
 args = parser.parse_args()
 
@@ -108,23 +169,6 @@ args = parser.parse_args()
 if len(sys.argv) == 1:
     parser.print_help()
     sys.exit()
-
-# check if the project directory exists
-# if yes, ask if it should be overwritten
-# if no, create it
-if os.path.isdir(args.project):
-    print("Project directory '" + args.project +
-          "' already exists. Shall is be overwritten? [y/n]")
-    answer = input()
-    if answer in ["y", "Y", "j", "J"]:
-        os.system("rm -rf " + args.project)
-        print("Creating project directory '" + args.project + "'.\n")
-        os.system("mkdir " + args.project)
-    else:
-        sys.exit("Project directory not overwritten. Exiting.\n")
-else:
-    print("Creating project directory '" + args.project + "'.\n")
-    os.system("mkdir " + args.project)
 
 # capitalize the functional
 args.func = args.func.upper()
@@ -159,6 +203,16 @@ abs_coord = os.path.abspath(args.coord)
 # get basename of the coordinate file
 args.coord = os.path.basename(abs_coord)
 
+# if no reference trajectory is given, use project name
+if args.reftraj is None:
+    args.reftraj = args.project + "-pos-1.xyz"
+
+# get absolute path of the reference trajectory file
+abs_reftraj = os.path.abspath(args.reftraj)
+
+# get basename of the reference trajectory file
+args.reftraj = os.path.basename(abs_reftraj)
+
 # print the arguments relevant for the type of calculation
 print("The following arguments were given (including defaults):")
 
@@ -183,7 +237,10 @@ if args.type == "aimd":
     print("Calculate Wannier functions:", args.wannier)
 
 elif args.type == "bqb":
-    print("")
+    print("Reference trajectory:", args.reftraj)
+    print("Bqb files:", args.n_bqb)
+    print("Steps per bqb file:", args.steps_bqb)
+    print("Spectrum:", args.spectrum)
 
 elif args.type == "single-point":
     print("Energy convergence criterion [Hartree]:", args.e_conv)
@@ -203,7 +260,8 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 
 # check if all relevant files are present in the script directory
 # if not, print warning and exit
-files = [script_dir + "/input/geoopt.inp",
+files = [script_dir + "/input/bqb.inp",
+         script_dir + "/input/geoopt.inp",
          script_dir + "/input/eq.inp",
          script_dir + "/input/relax.inp",
          script_dir + "/input/prod.inp",
@@ -228,6 +286,9 @@ start_dir = os.getcwd()
 
 # AIMD
 if args.type == "aimd":
+
+    # generate a project directory
+    make_project_dir(project_dir, args.overwrite)
 
     # change to the project directory
     os.chdir(project_dir)
@@ -254,16 +315,19 @@ if args.type == "aimd":
 
     # get a list with the input files in the project directory
     cp2k_infiles = [project_dir + "/geoopt.inp",
-                              project_dir + "/eq.inp",
-                              project_dir + "/relax.inp",
-                              project_dir + "/prod.inp", ]
+                    project_dir + "/eq.inp",
+                    project_dir + "/relax.inp",
+                    project_dir + "/prod.inp", ]
 
     # adjust the input files
     routines.adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles,
                                     data=args_dict)
 
-    # copy run script to project directory
-    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
+    # copy run script and data files to the project directory
+    routines.copy_cp2k_data_and_runscript(
+        template_dir=script_dir,
+        project_dir=project_dir,
+        runscript=runscript_name)
 
     # adjust the job name in the run script
     routines.adjust_runscript(runscript=runscript_name,
@@ -271,7 +335,7 @@ if args.type == "aimd":
                               queue=args.queue,)
 
     # copy the cp2k data files to the project directory
-    os.system("cp " + script_dir + "/data/* .")
+    # os.system("cp " + script_dir + "/data/* .")
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
@@ -279,10 +343,60 @@ if args.type == "aimd":
 # BQB
 elif args.type == "bqb":
 
-    sys.exit(" *** Warning: BQB calculation not yet implemented. Exiting.\n")
+    # generate a project directory
+    make_project_dir(project_dir, args.overwrite)
+
+    # change to the project directory
+    os.chdir(project_dir)
+
+    # check if the coordinate file exists
+    # if yes, copy it to the project directory
+    if os.path.isfile(abs_coord):
+        os.system("cp " + abs_coord + " .")
+    # print warning if not
+    else:
+        print(" *** Warning: coordinate file '" +
+              abs_coord + "' does not exist.")
+        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+
+    # define the input files
+    cp2k_infiles_templates = [script_dir + "/input/bqb.inp", ]
+
+    # copy the template files to the project directory
+    for f in cp2k_infiles_templates:
+        os.system("cp " + f + " .")
+
+    # get a list with the input files in the project directory
+    cp2k_infiles = getFileList(project_dir, "*.inp")
+
+    # adjust the input files
+    routines.adjust_cp2k_input_bqb(cp2k_infiles=cp2k_infiles,
+                                   data=args_dict,
+                                   project=args.project,
+                                   runscript_name=runscript_name,
+                                   queue=args.queue,
+                                   template_dir=script_dir,)
+
+    # check if the trajectory file exists
+    # if yes, copy it to the project directory
+    if os.path.isfile(abs_reftraj):
+        print("Copying reference trajectory to bqbs...\n")
+        os.system(
+            "for dir in $(ls -d bqb_[1-9]*); do cp " + abs_reftraj + " $dir; done")
+    # print warning if not
+    else:
+        print(" *** Warning: trajectory file '" +
+              abs_reftraj + "' does not exist.")
+        print("     This will cause an error in CP2K if you do not add it afterwards.\n")
+
+    # in the end, change back to the directory from which the script was called
+    os.chdir(start_dir)
 
 # single-point
 elif args.type == "single-point":
+
+    # generate a project directory
+    make_project_dir(project_dir, args.overwrite)
 
     # change to the project directory
     os.chdir(project_dir)
@@ -323,16 +437,16 @@ elif args.type == "single-point":
     routines.adjust_cp2k_input_sp(cp2k_infiles=cp2k_infiles,
                                   data=args_dict,)
 
-    # copy run script to project directory
-    os.system("cp " + script_dir + "/execute/" + runscript_name + " .")
+    # copy run script and data files to the project directory
+    routines.copy_cp2k_data_and_runscript(
+        template_dir=script_dir,
+        project_dir=project_dir,
+        runscript=runscript_name)
 
     # adjust the job name in the run script
     routines.adjust_runscript(runscript=runscript_name,
                               project=args.project,
                               queue=args.queue,)
-
-    # copy the cp2k data files to the project directory
-    os.system("cp " + script_dir + "/data/* .")
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
