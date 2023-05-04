@@ -17,18 +17,18 @@ Calling it with the `-h` option will print a help message with all the options.
 ```bash
 aimd-setup -h
 ```
-There is one required argument, the project name (using the `-p` flag). 
+There is one required argument, the project name. 
 This is the name of the directory in which all the files will be stored. 
 
 ```bash
-aimd-setup -p PROJECT_NAME
+aimd-setup [OPTIONS] project 
 ``` 
 If the directory already exists, the program will ask you if you want to overwrite it.
 Then, you can specify which type of calculation you want to set up with the `-t` flag.
 The options are:
-* `single-point`
+* `single-point` (under development)
 * `aimd` (default)
-* `bqb` (under development)
+* `bqb`
 
 There are more options to specify the calculation, e.g. energy cutoff, the number of steps, the time step, the temperature, etc.
 All of these options have default values. 
