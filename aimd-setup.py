@@ -1,5 +1,3 @@
-#!/home/froembgen/bin/miniforge3/bin/python
-
 # Script to setup an AIMD simulations and bqb productions with CP2K
 # Written by Tom Frömbgen
 # Last modified 2023-05-04

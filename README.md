@@ -1,15 +1,20 @@
 # AIMD template
 ---
-*This project is still under development. 
-Regularly updating your repo and reading this document is recommended.*
 
-Python3 script and collection of input files to set up single point calculations, AIMD simulations or bqb file productions in CP2K.
+Python script and collection of input files to set up AIMD simulations or bqb file productions in CP2K.
+Python >=3.10 is required.
 
 I recommend adding the script `aimd-setup.py` to your path, e.g. by creating a symlink to your bin. 
 
 ```bash
 ln -s ABSOLUTE_PATH_TO_THIS_DIR/aimd-setup.py ~/bin/aimd-setup
 ```
+If your local python version is not >=3.10, you can e.g. install conda and create a new environment with python 3.10. 
+Then, you can add the path to the python executable to the first line of the script or you can add an alias to your `.bashrc` file.
+
+```bash
+alias aimd-setup='python3.10 ABSOLUTE_PATH_TO_THIS_DIR/aimd-setup.py'
+
 
 Doing so, you can call the program from anywhere. 
 Calling it with the `-h` option will print a help message with all the options.
