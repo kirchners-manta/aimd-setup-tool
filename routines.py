@@ -254,6 +254,10 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
         calc_efield = True
         stride = 1
         overlap = 2
+    elif data["spectrum"] == "dipoles":
+        calc_efield = False
+        stride = 1
+        overlap = 0
 
     for i, file in enumerate(cp2k_infiles):
 

@@ -317,7 +317,7 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         dest="spectrum", 
         help="R|Type of spectrum to calculate.", 
         default=None,
-        choices=["ir", "vcd", "raman", "roa"],
+        choices=["ir", "vcd", "raman", "roa", "dipoles"],
     )
     p.add_argument(
         "--steps-bqb", 
