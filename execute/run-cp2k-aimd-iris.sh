@@ -29,7 +29,12 @@ cat $PBS_NODEFILE >hosts_file
 
 # execute job
 which mpirun
-mpirun $CP2K_PATH single-point.inp >single-point.out
+
+# AIMD simulation
+mpirun $CP2K_PATH geoopt.inp >geoopt.out
+mpirun $CP2K_PATH eq.inp >eq.out
+mpirun $CP2K_PATH relax.inp >relax.out
+mpirun $CP2K_PATH prod.inp >prod.out
 
 # copy files back and clean up
 cd $PBS_O_WORKDIR

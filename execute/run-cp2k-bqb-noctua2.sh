@@ -19,7 +19,6 @@ module reset
 module load chem/CP2K/9.1-foss-2021b
 
 # execute job
-srun cp2k.psmp geoopt.inp >geoopt.out
-srun cp2k.psmp eq.inp >eq.out
-srun cp2k.psmp relax.inp >relax.out
-srun cp2k.psmp prod.inp >prod.out
+
+# BQB production
+srun cp2k.psmp bqb.inp >bqb.out

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # CP2K 8.1 run script
-# written by Tom Frömbgen 2023-01-11
+# written by Tom Frömbgen 2023-02-24
 
 # PBS Job
 #PBS -N PROJECT_NAME
-#PBS -l nodes=1:ppn=64
+#PBS -l nodes=1:ppn=8
 #PBS -q QUEUE_NAME
 
 # For iris and hedy (only one node)
@@ -29,14 +29,9 @@ cat $PBS_NODEFILE >hosts_file
 
 # execute job
 which mpirun
-# first, an energy minimization to remove hot spots
-mpirun $CP2K_PATH geoopt.inp >geoopt.out
-# then an equilibration with massive thermostats at higher temperature
-mpirun $CP2K_PATH eq.inp >eq.out
-# a relaxation (second equilibration) at the target temperature
-mpirun $CP2K_PATH relax.inp >relax.out
-# finally, production run
-mpirun $CP2K_PATH prod.inp >prod.out
+
+# BQB production
+mpirun $CP2K_PATH bqb.inp >bqb.out
 
 # copy files back and clean up
 cd $PBS_O_WORKDIR

@@ -99,7 +99,7 @@ else:
 args.thermo = args.thermo.upper()
 
 # runscript name
-runscript_name = "run-cp2k-" + args.queue + ".sh"
+runscript_name = "run-cp2k-" + args.type + "-" + args.queue + ".sh"
 
 # project path
 project_dir = os.path.abspath(args.project)
@@ -175,9 +175,12 @@ files = [script_dir + "/input/bqb.inp",
          script_dir + "/data/BASIS_MOLOPT",
          script_dir + "/data/GTH_POTENTIALS",
          script_dir + "/data/dftd3.dat",
-         script_dir + "/execute/run-cp2k-hedy.sh",
-         script_dir + "/execute/run-cp2k-iris.sh",
-         script_dir + "/execute/run-cp2k-noctua2.sh", ]
+         script_dir + "/execute/run-cp2k-aimd-hedy.sh",
+         script_dir + "/execute/run-cp2k-aimd-iris.sh",
+         script_dir + "/execute/run-cp2k-aimd-noctua2.sh",
+         script_dir + "/execute/run-cp2k-bqb-hedy.sh",
+         script_dir + "/execute/run-cp2k-bqb-iris.sh",
+         script_dir + "/execute/run-cp2k-bqb-noctua2.sh",]
 for f in files:
     if not os.path.isfile(f):
         sys.exit(" *** Warning: Input file '" + f +
@@ -226,7 +229,8 @@ if args.type == "aimd":
     routines.copy_cp2k_data_and_runscript(
         template_dir=script_dir,
         project_dir=project_dir,
-        runscript=runscript_name)
+        runscript=runscript_name,
+    )
 
     # adjust the job name in the run script
     routines.adjust_runscript(
