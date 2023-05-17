@@ -32,7 +32,7 @@
       FIRST_SNAPSHOT ${FIRST_SNAPSHOT}  # first snapshot
       LAST_SNAPSHOT ${LAST_SNAPSHOT}    # last snapshot
       STRIDE ${STRIDE}                  # stride, distance between snapshots
-      TRAJ_FILE_NAME ${TRAJ_FILE_NAME}  # trajectory file name
+      TRAJ_FILE_NAME ${TRAJ_FILE_NAME}
     &END REFTRAJ
 
   &END MD
@@ -122,7 +122,7 @@
       
       # voronoi integration
       &VORONOI
-        FILENAME =voro            # filename of voronoi output
+        FILENAME =voro
         OUTPUT_EMP .TRUE.         # output emp file
       &END VORONOI
       
