@@ -297,10 +297,10 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                     # create the directories
                     for j in range(data["n_bqb"]):
 
-                        os.mkdir("bqb_" + str(j + 1))
+                        os.mkdir("bqb_" + str(j + 1).zfill(2))
 
                         # change into the directory
-                        os.chdir("bqb_" + str(j + 1))
+                        os.chdir("bqb_" + str(j + 1).zfill(2))
 
                         # copy the bqb input file
                         os.system("cp ../bqb.inp .")
@@ -351,23 +351,23 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                     for j in range(data["n_bqb"]):
 
                         # create the directories
-                        os.mkdir("bqb_" + str(j + 1) + "_no-field")
-                        os.mkdir("bqb_" + str(j + 1) + "_x-field")
-                        os.mkdir("bqb_" + str(j + 1) + "_y-field")
-                        os.mkdir("bqb_" + str(j + 1) + "_z-field")
+                        os.mkdir("bqb_" + str(j + 1).zfill(2) + "_no-field")
+                        os.mkdir("bqb_" + str(j + 1).zfill(2) + "_x-field")
+                        os.mkdir("bqb_" + str(j + 1).zfill(2) + "_y-field")
+                        os.mkdir("bqb_" + str(j + 1).zfill(2) + "_z-field")
 
                         # iterate over the four above directories
                         for k in range(4):
 
                             # change into the directory
                             if k == 0:
-                                os.chdir("bqb_" + str(j + 1) + "_no-field")
+                                os.chdir("bqb_" + str(j + 1).zfill(2) + "_no-field")
                             elif k == 1:
-                                os.chdir("bqb_" + str(j + 1) + "_x-field")
+                                os.chdir("bqb_" + str(j + 1).zfill(2) + "_x-field")
                             elif k == 2:
-                                os.chdir("bqb_" + str(j + 1) + "_y-field")
+                                os.chdir("bqb_" + str(j + 1).zfill(2) + "_y-field")
                             elif k == 3:
-                                os.chdir("bqb_" + str(j + 1) + "_z-field")
+                                os.chdir("bqb_" + str(j + 1).zfill(2) + "_z-field")
 
                             # copy the bqb input file
                             os.system("cp ../bqb.inp .")
