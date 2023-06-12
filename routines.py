@@ -335,7 +335,7 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                                                          runscript=runscript_name)
                             # adjust the runscript
                             adjust_runscript(runscript=runscript_name,
-                                             project="bqb_" + str(j + 1),
+                                             project="bqb_" + str(j + 1).zfill(2),
                                              queue=queue,)
 
                         # change back to the main directory
