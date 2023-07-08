@@ -1,10 +1,4 @@
-# CP2K input file for an AIMD simulation (production run)
-# as part of the AIMD setup tool
-# written by Tom Frömbgen, 2023-01-11
-
-# the sections are ordered as GLOBAL, MOTION, FORCE_EVAL, EXT_RESTART
-# the subsections are ordered alphabetically
-# within a subsection, keywords are ordered alphabetically and given first, followed by more subsections
+# Part of the AIMD setup tool
 
 # global settings
 &GLOBAL

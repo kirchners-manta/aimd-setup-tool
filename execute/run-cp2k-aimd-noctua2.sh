@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# run script for CP2K 9.1 on Noctua2
-# written by Tom Frömbgen 2023-05-01
+# Part of the AIMD setup tool
+# CP2K 9.1 run script
 
 #SBATCH -t 7-00:00:00
 #SBATCH -p normal

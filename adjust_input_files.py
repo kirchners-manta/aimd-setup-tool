@@ -1,22 +1,22 @@
 # Part of the AIMD setup tool
-# Written by Tom Frömbgen
-# Last modified 2023-05-04
 
 """
-Useful functions for the AIMD setup tool.
+Functions to adjust input files for the AIMD setup tool.
 """
 
 #############################################
 
-# module imports
-import sys
-import re
+from __future__ import annotations
+
 import os
+import re
+import sys
 
-#############################################
 
 # Copy the CP2K data files and the runscript to a directory
-def copy_cp2k_data_and_runscript(template_dir: str, project_dir: str, runscript: str) -> None:
+def copy_cp2k_data_and_runscript(
+    template_dir: str, project_dir: str, runscript: str
+) -> None:
     """Copy the CP2K data files and the runscript to a directory
 
     Parameters
@@ -33,8 +33,8 @@ def copy_cp2k_data_and_runscript(template_dir: str, project_dir: str, runscript:
     os.system("cp " + template_dir + "/data/* " + project_dir)
 
     # copy the runscript
-    os.system("cp " + template_dir + "/execute/" +
-              runscript + " " + project_dir)
+    os.system("cp " + template_dir + "/execute/" + runscript + " " + project_dir)
+
 
 # Modify the CP2K input files for the AIMD simulation
 def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
@@ -51,21 +51,24 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
     # check if this function was called for the correct type of calculation
     if data["type"] != "aimd":
         sys.exit(
-            "Error: adjust_cp2k_input_aimd() was called for the wrong type of calculation.")
+            "Error: adjust_cp2k_input_aimd() was called for the wrong type of calculation."
+        )
 
     for i, file in enumerate(cp2k_infiles):
-
         # open the file
         with open(file, "r") as f:
             # the file is read into a list of lines, the string is changed and the file is written again
             lines = []
             lines = f.read()
 
+            # Adjust the top line comment to indicate that the file was created by the AIMD setup tool
+            lines = re.sub(
+                "Part of the AIMD setup tool", "Created by the AIMD setup tool", lines
+            )
+
             # for the geometry optimization: adjust project name, box length, coord file, density functional, basis set, pseudopotential
             if i == 0:
-
-                lines = re.sub("\$\{PROJECT_NAME\}",
-                               str(data["project"]), lines)
+                lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
@@ -75,16 +78,17 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
                     lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
+                        "&XC_FUNCTIONAL REVPBE",
+                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
+                        lines,
+                    )
 
                 with open(file, "w") as g:
                     g.writelines(lines)
 
             # for the equilibration: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
             elif i == 1:
-
-                lines = re.sub("\$\{PROJECT_NAME\}",
-                               str(data["project"]), lines)
+                lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
                 lines = re.sub("\$\{THERMO\}", str(data["thermo"]), lines)
@@ -97,16 +101,17 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
                     lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
+                        "&XC_FUNCTIONAL REVPBE",
+                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
+                        lines,
+                    )
 
                 with open(file, "w") as g:
                     g.writelines(lines)
 
             # for the relaxation: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
             elif i == 2:
-
-                lines = re.sub("\$\{PROJECT_NAME\}",
-                               str(data["project"]), lines)
+                lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
                 lines = re.sub("\$\{THERMO\}", str(data["thermo"]), lines)
@@ -119,16 +124,17 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
                     lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
+                        "&XC_FUNCTIONAL REVPBE",
+                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
+                        lines,
+                    )
 
                 with open(file, "w") as g:
                     g.writelines(lines)
 
             # for the production: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential and Wannier if desired
             elif i == 3:
-
-                lines = re.sub("\$\{PROJECT_NAME\}",
-                               str(data["project"]), lines)
+                lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
                 lines = re.sub("\$\{THERMO\}", str(data["thermo"]), lines)
@@ -141,21 +147,21 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
                     lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
+                        "&XC_FUNCTIONAL REVPBE",
+                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
+                        lines,
+                    )
 
                 # if wannier is requested, adjust the input file
                 # remove the comment symbols (#) from the wannier section
                 if data["wannier"] == True:
-
                     # set the pointer to the beginning of the file
                     f.seek(0)
                     lines = f.readlines()
 
                     for j, line in enumerate(lines):
-
                         # find start of wannier section
                         if "&LOCALIZE" in line:
-
                             # remove comment symbols from the following lines until the end of the section
                             for k in range(j, len(lines)):
                                 if "&END LOCALIZE" in lines[k]:
@@ -167,6 +173,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
 
                 with open(file, "w") as g:
                     g.writelines(lines)
+
 
 # modify the CP2K input file for a single point calculation
 def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
@@ -183,36 +190,50 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
     # check if this function was called for the correct type of calculation
     if data["type"] != "single-point":
         sys.exit(
-            "Error: adjust_cp2k_input_sp() was called for the wrong type of calculation.")
+            "Error: adjust_cp2k_input_sp() was called for the wrong type of calculation."
+        )
 
     for i, file in enumerate(cp2k_infiles):
-
         with open(file, "r") as f:
-
             # the file is read into a list of lines, the string is changed and the file is written again
             lines = []
             lines = f.read()
-            lines = re.sub("\$\{PROJECT_NAME\}",
-                           str(data["project"]), lines)
+
+            # Adjust the top line comment to indicate that the file was created by the AIMD setup tool
+            lines = re.sub(
+                "Part of the AIMD setup tool", "Created by the AIMD setup tool", lines
+            )
+
+            lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
             lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
             lines = re.sub("\$\{COORD_FILE\}", str(data["coord"]), lines)
             lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
             lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
             lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
             lines = re.sub("\$\{ENERGY_CUTOFF\}", str(data["e_conv"]), lines)
-            lines = re.sub("\$\{ENERGY_CUTOFF_2\}",
-                           str(data["e_conv"]**2), lines)
+            lines = re.sub("\$\{ENERGY_CUTOFF_2\}", str(data["e_conv"] ** 2), lines)
             # if REVPBE is used, add an addtional line to the CP2K input file
             # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
             if data["func"] == "REVPBE":
                 lines = re.sub(
-                    "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
+                    "&XC_FUNCTIONAL REVPBE",
+                    "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
+                    lines,
+                )
 
             with open(file, "w") as g:
                 g.writelines(lines)
 
+
 # modify the CP2K input file for the bqb calculations
-def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscript_name: str, queue: str, template_dir: str) -> None:
+def adjust_cp2k_input_bqb(
+    cp2k_infiles: list,
+    data: dict,
+    project: str,
+    runscript_name: str,
+    queue: str,
+    template_dir: str,
+) -> None:
     """Adjust the CP2K input file for the bqb file production
 
     Parameters
@@ -234,7 +255,8 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
     # check if this function was called for the correct type of calculation
     if data["type"] != "bqb":
         sys.exit(
-            "Error: adjust_cp2k_input_bqb() was called for the wrong type of calculation.")
+            "Error: adjust_cp2k_input_bqb() was called for the wrong type of calculation."
+        )
 
     # determine important parameters according to type of spectrum
     # taken from: https://brehm-research.de/files/spec_tutorial_2018.pdf
@@ -260,43 +282,51 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
         overlap = 0
 
     for i, file in enumerate(cp2k_infiles):
-
         with open(file, "r") as f:
-
             if i == 0:
-
                 # the file is read into a list of lines, the string is changed and the file is written again
                 lines = []
                 lines = f.read()
-                lines = re.sub("\$\{PROJECT_NAME\}",
-                               str(data["project"]), lines)
+
+                # Adjust the top line comment to indicate that the file was created by the AIMD setup tool
+                lines = re.sub(
+                    "Part of the AIMD setup tool",
+                    "Created by the AIMD setup tool",
+                    lines,
+                )
+
+                lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
-                lines = re.sub("\$\{NSTEPS\}", str(
-                    data["steps_bqb"] + overlap), lines)
+                lines = re.sub("\$\{NSTEPS\}", str(data["steps_bqb"] + overlap), lines)
                 lines = re.sub("\$\{STRIDE\}", str(stride), lines)
-                lines = re.sub("\$\{TRAJ_FILE_NAME\}", str(
-                    os.path.basename(data["reftraj"])), lines)
+                lines = re.sub(
+                    "\$\{TRAJ_FILE_NAME\}",
+                    str(os.path.basename(data["reftraj"])),
+                    lines,
+                )
 
                 # if REVPBE is used, add an addtional line to the CP2K input file
                 # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
                     lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE", "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE", lines)
+                        "&XC_FUNCTIONAL REVPBE",
+                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
+                        lines,
+                    )
 
                 with open(file, "w") as g:
                     g.writelines(lines)
 
                 # generate n_bqb directories for the bqb calculations
                 # if no e field is needed, one directory per bqb is enough
-                if calc_efield == False:
-
+                calc_efield = False
+                if "calc_efield" == False:
                     # create the directories
                     for j in range(data["n_bqb"]):
-
                         os.mkdir("bqb_" + str(j + 1).zfill(2))
 
                         # change into the directory
@@ -308,35 +338,41 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                         # adjust the bqb input file
                         # first / last snapshot and field direction
                         with open("bqb.inp", "r") as h:
-
-                            first_step = data["start_from"] + \
-                                j * data["steps_bqb"] * stride
-                            last_step = data["start_from"] + j * \
-                                data["steps_bqb"] * stride + \
-                                data["steps_bqb"] * stride + \
-                                overlap - 1 * stride
+                            first_step = (
+                                data["start_from"] + j * data["steps_bqb"] * stride
+                            )
+                            last_step = (
+                                data["start_from"]
+                                + j * data["steps_bqb"] * stride
+                                + data["steps_bqb"] * stride
+                                + overlap
+                                - 1 * stride
+                            )
 
                             lines = []
                             lines = h.read()
-                            lines = re.sub("\$\{FIRST_SNAPSHOT\}",
-                                           str(first_step), lines)
-                            lines = re.sub("\$\{LAST_SNAPSHOT\}",
-                                           str(last_step), lines)
                             lines = re.sub(
-                                "\$\{FIELD_DIRECTION\}", str("no"), lines)
+                                "\$\{FIRST_SNAPSHOT\}", str(first_step), lines
+                            )
+                            lines = re.sub("\$\{LAST_SNAPSHOT\}", str(last_step), lines)
+                            lines = re.sub("\$\{FIELD_DIRECTION\}", str("no"), lines)
 
                             # write the adjusted bqb input file
                             with open("bqb.inp", "w") as k:
                                 k.writelines(lines)
 
                             # copy the cp2k data files and runscript to the bqb directories
-                            copy_cp2k_data_and_runscript(template_dir=template_dir,
-                                                         project_dir=".",
-                                                         runscript=runscript_name)
+                            copy_cp2k_data_and_runscript(
+                                template_dir=template_dir,
+                                project_dir=".",
+                                runscript=runscript_name,
+                            )
                             # adjust the runscript
-                            adjust_runscript(runscript=runscript_name,
-                                             project="bqb_" + str(j + 1).zfill(2),
-                                             queue=queue,)
+                            adjust_runscript(
+                                runscript=runscript_name,
+                                project="bqb_" + str(j + 1).zfill(2),
+                                queue=queue,
+                            )
 
                         # change back to the main directory
                         os.chdir("..")
@@ -346,10 +382,8 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
 
                 # if an e field is needed, three additional directories are needed
                 elif calc_efield == True:
-
                     # iterate over the number of bqb files
                     for j in range(data["n_bqb"]):
-
                         # create the directories
                         os.mkdir("bqb_" + str(j + 1).zfill(2) + "_no-field")
                         os.mkdir("bqb_" + str(j + 1).zfill(2) + "_x-field")
@@ -358,7 +392,6 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
 
                         # iterate over the four above directories
                         for k in range(4):
-
                             # change into the directory
                             if k == 0:
                                 os.chdir("bqb_" + str(j + 1).zfill(2) + "_no-field")
@@ -375,43 +408,64 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                             # adjust the bqb input file
                             # first / last snapshot and field direction
                             with open("bqb.inp", "r") as h:
-
                                 # define the first and last snapshot
-                                first_step = data["start_from"] + \
-                                    j * data["steps_bqb"] * stride
-                                last_step = data["start_from"] + j * \
-                                    data["steps_bqb"] * stride + \
-                                    data["steps_bqb"] * stride + \
-                                    overlap - 1 * stride
+                                first_step = (
+                                    data["start_from"] + j * data["steps_bqb"] * stride
+                                )
+                                last_step = (
+                                    data["start_from"]
+                                    + j * data["steps_bqb"] * stride
+                                    + data["steps_bqb"] * stride
+                                    + overlap
+                                    - 1 * stride
+                                )
 
                                 lines = []
                                 lines = h.read()
-                                lines = re.sub("\$\{FIRST_SNAPSHOT\}",
-                                               str(first_step), lines)
-                                lines = re.sub("\$\{LAST_SNAPSHOT\}",
-                                               str(last_step), lines)
+                                lines = re.sub(
+                                    "\$\{FIRST_SNAPSHOT\}", str(first_step), lines
+                                )
+                                lines = re.sub(
+                                    "\$\{LAST_SNAPSHOT\}", str(last_step), lines
+                                )
 
                                 # substitute the field direction, and the polarization vector
                                 if k == 0:
                                     lines = re.sub(
-                                        "\$\{FIELD_DIRECTION\}", str("no"), lines)
-                                    lines = re.sub("\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}", str(
-                                        "0.0 0.0 0.0"), lines)
+                                        "\$\{FIELD_DIRECTION\}", str("no"), lines
+                                    )
+                                    lines = re.sub(
+                                        "\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}",
+                                        str("0.0 0.0 0.0"),
+                                        lines,
+                                    )
                                 elif k == 1:
                                     lines = re.sub(
-                                        "\$\{FIELD_DIRECTION\}", str("x"), lines)
-                                    lines = re.sub("\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}", str(
-                                        "1.0 0.0 0.0"), lines)
+                                        "\$\{FIELD_DIRECTION\}", str("x"), lines
+                                    )
+                                    lines = re.sub(
+                                        "\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}",
+                                        str("1.0 0.0 0.0"),
+                                        lines,
+                                    )
                                 elif k == 2:
                                     lines = re.sub(
-                                        "\$\{FIELD_DIRECTION\}", str("y"), lines)
-                                    lines = re.sub("\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}", str(
-                                        "0.0 1.0 0.0"), lines)
+                                        "\$\{FIELD_DIRECTION\}", str("y"), lines
+                                    )
+                                    lines = re.sub(
+                                        "\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}",
+                                        str("0.0 1.0 0.0"),
+                                        lines,
+                                    )
                                 elif k == 3:
                                     lines = re.sub(
-                                        "\$\{FIELD_DIRECTION\}", str("z"), lines)
-                                    lines = re.sub("\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}", str(
-                                        "0.0 0.0 1.0"), lines)
+                                        "\$\{FIELD_DIRECTION\}", str("z"), lines
+                                    )
+                                    lines = re.sub(
+                                        "\$\{X_POL\} \$\{Y_POL\} \$\{Z_POL\}",
+                                        str("0.0 0.0 1.0"),
+                                        lines,
+                                    )
 
                                 # write the adjusted bqb input file
                                 with open("bqb.inp", "w") as s:
@@ -439,18 +493,24 @@ def adjust_cp2k_input_bqb(cp2k_infiles: list, data: dict, project: str, runscrip
                                     s.writelines(lines)
 
                                 # copy the cp2k data files and runscript to the bqb directories
-                                copy_cp2k_data_and_runscript(template_dir=template_dir,
-                                                             project_dir=".",
-                                                             runscript=runscript_name)
+                                copy_cp2k_data_and_runscript(
+                                    template_dir=template_dir,
+                                    project_dir=".",
+                                    runscript=runscript_name,
+                                )
                                 # adjust the runscript
-                                adjust_runscript(runscript=runscript_name,
-                                                 project=str(os.path.basename(os.getcwd())), queue=queue,)
+                                adjust_runscript(
+                                    runscript=runscript_name,
+                                    project=str(os.path.basename(os.getcwd())),
+                                    queue=queue,
+                                )
 
                             # change back to the main directory
                             os.chdir("..")
 
                     # remove the bqb input file from the main directory
                     os.system("rm bqb.inp")
+
 
 # modify the bash runscript for the queue system
 def adjust_runscript(runscript: str, project: str, queue: str) -> None:
@@ -468,7 +528,6 @@ def adjust_runscript(runscript: str, project: str, queue: str) -> None:
 
     # open the file
     with open(runscript, "r") as f:
-
         # the file is read into a list of lines, the string is changed and the file is written again
         lines = []
         lines = f.read()

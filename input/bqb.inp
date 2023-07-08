@@ -1,12 +1,4 @@
-# CP2K input file for the processing of a trajectory
-# extract the electron density and compress it to a bqb file
-# as part of the AIMD setup tool
-# written by Tom Frömbgen, 2023-01-11
-# last modified by Tom Frömbgen, 2023-02-24
-
-# the sections are ordered as GLOBAL, MOTION, FORCE_EVAL
-# the subsections are ordered alphabetically
-# within a subsection, keywords are ordered alphabetically and given first, followed by more subsections
+# Part of the AIMD setup tool
 
 # global settings
 &GLOBAL
@@ -117,7 +109,7 @@
     &PRINT
       # print electronic density
       &E_DENSITY_BQB
-        FILENAME =${FIELD_DIRECTION}-field.bqb    # filename of bqb file
+        FILENAME =${FIELD_DIRECTION}-field.bqb
       &END E_DENSITY_BQB
       
       # voronoi integration

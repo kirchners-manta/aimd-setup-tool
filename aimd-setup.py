@@ -1,17 +1,25 @@
-# Script to setup an AIMD simulations and bqb productions with CP2K
-# Written by Tom Frömbgen
-# Last modified 2023-05-04
+# AIMD setup tool
+#
+# This python program sets up calculations with CP2K.
+# It is mainly designed for AIMD simulations and the subsequent calculation vibrational spectra.
+# Further functionality is planned.
+# The program creates a project directory, copies the input files, adjusts them to the given parameters,
+# and creates a runscript to submit the calculation to the cluster.
+#
+# This program is developed by Tom Frömbgen, (Group of Prof. Dr. Barbara Kirchner, University of Bonn, Germany) and maily designed for the use in this group.
+# It is published under the MIT license.
 
 #############################################
 
-# import modules
-import sys
+from __future__ import annotations
+
 import os
+import sys
 from pathlib import Path
 
-# import own modules
-import routines # to adjust the cp2k input files
-import argparser # to parse the command line arguments
+import adjust_input_files  # to adjust the cp2k input files
+import argparser  # custom argument parser
+
 
 # define useful functions
 def getFileList(path: str, regex: str) -> list:
@@ -51,13 +59,15 @@ def make_project_dir(project_directory: str, overwrite: bool) -> None:
     """
 
     if os.path.isdir(project_directory) and not overwrite:
-        print("Project directory '" + project_directory +
-              "' already exists. Shall is be overwritten? [y/n]")
+        print(
+            "Project directory '"
+            + project_directory
+            + "' already exists. Shall is be overwritten? [y/n]"
+        )
         answer = input()
         if answer in ["y", "Y", "j", "J"]:
             os.system("rm -rf " + project_directory)
-            print("Overwriting old project directory '" +
-                  project_directory + "'.\n")
+            print("Overwriting old project directory '" + project_directory + "'.\n")
             os.system("mkdir " + project_directory)
         else:
             sys.exit("Project directory not overwritten. Exiting.\n")
@@ -69,15 +79,9 @@ def make_project_dir(project_directory: str, overwrite: bool) -> None:
         print("Creating new project directory '" + project_directory + "'.\n")
         os.system("mkdir " + project_directory)
 
-#############################################
 
 # parse arguments to make them available in the script
 args = argparser.parser().parse_args()
-
-#############################################
-
-
-#############################################
 
 # capitalize the functional
 args.func = args.func.upper()
@@ -115,7 +119,7 @@ args.coord = os.path.basename(abs_coord)
 if args.type == "bqb":
     # get absolute path of the reference trajectory file
     abs_reftraj = os.path.abspath(args.reftraj)
-    
+
     # get basename of the reference trajectory file
     args.reftraj = os.path.basename(abs_reftraj)
 
@@ -166,25 +170,30 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 
 # check if all relevant files are present in the script directory
 # if not, print warning and exit
-files = [script_dir + "/input/bqb.inp",
-         script_dir + "/input/geoopt.inp",
-         script_dir + "/input/eq.inp",
-         script_dir + "/input/relax.inp",
-         script_dir + "/input/prod.inp",
-         script_dir + "/input/single-point.inp",
-         script_dir + "/data/BASIS_MOLOPT",
-         script_dir + "/data/GTH_POTENTIALS",
-         script_dir + "/data/dftd3.dat",
-         script_dir + "/execute/run-cp2k-aimd-hedy.sh",
-         script_dir + "/execute/run-cp2k-aimd-iris.sh",
-         script_dir + "/execute/run-cp2k-aimd-noctua2.sh",
-         script_dir + "/execute/run-cp2k-bqb-hedy.sh",
-         script_dir + "/execute/run-cp2k-bqb-iris.sh",
-         script_dir + "/execute/run-cp2k-bqb-noctua2.sh",]
+files = [
+    script_dir + "/input/bqb.inp",
+    script_dir + "/input/geoopt.inp",
+    script_dir + "/input/eq.inp",
+    script_dir + "/input/relax.inp",
+    script_dir + "/input/prod.inp",
+    # script_dir + "/input/single-point.inp",
+    script_dir + "/data/BASIS_MOLOPT",
+    script_dir + "/data/GTH_POTENTIALS",
+    script_dir + "/data/dftd3.dat",
+    script_dir + "/execute/run-cp2k-aimd-hedy.sh",
+    script_dir + "/execute/run-cp2k-aimd-iris.sh",
+    script_dir + "/execute/run-cp2k-aimd-noctua2.sh",
+    script_dir + "/execute/run-cp2k-bqb-hedy.sh",
+    script_dir + "/execute/run-cp2k-bqb-iris.sh",
+    script_dir + "/execute/run-cp2k-bqb-noctua2.sh",
+]
 for f in files:
     if not os.path.isfile(f):
-        sys.exit(" *** Warning: Input file '" + f +
-                 "' does not exist. Reinstall this setup tool. Exiting.")
+        sys.exit(
+            " *** Warning: Input file '"
+            + f
+            + "' does not exist. Reinstall this setup tool. Exiting."
+        )
 
 # get the abs path of the directory from which the script is called
 start_dir = os.getcwd()
@@ -195,7 +204,6 @@ start_dir = os.getcwd()
 
 # AIMD
 if args.type == "aimd":
-
     # generate a project directory
     make_project_dir(project_dir, args.overwrite)
 
@@ -206,34 +214,37 @@ if args.type == "aimd":
     os.system("cp " + abs_coord + " .")
 
     # define the input files
-    cp2k_infiles_templates = [script_dir + "/input/geoopt.inp",
-                              script_dir + "/input/eq.inp",
-                              script_dir + "/input/relax.inp",
-                              script_dir + "/input/prod.inp", ]
+    cp2k_infiles_templates = [
+        script_dir + "/input/geoopt.inp",
+        script_dir + "/input/eq.inp",
+        script_dir + "/input/relax.inp",
+        script_dir + "/input/prod.inp",
+    ]
 
     # copy the template files to the project directory
     for f in cp2k_infiles_templates:
         os.system("cp " + f + " .")
 
     # get a list with the input files in the project directory
-    cp2k_infiles = [project_dir + "/geoopt.inp",
-                    project_dir + "/eq.inp",
-                    project_dir + "/relax.inp",
-                    project_dir + "/prod.inp", ]
+    cp2k_infiles = [
+        project_dir + "/geoopt.inp",
+        project_dir + "/eq.inp",
+        project_dir + "/relax.inp",
+        project_dir + "/prod.inp",
+    ]
 
     # adjust the input files
-    routines.adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles,
-                                    data=args_dict)
+    adjust_input_files.adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles, data=args_dict)
 
     # copy run script and data files to the project directory
-    routines.copy_cp2k_data_and_runscript(
+    adjust_input_files.copy_cp2k_data_and_runscript(
         template_dir=script_dir,
         project_dir=project_dir,
         runscript=runscript_name,
     )
 
     # adjust the job name in the run script
-    routines.adjust_runscript(
+    adjust_input_files.adjust_runscript(
         runscript=runscript_name,
         project=args.project,
         queue=args.queue,
@@ -244,7 +255,6 @@ if args.type == "aimd":
 
 # BQB
 elif args.type == "bqb":
-
     # generate a project directory
     make_project_dir(project_dir, args.overwrite)
 
@@ -252,7 +262,9 @@ elif args.type == "bqb":
     os.chdir(project_dir)
 
     # define the input files
-    cp2k_infiles_templates = [script_dir + "/input/bqb.inp", ]
+    cp2k_infiles_templates = [
+        script_dir + "/input/bqb.inp",
+    ]
 
     # copy the template files to the project directory
     for f in cp2k_infiles_templates:
@@ -262,17 +274,23 @@ elif args.type == "bqb":
     cp2k_infiles = getFileList(project_dir, "*.inp")
 
     # adjust the input files
-    routines.adjust_cp2k_input_bqb(cp2k_infiles=cp2k_infiles,
-                                   data=args_dict,
-                                   project=args.project,
-                                   runscript_name=runscript_name,
-                                   queue=args.queue,
-                                   template_dir=script_dir,)
+    adjust_input_files.adjust_cp2k_input_bqb(
+        cp2k_infiles=cp2k_infiles,
+        data=args_dict,
+        project=args.project,
+        runscript_name=runscript_name,
+        queue=args.queue,
+        template_dir=script_dir,
+    )
 
     # copy the coordinates and trajectory files to the project directory
     print("Copying coordinates and reference trajectory to bqbs...\n")
     os.system(
-        "for dir in $(ls -d bqb_*[0-9]); do cp " + abs_reftraj + " $dir; cp " + abs_coord + " $dir; done"
+        "for dir in $(ls -d bqb_*[0-9]); do cp "
+        + abs_reftraj
+        + " $dir; cp "
+        + abs_coord
+        + " $dir; done"
     )
 
     # in the end, change back to the directory from which the script was called
@@ -280,7 +298,6 @@ elif args.type == "bqb":
 
 # single-point
 elif args.type == "single-point":
-    
     # print warning
     sys.exit("This feature is still under development.")
 
@@ -292,7 +309,7 @@ elif args.type == "single-point":
 
     # copy the coordinate file to the project directory
     os.system("cp " + abs_coord + " .")
-    
+
     # then, check if the coordinate file has two lines before the first atom
     # if yes, remove the first two lines
     with open(args.coord, "r") as f:
@@ -306,33 +323,39 @@ elif args.type == "single-point":
                 f.writelines(lines)
 
     # define the input files
-    cp2k_infiles_templates = [script_dir + "/input/single-point.inp", ]
+    cp2k_infiles_templates = [
+        script_dir + "/input/single-point.inp",
+    ]
 
     # copy the template files to the project directory
     for f in cp2k_infiles_templates:
         os.system("cp " + f + " .")
 
     # get a list with the input files in the project directory
-    cp2k_infiles = [project_dir + "/single-point.inp", ]
+    cp2k_infiles = [
+        project_dir + "/single-point.inp",
+    ]
 
     # adjust the input files
-    routines.adjust_cp2k_input_sp(cp2k_infiles=cp2k_infiles,
-                                  data=args_dict,)
+    adjust_input_files.adjust_cp2k_input_sp(
+        cp2k_infiles=cp2k_infiles,
+        data=args_dict,
+    )
 
     # copy run script and data files to the project directory
-    routines.copy_cp2k_data_and_runscript(
-        template_dir=script_dir,
-        project_dir=project_dir,
-        runscript=runscript_name)
+    adjust_input_files.copy_cp2k_data_and_runscript(
+        template_dir=script_dir, project_dir=project_dir, runscript=runscript_name
+    )
 
     # adjust the job name in the run script
-    routines.adjust_runscript(runscript=runscript_name,
-                              project=args.project,
-                              queue=args.queue,)
+    adjust_input_files.adjust_runscript(
+        runscript=runscript_name,
+        project=args.project,
+        queue=args.queue,
+    )
 
     # in the end, change back to the directory from which the script was called
     os.chdir(start_dir)
 
 # print a message that the script has finished
-print("Finished setting up the project '" +
-      args.project + "' in " + project_dir + " .")
+print("Finished setting up the project '" + args.project + "' in " + project_dir + " .")

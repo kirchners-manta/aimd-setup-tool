@@ -1,7 +1,7 @@
 #!/bin/bash
 
+# Part of the AIMD setup tool
 # CP2K 8.1 run script
-# written by Tom Frömbgen 2023-01-11
 
 # PBS Job
 #PBS -N PROJECT_NAME
