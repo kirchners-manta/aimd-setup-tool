@@ -132,7 +132,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 with open(file, "w") as g:
                     g.writelines(lines)
 
-            # for the production: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential and Wannier if desired
+            # for the production: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential, ensemble and Wannier if desired
             elif i == 3:
                 lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
@@ -143,6 +143,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
+                lines = re.sub("\$\{ENSEMBLE\}", str(data["ensemble"]), lines)
+
                 # if REVPBE is used, add an addtional line to the CP2K input file
                 # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
@@ -152,27 +154,48 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                         lines,
                     )
 
-                # if wannier is requested, adjust the input file
-                # remove the comment symbols (#) from the wannier section
-                if data["wannier"] == True:
-                    # set the pointer to the beginning of the file
-                    f.seek(0)
-                    lines = f.readlines()
-
-                    for j, line in enumerate(lines):
-                        # find start of wannier section
-                        if "&LOCALIZE" in line:
-                            # remove comment symbols from the following lines until the end of the section
-                            for k in range(j, len(lines)):
-                                if "&END LOCALIZE" in lines[k]:
-                                    lines[k] = lines[k][1:]
-                                    break
-                                # remove first comment symbol
-                                else:
-                                    lines[k] = lines[k][1:]
-
                 with open(file, "w") as g:
                     g.writelines(lines)
+
+                # if NVE ensemble is used, remove the thermostat
+                if data["ensemble"] == "NVE":
+                    with open(file, "r+") as f:
+                        f.seek(0)
+                        lines = []
+                        lines = f.readlines()
+                        for j, line in enumerate(lines):
+                            if "&THERMOSTAT" in line:
+                                # print("found thermostat")
+                                lines[j - 1] = ""
+                                for k in range(j, len(lines)):
+                                    if "&END THERMOSTAT" in lines[k]:
+                                        lines[k] = ""
+                                        break
+                                    else:
+                                        lines[k] = ""
+                    with open(file, "w") as g:
+                        g.writelines(lines)
+
+                # if wannier is not requested, remove the section from the input file
+                if data["wannier"] == False:
+                    with open(file, "r+") as f:
+                        # set the pointer to the beginning of the file
+                        f.seek(0)
+                        lines = []
+                        lines = f.readlines()
+
+                        for j, line in enumerate(lines):
+                            # find start of wannier section
+                            if "&LOCALIZE" in line:
+                                lines[j - 1] = ""
+                                for k in range(j, len(lines)):
+                                    if "&END LOCALIZE" in lines[k]:
+                                        lines[k] = ""
+                                        break
+                                    else:
+                                        lines[k] = ""
+                    with open(file, "w") as g:
+                        g.writelines(lines)
 
 
 # modify the CP2K input file for a single point calculation

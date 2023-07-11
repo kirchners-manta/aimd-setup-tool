@@ -102,6 +102,9 @@ else:
 # capitalize the thermostat
 args.thermo = args.thermo.upper()
 
+# capitalize the ensemble
+args.ensemble = args.ensemble.upper()
+
 # runscript name
 runscript_name = "run-cp2k-" + args.type + "-" + args.queue + ".sh"
 
@@ -144,6 +147,8 @@ if args.type == "aimd":
     print("Equilibration steps:", args.steps_equi)
     print("Relaxation steps:", args.steps_relax)
     print("Production steps:", args.steps_prod)
+    print("Thermodynamic ensemble in equilibration:", "NVT")
+    print("Thermodynamic ensemble in production:", args.ensemble)
     print("Calculate Wannier functions:", args.wannier)
 
 elif args.type == "bqb":
@@ -300,62 +305,6 @@ elif args.type == "bqb":
 elif args.type == "single-point":
     # print warning
     sys.exit("This feature is still under development.")
-
-    # generate a project directory
-    make_project_dir(project_dir, args.overwrite)
-
-    # change to the project directory
-    os.chdir(project_dir)
-
-    # copy the coordinate file to the project directory
-    os.system("cp " + abs_coord + " .")
-
-    # then, check if the coordinate file has two lines before the first atom
-    # if yes, remove the first two lines
-    with open(args.coord, "r") as f:
-        lines = f.readlines()
-        # if the first entry in the first line is a number, the file has two lines before the first atom
-        if lines[0].split()[0].isdigit():
-            # remove the first two lines
-            lines = lines[2:]
-            # write the new file
-            with open(args.coord, "w") as f:
-                f.writelines(lines)
-
-    # define the input files
-    cp2k_infiles_templates = [
-        script_dir + "/input/single-point.inp",
-    ]
-
-    # copy the template files to the project directory
-    for f in cp2k_infiles_templates:
-        os.system("cp " + f + " .")
-
-    # get a list with the input files in the project directory
-    cp2k_infiles = [
-        project_dir + "/single-point.inp",
-    ]
-
-    # adjust the input files
-    adjust_input_files.adjust_cp2k_input_sp(
-        cp2k_infiles=cp2k_infiles,
-        data=args_dict,
-    )
-
-    # copy run script and data files to the project directory
-    adjust_input_files.copy_cp2k_data_and_runscript(
-        template_dir=script_dir, project_dir=project_dir, runscript=runscript_name
-    )
-
-    # adjust the job name in the run script
-    adjust_input_files.adjust_runscript(
-        runscript=runscript_name,
-        project=args.project,
-        queue=args.queue,
-    )
-
-    # in the end, change back to the directory from which the script was called
-    os.chdir(start_dir)
 
 # print a message that the script has finished
 print("Finished setting up the project '" + args.project + "' in " + project_dir + " .")

@@ -256,6 +256,14 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         action=action_not_more_than(1e-4),
     )
     p.add_argument(
+        "--ensemble",
+        type=str,
+        dest="ensemble",
+        help="R|Thermodynamic ensemble for production run.",
+        default="nvt",
+        choices=["nvt", "nve"],
+    )
+    p.add_argument(
         "--func",
         type=str,
         help="R|Density functional.",
