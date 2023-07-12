@@ -36,6 +36,47 @@ def copy_cp2k_data_and_runscript(
     os.system("cp " + template_dir + "/execute/" + runscript + " " + project_dir)
 
 
+# remove comments from the CP2K input files and remove all lines that only contain whitespace
+def remove_comments_and_whitespace(llist: str) -> str:
+    """Takes a string and removes all comments and all lines that only contain whitespace
+
+    Parameters
+    ----------
+    llist : str
+        string to be modified
+    """
+
+    # remove all comments from the list elements, a comment starts with a #
+    # do not remove the top line comment
+    llist = re.sub("(?<!^)#.*", "", llist)
+    # remove all lines that only contain whitespace
+    llist = re.sub("^\s*\n", "", llist, flags=re.MULTILINE)
+
+    return llist
+
+
+# special adjustment for revPBE functional
+def revpbe_adjustment(llist: str) -> str:
+    """Takes a string and adds an additional line to the CP2K input file if the REVPBE functional is used
+
+    Parameters
+    ----------
+    llist : str
+        string to be modified
+    """
+
+    # if REVPBE is used, add an addtional line to the CP2K input file
+    # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
+    if "REVPBE" in llist:
+        llist = re.sub(
+            "&XC_FUNCTIONAL REVPBE",
+            "&XC_FUNCTIONAL PBE\n\t\t\t\tPARAMETRIZATION REVPBE",
+            llist,
+        )
+
+    return llist
+
+
 # Modify the CP2K input files for the AIMD simulation
 def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
     """Adjust the CP2K input files for an AIMD simulation
@@ -60,8 +101,6 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
             # the file is read into a list of lines, the string is changed and the file is written again
             lines = []
             lines = f.read()
-
-            # Adjust the top line comment to indicate that the file was created by the AIMD setup tool
             lines = re.sub(
                 "Part of the AIMD setup tool", "Created by the AIMD setup tool", lines
             )
@@ -74,14 +113,9 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
-                # if REVPBE is used, add an addtional line to the CP2K input file
-                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
-                    lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE",
-                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
-                        lines,
-                    )
+                    lines = revpbe_adjustment(lines)
+                lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
@@ -97,14 +131,9 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
-                # if REVPBE is used, add an addtional line to the CP2K input file
-                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
-                    lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE",
-                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
-                        lines,
-                    )
+                    lines = revpbe_adjustment(lines)
+                lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
@@ -120,14 +149,9 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
                 lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
-                # if REVPBE is used, add an addtional line to the CP2K input file
-                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
-                    lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE",
-                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
-                        lines,
-                    )
+                    lines = revpbe_adjustment(lines)
+                lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
@@ -145,14 +169,9 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 lines = re.sub("\$\{ENSEMBLE\}", str(data["ensemble"]), lines)
 
-                # if REVPBE is used, add an addtional line to the CP2K input file
-                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
-                    lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE",
-                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
-                        lines,
-                    )
+                    lines = revpbe_adjustment(lines)
+                lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
@@ -221,12 +240,9 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
             # the file is read into a list of lines, the string is changed and the file is written again
             lines = []
             lines = f.read()
-
-            # Adjust the top line comment to indicate that the file was created by the AIMD setup tool
             lines = re.sub(
                 "Part of the AIMD setup tool", "Created by the AIMD setup tool", lines
             )
-
             lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
             lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
             lines = re.sub("\$\{COORD_FILE\}", str(data["coord"]), lines)
@@ -235,14 +251,9 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
             lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
             lines = re.sub("\$\{ENERGY_CUTOFF\}", str(data["e_conv"]), lines)
             lines = re.sub("\$\{ENERGY_CUTOFF_2\}", str(data["e_conv"] ** 2), lines)
-            # if REVPBE is used, add an addtional line to the CP2K input file
-            # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
             if data["func"] == "REVPBE":
-                lines = re.sub(
-                    "&XC_FUNCTIONAL REVPBE",
-                    "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
-                    lines,
-                )
+                lines = revpbe_adjustment(lines)
+            lines = remove_comments_and_whitespace(lines)
 
             with open(file, "w") as g:
                 g.writelines(lines)
@@ -311,13 +322,11 @@ def adjust_cp2k_input_bqb(
                 lines = []
                 lines = f.read()
 
-                # Adjust the top line comment to indicate that the file was created by the AIMD setup tool
                 lines = re.sub(
                     "Part of the AIMD setup tool",
                     "Created by the AIMD setup tool",
                     lines,
                 )
-
                 lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
@@ -331,23 +340,17 @@ def adjust_cp2k_input_bqb(
                     str(os.path.basename(data["reftraj"])),
                     lines,
                 )
-
-                # if REVPBE is used, add an addtional line to the CP2K input file
-                # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION REVPBE
                 if data["func"] == "REVPBE":
-                    lines = re.sub(
-                        "&XC_FUNCTIONAL REVPBE",
-                        "&XC_FUNCTIONAL PBE\n\tPARAMETRIZATION REVPBE",
-                        lines,
-                    )
+                    lines = revpbe_adjustment(lines)
+                lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
                     g.writelines(lines)
 
                 # generate n_bqb directories for the bqb calculations
                 # if no e field is needed, one directory per bqb is enough
-                calc_efield = False
-                if "calc_efield" == False:
+                if calc_efield == False:
+                    print("No e field needed")
                     # create the directories
                     for j in range(data["n_bqb"]):
                         os.mkdir("bqb_" + str(j + 1).zfill(2))
@@ -556,6 +559,11 @@ def adjust_runscript(runscript: str, project: str, queue: str) -> None:
         lines = f.read()
         lines = re.sub("PROJECT_NAME", project, lines)
         lines = re.sub("QUEUE_NAME", queue, lines)
+        lines = re.sub(
+            "Part of the AIMD setup tool",
+            "Created by the AIMD setup tool",
+            lines,
+        )
 
         with open(runscript, "w") as g:
             g.writelines(lines)

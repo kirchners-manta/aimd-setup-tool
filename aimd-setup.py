@@ -290,6 +290,7 @@ elif args.type == "bqb":
 
     # copy the coordinates and trajectory files to the project directory
     print("Copying coordinates and reference trajectory to bqbs...\n")
+
     os.system(
         "for dir in $(ls -d bqb_*[0-9]); do cp "
         + abs_reftraj
