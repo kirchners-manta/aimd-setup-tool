@@ -70,7 +70,7 @@ def revpbe_adjustment(llist: str) -> str:
     if "REVPBE" in llist:
         llist = re.sub(
             "&XC_FUNCTIONAL REVPBE",
-            "&XC_FUNCTIONAL PBE\n\t\t\t\tPARAMETRIZATION REVPBE",
+            "&XC_FUNCTIONAL\n\t\t\t\t&PBE\n\t\t\t\t\tPARAMETRIZATION REVPBE\n\t\t\t\t&END PBE",
             llist,
         )
 
@@ -350,7 +350,6 @@ def adjust_cp2k_input_bqb(
                 # generate n_bqb directories for the bqb calculations
                 # if no e field is needed, one directory per bqb is enough
                 if calc_efield == False:
-                    print("No e field needed")
                     # create the directories
                     for j in range(data["n_bqb"]):
                         os.mkdir("bqb_" + str(j + 1).zfill(2))
