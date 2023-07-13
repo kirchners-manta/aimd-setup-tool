@@ -134,7 +134,7 @@
         # define pairwise dispersion correction
         &PAIR_POTENTIAL
           PARAMETER_FILE_NAME dftd3.dat
-          REFERENCE_FUNCTIONAL ${FUNC}       # use parameters for functional defined in &XC_FUNCTIONAL
+          REFERENCE_FUNCTIONAL ${PP_FUNC}       # use parameters for functional defined in &XC_FUNCTIONAL
           TYPE DFTD3(BJ)                  # use D3 dispersion correction with Becke-Johnson damping
         &END PAIR_POTENTIAL
 
