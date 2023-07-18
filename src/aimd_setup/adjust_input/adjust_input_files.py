@@ -263,7 +263,6 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
 def adjust_cp2k_input_bqb(
     cp2k_infiles: list,
     data: dict,
-    project: str,
     runscript_name: str,
     queue: str,
     template_dir: str,
@@ -314,6 +313,8 @@ def adjust_cp2k_input_bqb(
         calc_efield = False
         stride = 1
         overlap = 0
+    else:
+        sys.exit("Error: Invalid spectrum type.")
 
     for i, file in enumerate(cp2k_infiles):
         with open(file, "r") as f:

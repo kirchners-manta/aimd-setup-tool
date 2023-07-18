@@ -10,7 +10,8 @@ import sys
 from pathlib import Path
 
 from ..adjust_input import (adjust_cp2k_input_aimd, adjust_cp2k_input_bqb,
-                            adjust_cp2k_input_sp, adjust_runscript, copy_cp2k_data_and_runscript)
+                            adjust_cp2k_input_sp, adjust_runscript,
+                            copy_cp2k_data_and_runscript)
 from ..functions import getFileList, make_project_dir
 
 
@@ -215,7 +216,6 @@ def setup_job(args: argparse.Namespace) -> int:
         adjust_cp2k_input_bqb(
             cp2k_infiles=cp2k_infiles,
             data=args_dict,
-            project=args.project,
             runscript_name=runscript_name,
             queue=args.queue,
             template_dir=script_dir,
@@ -225,7 +225,7 @@ def setup_job(args: argparse.Namespace) -> int:
         print("Copying coordinates and reference trajectory to bqbs...\n")
 
         os.system(
-            "for dir in $(ls -d bqb_*[0-9]); do cp "
+            "for dir in $(ls -d bqb_*[0-9]*); do cp "
             + abs_reftraj
             + " $dir; cp "
             + abs_coord
