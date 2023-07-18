@@ -30,10 +30,10 @@ def copy_cp2k_data_and_runscript(
     """
 
     # copy the CP2K data files
-    os.system("cp " + template_dir + "/data/* " + project_dir)
+    os.system("cp " + template_dir + "/../cp2k-datafiles/* " + project_dir)
 
     # copy the runscript
-    os.system("cp " + template_dir + "/execute/" + runscript + " " + project_dir)
+    os.system("cp " + template_dir + "/../runscripts/" + runscript + " " + project_dir)
 
 
 # remove comments from the CP2K input files and remove all lines that only contain whitespace
