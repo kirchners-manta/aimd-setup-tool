@@ -1,41 +1,35 @@
-# AIMD template
+# AIMD Setup Tool
 ---
 
-Python script and collection of input files to set up AIMD simulations or bqb file productions in CP2K.
-Python >=3.10 is required.
+![Python versions](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)
+![Tests](https://github.com/tomfroembgen/python-project/actions/workflows/test.yml/badge.svg)
+[![codecov](https://codecov.io/gh/tomfroembgen/python-project/branch/main/graph/badge.svg?token=UEKDZY459S)](https://codecov.io/gh/tomfroembgen/python-project)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/tomfroembgen/python-project/main.svg)](https://results.pre-commit.ci/latest/github/tomfroembgen/python-project/main)
+[![code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-I recommend adding the script `aimd-setup.py` to your path, e.g. by creating a symlink to your bin. 
+This repository offers a tool to set up ab initio molecular dynamics (AIMD) simulations and subsequent calculations of vibrational spectra using the [CP2K](https://www.cp2k.org/) software package. 
+It is primarily written for the [group of Barbara Kirchner](https://www.chemie.uni-bonn.de/kirchner/de/startseite) at the University of Bonn and published under the [MIT license](./LICENSE).
+
+## Installation
+
+The tool can be installed using `pip`:
 
 ```bash
-ln -s ABSOLUTE_PATH_TO_THIS_DIR/aimd-setup.py ~/bin/aimd-setup
+git clone git@github.com:tomfroembgen/aimd-setup-tool.git
+cd aimd-setup-tool
+pip install .
 ```
-If your local python version is not >=3.10, you can e.g. install conda and create a new environment with python 3.10. 
-Then, you can add the path to the python executable to the first line of the script or you can add an alias to your `.bashrc` file.
 
+## Usage
+
+Currently, the tool has features to set up AIMD simulations and subsequent calculations of vibrational spectra in CP2K.
+It can be called from the command line as
 ```bash
-alias aimd-setup='python3.10 ABSOLUTE_PATH_TO_THIS_DIR/aimd-setup.py'
-
-
-Doing so, you can call the program from anywhere. 
-Calling it with the `-h` option will print a help message with all the options.
-    
-```bash
-aimd-setup -h
+aimd_setup [OPTIONS] project_name
 ```
-There is one required argument, the project name. 
-This is the name of the directory in which all the files will be stored. 
-
+where `project_name` is the name of the directory to be created.
+Various options are available to customize the setup.
+A full list of options can be obtained by calling
 ```bash
-aimd-setup [OPTIONS] project 
-``` 
-If the directory already exists, the program will ask you if you want to overwrite it.
-Then, you can specify which type of calculation you want to set up with the `-t` flag.
-The options are:
-* `single-point` (under development)
-* `aimd` (default)
-* `bqb`
-
-There are more options to specify the calculation, e.g. energy cutoff, the number of steps, the time step, the temperature, etc.
-All of these options have default values. 
-Once you call the program and set up a calculation, the chosen options (including the default ones) will be printed to the screen.
-
+aimd_setup -h
+```

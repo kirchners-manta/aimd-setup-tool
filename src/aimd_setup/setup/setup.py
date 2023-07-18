@@ -9,8 +9,7 @@ import os
 import sys
 from pathlib import Path
 
-from ..adjust_input import (adjust_cp2k_input_aimd, adjust_cp2k_input_bqb,
-                            adjust_cp2k_input_sp, adjust_runscript,
+from ..adjust_input import (adjust_cp2k_input_aimd, adjust_cp2k_input_bqb, adjust_runscript,
                             copy_cp2k_data_and_runscript)
 from ..functions import getFileList, make_project_dir
 
