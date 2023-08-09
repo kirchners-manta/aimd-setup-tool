@@ -7,7 +7,6 @@ from __future__ import annotations
 import argparse
 import os
 import sys
-from pathlib import Path
 
 from ..adjust_input import (adjust_cp2k_input_aimd, adjust_cp2k_input_bqb, adjust_runscript,
                             copy_cp2k_data_and_runscript)
