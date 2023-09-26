@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Part of the AIMD setup tool
-# CP2K 9.1 run script
+# CP2K 2023.1 run script
 
 #SBATCH -t 7-00:00:00
 #SBATCH -p normal
@@ -16,7 +16,7 @@ export OMP_PROC_BIND=true
 
 # load modules
 module reset
-module load chem/CP2K/9.1-foss-2021b
+module load chem/CP2K/2023.1-foss-2022b-gcc-openmpi-openblas
 
 # execute job
 

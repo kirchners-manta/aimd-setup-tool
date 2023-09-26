@@ -1,18 +1,24 @@
 #!/bin/bash
 
 # Part of the AIMD setup tool
-# CP2K 8.1 run script
+# CP2K 2022.1 run script
 
 # PBS Job
 #PBS -N PROJECT_NAME
-#PBS -l nodes=1:ppn=8
+#PBS -l nodes=1:ppn=64
 #PBS -q QUEUE_NAME
 
 # For iris and hedy (only one node)
 
 # load software
-source /home/brehm/Software_2021/load_environment_2021.sh
-export CP2K_PATH=/home/brehm/Software_2021/bin/cp2k_8.1.psmp
+# load software
+# openmpi 4.1.4
+export PATH=/software/cluster-2/openmpi-4.1.4/bin:$PATH
+export LD_LIBRARY_PATH=/software/cluster-2/openmpi-4.1.4/lib64:/usr/lib64/mpi/gcc/openmpi4/lib64/:$LD_LIBRARY_PATH
+
+# cp2k 2022.1
+source /software/cluster-2/cp2k-2022.1/setup
+export CP2K_PATH=/software/cluster-2/cp2k-2022.1/cp2k.psmp
 
 # generate scratch directory
 mkdir -p /tmp1/$USER
