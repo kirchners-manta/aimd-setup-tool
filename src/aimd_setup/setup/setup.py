@@ -8,13 +8,16 @@ import argparse
 import os
 import sys
 
-from ..adjust_input import (adjust_cp2k_input_aimd, adjust_cp2k_input_bqb, adjust_runscript,
-                            copy_cp2k_data_and_runscript)
+from ..adjust_input import (
+    adjust_cp2k_input_aimd,
+    adjust_cp2k_input_bqb,
+    adjust_runscript,
+    copy_cp2k_data_and_runscript,
+)
 from ..functions import getFileList, make_project_dir
 
 
 def setup_job(args: argparse.Namespace) -> int:
-
     # capitalize the functional
     args.func = args.func.upper()
     # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
@@ -25,7 +28,7 @@ def setup_job(args: argparse.Namespace) -> int:
         pp_func = args.func
 
     # capitalize the basis set
-    # if a cardinal number > 2 is given, print warning
+    # if a cardinal number < 2, use SR-GTH
     if args.basis in ["tzvp", "tzv2p", "tzv2px"]:
         args.basis = args.basis.upper() + "-MOLOPT-GTH"
     else:
@@ -239,6 +242,12 @@ def setup_job(args: argparse.Namespace) -> int:
         sys.exit("This feature is still under development.")
 
     # print a message that the script has finished
-    print("Finished setting up the project '" + args.project + "' in " + project_dir + " .")
+    print(
+        "Finished setting up the project '"
+        + args.project
+        + "' in "
+        + project_dir
+        + " ."
+    )
 
     return 0

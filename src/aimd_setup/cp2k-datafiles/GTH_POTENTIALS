@@ -3734,3 +3734,116 @@ Cl GTH-OLYP-q7
                                         6.44346529
      0.37732312    1     4.35487695
 #
+################################################################################
+#
+# SCAN functional
+#
+################################################################################
+#
+# URL: https://cp2k-basis.pierrebeaujean.net/api/pseudopotentials/GTH-SCAN/data?elements=H,B,C,N,O,F,P,S,Cl,Br
+# BUILD: 22/02/2023 @ 10:31
+# FETCHED: 26/09/2023 @ 16:26
+# ---
+# H [0|1s]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3644
+H  GTH-SCAN-q1 GTH-MGGA-q1
+1 0 0 0
+      0.20056928   2    -4.17724314     0.72381629
+     0
+# B [2|2s1p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3678
+B  GTH-SCAN-q3 GTH-MGGA-q3
+2 1 0 0
+      0.41080523   2    -5.91679459     0.86608608
+     1
+      0.37321005   1     6.27806707
+# C [2|2s2p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3684
+C  GTH-SCAN-q4 GTH-MGGA-q4
+2 2 0 0
+      0.33502674   2    -8.82261585     1.29911666
+     1
+      0.30379831   1     9.62576290
+# N [2|2s3p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3690
+N  GTH-SCAN-q5 GTH-MGGA-q5
+2 3 0 0
+      0.28477014   2   -12.41843453     1.85074906
+     1
+      0.25627476   1    13.64509498
+# O [2|2s4p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3696
+O  GTH-SCAN-q6 GTH-MGGA-q6
+2 4 0 0
+      0.24033250   2   -16.79498564     2.45245698
+     1
+      0.22149980   1    18.44156247
+# F [2|2s5p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3702
+F  GTH-SCAN-q7 GTH-MGGA-q7
+2 5 0 0
+      0.21347162   2   -21.46822157     3.12591191
+     1
+      0.19566537   1    23.64858395
+# P [10|2s3p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3762
+P  GTH-SCAN-q5 GTH-MGGA-q5
+2 3 0 0
+      0.43191824   1    -5.57496471
+     2
+      0.39583046   2    10.97430311    -3.47035859
+                                        4.52084425
+      0.44677792   1     3.05563426
+# S [10|2s4p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3770
+S  GTH-SCAN-q6 GTH-MGGA-q6
+2 4 0 0
+      0.41222718   1    -5.96212740
+     2
+      0.36438064   2    13.13727807    -4.24182928
+                                        5.47288765
+      0.40723006   1     3.70793825
+# Cl [10|2s5p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L3778
+Cl  GTH-SCAN-q7 GTH-MGGA-q7
+2 5 0 0
+      0.40440558   1    -6.39475264
+     2
+      0.33924705   2    15.22693927    -4.93452089
+                                        6.36737430
+      0.37724510   1     4.33291556
+# Br [18|2s5p10d]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L4162
+Br  GTH-SCAN-q17 GTH-MGGA-q17
+2 5 10 0
+      0.45831122   0
+     3
+      0.38687616   3    10.40438704    -4.92175639     0.87069430
+                                        7.67646162    -2.24813859
+                                                       1.30263347
+      0.51226561   2     1.60505214     0.19586044
+                                       -0.37948627
+      0.24220470   1   -16.46367024
+# Br [10|4s11p10d]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L4173
+Br  GTH-SCAN-q25 GTH-MGGA-q25
+4 11 10 0
+      0.29944473   2     0.56634641     1.08805536
+     3
+      0.24588469   2    -0.57141919    12.79313910
+                                      -18.26327445
+      0.19625406   2   -11.40524071     8.07114197
+                                       -9.92838392
+      0.20691648   1   -13.33018670
+# Br [28|2s5p]
+# SOURCE: https://github.com/cp2k/cp2k/raw/786bc82ff9ded3e1f761cba6d8e25c3c9fe19bb1/data/POTENTIAL_UZH#L4151
+Br  GTH-SCAN-q7 GTH-MGGA-q7
+2 5 0 0
+      0.49358945   0
+     3
+      0.43866714   3     6.07891297     0.33049900    -1.23838307
+                                       -2.44090696     3.19748959
+                                                      -2.53794061
+      0.45167644   2     2.45941862     0.52275326
+                                       -0.61856425
+      0.56703506   1     0.54405117

@@ -208,59 +208,59 @@
 
     # define species
     &KIND H
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
     &END KIND
 
     &KIND D
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
       ELEMENT H                           # element symbol
       MASS 2.0141                         # mass in atomic mass units
     &END KIND
 
     &KIND B
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q3         # pseudopotential
     &END KIND
 
     &KIND C
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q4         # pseudopotential
     &END KIND
 
     &KIND N
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q5         # pseudopotential
     &END KIND
 
     &KIND P 
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q5         # pseudopotential
     &END KIND
 
     &KIND O
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q6         # pseudopotential
     &END KIND
 
     &KIND S
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q6         # pseudopotential
     &END KIND
 
     &KIND F
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
     &END KIND
 
     &KIND Cl
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
     &END KIND
 
     &KIND Br
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
     &END KIND
 
