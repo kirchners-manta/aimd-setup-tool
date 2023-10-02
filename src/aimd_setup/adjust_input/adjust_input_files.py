@@ -77,6 +77,28 @@ def revpbe_adjustment(llist: str) -> str:
     return llist
 
 
+# special adjustment for SCAN functional
+def scan_adjustment(llist: str) -> str:
+    """Takes a string and adds an additional line to the CP2K input file if the SCAN functional is used
+
+    Parameters
+    ----------
+    llist : str
+        string to be modified
+    """
+
+    # if SCAN is used, add an addtional line to the CP2K input file
+    # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION SCAN
+    if "SCAN" in llist:
+        llist = re.sub(
+            "&XC_FUNCTIONAL SCAN",
+            "&XC_FUNCTIONAL\n\t\t\t\t&MGGA_C_SCAN\n\t\t\t\t&END MGGA_C_SCAN\n\t\t\t\t&MGGA_X_SCAN\n\t\t\t\t&END MGGA_X_SCAN",
+            llist,
+        )
+
+    return llist
+
+
 # Modify the CP2K input files for the AIMD simulation
 def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
     """Adjust the CP2K input files for an AIMD simulation
@@ -115,6 +137,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -133,6 +157,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -151,6 +177,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -171,6 +199,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
 
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -253,6 +283,8 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
             lines = re.sub("\$\{ENERGY_CUTOFF_2\}", str(data["e_conv"] ** 2), lines)
             if data["func"] == "REVPBE":
                 lines = revpbe_adjustment(lines)
+            elif data["func"] == "SCAN":
+                lines = scan_adjustment(lines)
             lines = remove_comments_and_whitespace(lines)
 
             with open(file, "w") as g:
@@ -343,6 +375,8 @@ def adjust_cp2k_input_bqb(
                 )
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
