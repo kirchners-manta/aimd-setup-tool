@@ -236,7 +236,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                         for j, line in enumerate(lines):
                             # find start of wannier section
                             if "&LOCALIZE" in line:
-                                lines[j - 1] = ""
+                                lines[j] = ""
                                 for k in range(j, len(lines)):
                                     if "&END LOCALIZE" in lines[k]:
                                         lines[k] = ""
