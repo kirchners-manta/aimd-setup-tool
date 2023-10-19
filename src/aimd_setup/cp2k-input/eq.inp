@@ -174,6 +174,11 @@
       MASS 2.0141                         # mass in atomic mass units
     &END KIND
 
+    &KIND Li
+      BASIS_SET ORB ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q3         # pseudopotential
+    &END KIND
+    
     &KIND B
       BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q3         # pseudopotential
