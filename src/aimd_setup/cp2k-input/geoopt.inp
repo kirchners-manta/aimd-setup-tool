@@ -7,52 +7,22 @@
   PREFERRED_FFT_LIBRARY FFTW      # use FFTW for FFTs        
   PRINT_LEVEL LOW                 # print level, low is sufficient
   PROJECT ${PROJECT_NAME}         # project name  
-  RUN_TYPE MD                     # MD simulation
+  RUN_TYPE GEO_OPT                # type of calculation, e.g. GEO_OPT, MD, ENERGY
 &END GLOBAL
 
 # Motions of nuclei
-&MOTION 
+&MOTION
 
-  # AIMD settings
-  &MD
-    ENSEMBLE REFTRAJ                # ensemble
-    STEPS ${NSTEPS}             # number of MD steps
-
-    # reference trajectory
-    &REFTRAJ
-      EVAL_ENERGY_FORCES                # evaluate energy and forces
-      FIRST_SNAPSHOT ${FIRST_SNAPSHOT}  # first snapshot
-      LAST_SNAPSHOT ${LAST_SNAPSHOT}    # last snapshot
-      STRIDE ${STRIDE}                  # stride, distance between snapshots
-      TRAJ_FILE_NAME ${TRAJ_FILE_NAME}
-    &END REFTRAJ
-
-  &END MD
-
-  # print settings of simulation
-  &PRINT
-
-    # print settings of restart file
-    &RESTART
-
-      # frequency of printing restart file
-      &EACH
-        MD 1
-      &END EACH
-
-    &END RESTART
-
-    # print settings of restart history 
-    &RESTART_HISTORY
-
-      # frequency of printing restart history
-      &EACH
-        MD 500
-      &END EACH
-
-    &END RESTART_HISTORY
-
-  &END PRINT
+  # Geometry optimization
+  &GEO_OPT
+    MAX_DR    3.0E-03           # maximum displacement of nuclei
+    MAX_FORCE 4.5E-04           # maximum force on nuclei
+    MAX_ITER 200                # maximum number of geometry optimization cycles
+    OPTIMIZER CG                # use conjugate gradient optimizer
+    RMS_DR    1.0E-03           # RMS displacement of nuclei
+    RMS_FORCE 3.0E-04           # RMS force on nuclei
+    TYPE MINIMIZATION           # finding minimum, other option: TRANSITION_STATE
+  &END GEO_OPT
 
 &END MOTION
 
@@ -62,64 +32,42 @@
 
   # DFT settings
   &DFT
-    # basis set file, potential file. no comment after file name!
     BASIS_SET_FILE_NAME BASIS_MOLOPT
     POTENTIAL_FILE_NAME GTH_POTENTIALS
-
+    
     # multigrid settings
     &MGRID
       CUTOFF 280                  # cutoff for multigrid
       NGRIDS 5                    # number of multigrid levels
-      REL_CUTOFF 40               # relative cutoff for multigrid
+      REL_CUTOFF 50               # relative cutoff for multigrid
     &END MGRID
-
+    
     # quickstep settings
     &QS
-      EPS_DEFAULT 1.0E-10         # default convergence threshold
-      EXTRAPOLATION_ORDER 3       # extrapolation order
+      EPS_DEFAULT 1.0E-12         # default convergence threshold
+      EXTRAPOLATION_ORDER 4       # extrapolation order
     &END QS
-
+    
     # SCF settings
     &SCF
-      EPS_SCF 1.0E-5              # SCF convergence threshold
-      MAX_SCF 50                  # maximum number of SCF cycles
+      EPS_SCF 1.0E-6              # SCF convergence threshold
+      MAX_SCF 20                  # maximum number of SCF cycles
       SCF_GUESS RESTART           # restart from previous SCF cycle
 
       # orbital transformation settings
       &OT
         MINIMIZER DIIS            # use DIIS minimizer
-        PRECONDITIONER FULL_SINGLE_INVERSE
+        PRECONDITIONER FULL_SINGLE_INVERSE      # use full single inverse preconditioner
       &END OT
 
       # outer SCF settings
       &OUTER_SCF
-        MAX_SCF 50                # maximum number of outer SCF cycles
-        EPS_SCF 1.0E-5            # outer SCF convergence threshold, take care: this value must be equal or smaller than the value for EPS_SCF in the &SCF section
+        MAX_SCF 20                # maximum number of outer SCF cycles
+        EPS_SCF 1.0E-6            # outer SCF convergence threshold, take care: this value must be equal or smaller than the value for EPS_SCF in the &SCF section
       &END OUTER_SCF
 
     &END SCF
-
-    # Periodic electrostatic field
-#    &PERIODIC_EFIELD
-#        INTENSITY 5.0E-3          # intensity of the field
-#        POLARISATION ${X_POL} ${Y_POL} ${Z_POL}  # direction of the field
-#    &END PERIODIC_EFIELD
-
-    # print settings
-    &PRINT
-      # print electronic density
-      &E_DENSITY_BQB
-        FILENAME =${FIELD_DIRECTION}-field.bqb
-      &END E_DENSITY_BQB
-      
-      # voronoi integration
-      &VORONOI
-        FILENAME =voro
-        OUTPUT_EMP .TRUE.         # output emp file
-      &END VORONOI
-      
-    &END PRINT 
-
+    
     # exchange-correlation settings
     &XC
       
@@ -159,59 +107,64 @@
 
     # define species
     &KIND H
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
     &END KIND
 
     &KIND D
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
       ELEMENT H                           # element symbol
       MASS 2.0141                         # mass in atomic mass units
     &END KIND
 
+    &KIND Li
+      BASIS_SET ORB ${BASIS}                  # basis set
+      POTENTIAL GTH-${PP_FUNC}-q3         # pseudopotential
+    &END KIND
+    
     &KIND B
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q3         # pseudopotential
     &END KIND
 
     &KIND C
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q4         # pseudopotential
     &END KIND
 
     &KIND N
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q5         # pseudopotential
     &END KIND
 
     &KIND P 
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q5         # pseudopotential
     &END KIND
 
     &KIND O
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q6         # pseudopotential
     &END KIND
 
     &KIND S
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q6         # pseudopotential
     &END KIND
 
     &KIND F
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
     &END KIND
 
     &KIND Cl
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
     &END KIND
 
     &KIND Br
-      BASIS_SET ${BASIS}                  # basis set
+      BASIS_SET ORB ${BASIS}                  # basis set
       POTENTIAL GTH-${PP_FUNC}-q7         # pseudopotential
     &END KIND
 
@@ -225,4 +178,7 @@
 
 &END FORCE_EVAL
 
-
+# restart settings
+&EXT_RESTART
+  #RESTART_FILE_NAME ${PROJECT_NAME}-1.restart
+&END EXT_RESTART

@@ -30,10 +30,10 @@ def copy_cp2k_data_and_runscript(
     """
 
     # copy the CP2K data files
-    os.system("cp " + template_dir + "/data/* " + project_dir)
+    os.system("cp " + template_dir + "/../cp2k-datafiles/* " + project_dir)
 
     # copy the runscript
-    os.system("cp " + template_dir + "/execute/" + runscript + " " + project_dir)
+    os.system("cp " + template_dir + "/../runscripts/" + runscript + " " + project_dir)
 
 
 # remove comments from the CP2K input files and remove all lines that only contain whitespace
@@ -71,6 +71,28 @@ def revpbe_adjustment(llist: str) -> str:
         llist = re.sub(
             "&XC_FUNCTIONAL REVPBE",
             "&XC_FUNCTIONAL\n\t\t\t\t&PBE\n\t\t\t\t\tPARAMETRIZATION REVPBE\n\t\t\t\t&END PBE",
+            llist,
+        )
+
+    return llist
+
+
+# special adjustment for SCAN functional
+def scan_adjustment(llist: str) -> str:
+    """Takes a string and adds an additional line to the CP2K input file if the SCAN functional is used
+
+    Parameters
+    ----------
+    llist : str
+        string to be modified
+    """
+
+    # if SCAN is used, add an addtional line to the CP2K input file
+    # in the &XC_FUNCTIONAL section, add the line: PARAMETRIZATION SCAN
+    if "SCAN" in llist:
+        llist = re.sub(
+            "&XC_FUNCTIONAL SCAN",
+            "&XC_FUNCTIONAL\n\t\t\t\t&MGGA_C_SCAN\n\t\t\t\t&END MGGA_C_SCAN\n\t\t\t\t&MGGA_X_SCAN\n\t\t\t\t&END MGGA_X_SCAN",
             llist,
         )
 
@@ -115,6 +137,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -133,6 +157,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -151,6 +177,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -171,6 +199,8 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
 
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:
@@ -206,9 +236,31 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                         for j, line in enumerate(lines):
                             # find start of wannier section
                             if "&LOCALIZE" in line:
-                                lines[j - 1] = ""
+                                lines[j] = ""
                                 for k in range(j, len(lines)):
                                     if "&END LOCALIZE" in lines[k]:
+                                        lines[k] = ""
+                                        break
+                                    else:
+                                        lines[k] = ""
+                    with open(file, "w") as g:
+                        g.writelines(lines)
+
+                # if BQB printing is not requested, remove the section from the input file
+                if data["bqb_in_prod"] == False:
+                    with open(file, "r+") as f:
+                        # set the pointer to the beginning of the file
+                        f.seek(0)
+                        lines = []
+                        lines = f.readlines()
+
+                        for j, line in enumerate(lines):
+                            # find start of wannier section
+                            if "&E_DENSITY_BQB" in line:
+                                lines[j - 1] = ""
+                                lines[j] = ""
+                                for k in range(j, len(lines)):
+                                    if "&END PRINT" in lines[k]:
                                         lines[k] = ""
                                         break
                                     else:
@@ -253,6 +305,8 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
             lines = re.sub("\$\{ENERGY_CUTOFF_2\}", str(data["e_conv"] ** 2), lines)
             if data["func"] == "REVPBE":
                 lines = revpbe_adjustment(lines)
+            elif data["func"] == "SCAN":
+                lines = scan_adjustment(lines)
             lines = remove_comments_and_whitespace(lines)
 
             with open(file, "w") as g:
@@ -263,7 +317,6 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
 def adjust_cp2k_input_bqb(
     cp2k_infiles: list,
     data: dict,
-    project: str,
     runscript_name: str,
     queue: str,
     template_dir: str,
@@ -314,6 +367,8 @@ def adjust_cp2k_input_bqb(
         calc_efield = False
         stride = 1
         overlap = 0
+    else:
+        sys.exit("Error: Invalid spectrum type.")
 
     for i, file in enumerate(cp2k_infiles):
         with open(file, "r") as f:
@@ -342,6 +397,8 @@ def adjust_cp2k_input_bqb(
                 )
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
+                elif data["func"] == "SCAN":
+                    lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:

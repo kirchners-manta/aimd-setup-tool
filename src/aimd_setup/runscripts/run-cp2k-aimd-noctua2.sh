@@ -7,7 +7,7 @@
 #SBATCH -p normal
 #SBATCH --ntasks-per-node=128
 #SBATCH --cpus-per-task=1
-#SBATCH -N 2
+#SBATCH -N 1
 #SBATCH -J "PROJECT_NAME"
 
 export OMP_NUM_THREADS=1
@@ -20,5 +20,8 @@ module load chem/CP2K/2023.1-foss-2022b-gcc-openmpi-openblas
 
 # execute job
 
-# BQB production
-srun cp2k.psmp bqb.inp >bqb.out
+# AIMD simulation
+srun cp2k.psmp geoopt.inp >geoopt.out
+srun cp2k.psmp eq.inp >eq.out
+srun cp2k.psmp relax.inp >relax.out
+srun cp2k.psmp prod.inp >prod.out
