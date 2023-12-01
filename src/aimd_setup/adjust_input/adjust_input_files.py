@@ -246,6 +246,28 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                     with open(file, "w") as g:
                         g.writelines(lines)
 
+                # if BQB printing is not requested, remove the section from the input file
+                if data["bqb_in_prod"] == False:
+                    with open(file, "r+") as f:
+                        # set the pointer to the beginning of the file
+                        f.seek(0)
+                        lines = []
+                        lines = f.readlines()
+
+                        for j, line in enumerate(lines):
+                            # find start of wannier section
+                            if "&E_DENSITY_BQB" in line:
+                                lines[j - 1] = ""
+                                lines[j] = ""
+                                for k in range(j, len(lines)):
+                                    if "&END PRINT" in lines[k]:
+                                        lines[k] = ""
+                                        break
+                                    else:
+                                        lines[k] = ""
+                    with open(file, "w") as g:
+                        g.writelines(lines)
+
 
 # modify the CP2K input file for a single point calculation
 def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:

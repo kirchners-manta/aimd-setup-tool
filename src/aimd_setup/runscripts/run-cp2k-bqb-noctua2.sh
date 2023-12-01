@@ -7,7 +7,7 @@
 #SBATCH -p normal
 #SBATCH --ntasks-per-node=128
 #SBATCH --cpus-per-task=1
-#SBATCH -N 2
+#SBATCH -N 1
 #SBATCH -J "PROJECT_NAME"
 
 export OMP_NUM_THREADS=1

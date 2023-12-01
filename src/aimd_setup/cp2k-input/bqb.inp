@@ -114,7 +114,6 @@
       
       # voronoi integration
       &VORONOI
-        FILENAME =voro
         OUTPUT_EMP .TRUE.         # output emp file
       &END VORONOI
       

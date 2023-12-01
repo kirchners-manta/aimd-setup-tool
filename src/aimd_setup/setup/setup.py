@@ -84,10 +84,12 @@ def setup_job(args: argparse.Namespace) -> int:
         print("Production steps:", args.steps_prod)
         print("Thermodynamic ensemble in equilibration:", "NVT")
         print("Thermodynamic ensemble in production:", args.ensemble)
+        print("Print BQB file:", args.bqb_in_prod)
         print("Calculate Wannier functions:", args.wannier)
 
     elif args.type == "bqb":
         print("Reference trajectory:", args.reftraj)
+        print("Process Trajectory from step:", args.start_from)
         print("Bqb files:", args.n_bqb)
         print("Steps per bqb file:", args.steps_bqb)
         print("Spectrum:", args.spectrum)

@@ -239,6 +239,13 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         action=action_not_less_than(5.0),
     )
     p.add_argument(
+        "--bqb-in-prod",
+        help="R|Write BQB files during production run (can produce large file).",
+        dest="bqb_in_prod",
+        action="store_true",
+        default=False,
+    )
+    p.add_argument(
         "-c",
         "--coord-file",
         type=is_file,
@@ -412,12 +419,5 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         action="store_true",
         dest="wannier",
     )
-    # p.add_argument(
-    #     "-v",
-    #     "--version",
-    #     action="store_true",
-    #     default=argparse.SUPPRESS,
-    #     help="Show version and exit.",
-    # )
 
     return p

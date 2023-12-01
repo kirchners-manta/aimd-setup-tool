@@ -168,6 +168,20 @@
       &END OUTER_SCF
 
     &END SCF
+
+    # print settings
+    &PRINT
+      # print electronic density
+      &E_DENSITY_BQB
+        FILENAME =edens.bqb
+      &END E_DENSITY_BQB
+      
+      # voronoi integration
+      &VORONOI
+        OUTPUT_EMP .TRUE.         # output emp file
+      &END VORONOI
+      
+    &END PRINT 
     
     # exchange-correlation settings
     &XC
