@@ -191,7 +191,7 @@ class Formatter(argparse.HelpFormatter):
 
 
 # custom parser
-def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
+def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     """
     Parses the command line arguments.
 
@@ -207,7 +207,6 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         epilog="Written for the Kirchner group by Tom Frömbgen. Internal use only.",
         formatter_class=lambda prog: Formatter(prog, max_help_position=60),
         add_help=False,
-        **kwargs,
     )
     p.add_argument(
         "project",
@@ -230,6 +229,7 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         choices=["svz", "dzvp", "tzvp", "tzv2p", "tzv2px"],
     )
     p.add_argument(
+        "-b",
         "--boxsize",
         type=float,
         dest="boxsize",
@@ -295,6 +295,34 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         dest="no_copy",
     )
     p.add_argument(
+        "--no-geoopt",
+        help="R|Do not perform geometry optimization.",
+        action="store_true",
+        default=False,
+        dest="no_geoopt",
+    )
+    p.add_argument(
+        "--no-equi",
+        help="R|Do not perform equilibration.",
+        action="store_true",
+        default=False,
+        dest="no_equi",
+    )
+    p.add_argument(
+        "--no-relax",
+        help="R|Do not perform relaxation.",
+        action="store_true",
+        default=False,
+        dest="no_relax",
+    )
+    p.add_argument(
+        "--no-prod",
+        help="R|Do not perform production run.",
+        action="store_true",
+        default=False,
+        dest="no_prod",
+    )
+    p.add_argument(
         "-o",
         "--overwrite",
         help="R|Overwrite existing project directory.",
@@ -351,7 +379,7 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         metavar="N",
         help="R|Number of equilibration steps.",
         default=20000,
-        action=action_not_less_than(1000),
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--steps-relax",
@@ -359,7 +387,7 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         metavar="N",
         help="R|Number of relaxation steps.",
         default=10000,
-        action=action_not_less_than(1000),
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--steps-prod",
@@ -367,7 +395,7 @@ def parser(name: str = "aimd-setup", **kwargs) -> argparse.ArgumentParser:
         metavar="N",
         help="R|Number of production steps.",
         default=60000,
-        action=action_not_less_than(1000),
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--type",

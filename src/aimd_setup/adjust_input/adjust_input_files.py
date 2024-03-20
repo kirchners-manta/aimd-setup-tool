@@ -100,13 +100,15 @@ def scan_adjustment(llist: str) -> str:
 
 
 # Modify the CP2K input files for the AIMD simulation
-def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
+def adjust_cp2k_input_aimd(cp2k_infiles: list, which_jobs: list, data: dict) -> None:
     """Adjust the CP2K input files for an AIMD simulation
 
     Parameters
     ----------
     cp2k_infiles : list
         List of the CP2K input files as strings
+    which_jobs : list
+        List of booleans indicating which jobs are to be executed
     data : dict
         Dictionary with the data from the command line arguments, including default values
     """
@@ -128,7 +130,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
             )
 
             # for the geometry optimization: adjust project name, box length, coord file, density functional, basis set, pseudopotential
-            if i == 0:
+            if i == 0 and which_jobs[i] == True:
                 lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
@@ -145,7 +147,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                     g.writelines(lines)
 
             # for the equilibration: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
-            elif i == 1:
+            elif i == 1 and which_jobs[i] == True:
                 lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
@@ -165,7 +167,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                     g.writelines(lines)
 
             # for the relaxation: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential
-            elif i == 2:
+            elif i == 2 and which_jobs[i] == True:
                 lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
@@ -185,7 +187,7 @@ def adjust_cp2k_input_aimd(cp2k_infiles: list, data: dict) -> None:
                     g.writelines(lines)
 
             # for the production: adjust project name, box length, coord file, thermostat, temperature and number of steps, density functional, basis set, pseudopotential, ensemble and Wannier if desired
-            elif i == 3:
+            elif i == 3 and which_jobs[i] == True:
                 lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
                 lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
                 lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)

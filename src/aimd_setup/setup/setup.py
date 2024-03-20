@@ -75,15 +75,21 @@ def setup_job(args: argparse.Namespace) -> int:
 
     # arguments that are only needed for a certain type of calculation are printed last
     if args.type == "aimd":
-        print("Thermostat:", args.thermo)
-        print("Equilibration temperature [K]:", args.t_equi)
-        print("Relaxation temperature [K]:", args.t_relax)
-        print("Production temperature [K]:", args.t_prod)
-        print("Equilibration steps:", args.steps_equi)
-        print("Relaxation steps:", args.steps_relax)
-        print("Production steps:", args.steps_prod)
-        print("Thermodynamic ensemble in equilibration:", "NVT")
-        print("Thermodynamic ensemble in production:", args.ensemble)
+        if not args.no_equi:
+            print("Equilibration steps:", args.steps_equi)
+            print("Equilibration temperature [K]:", args.t_equi)
+        if not args.no_relax:
+            print("Relaxation steps:", args.steps_relax)
+            print("Relaxation temperature [K]:", args.t_relax)
+        if not args.no_prod:
+            print("Production steps:", args.steps_prod)
+            print("Production temperature [K]:", args.t_prod)
+        if not args.no_equi:
+            print("Thermodynamic ensemble in equilibration:", "NVT")
+            print("Thermostat:", args.thermo)
+        if not args.no_prod:
+            print("Thermodynamic ensemble in production:", args.ensemble)
+            print("Thermostat:", args.thermo)
         print("Print BQB file:", args.bqb_in_prod)
         print("Calculate Wannier functions:", args.wannier)
 
@@ -163,6 +169,14 @@ def setup_job(args: argparse.Namespace) -> int:
             script_dir + "/../cp2k-input/prod.inp",
         ]
 
+        # list with bools stating whether the input files should be created
+        jobs_to_exec = [
+            not args.no_geoopt,
+            not args.no_equi,
+            not args.no_relax,
+            not args.no_prod,
+        ]
+
         # copy the template files to the project directory
         for f in cp2k_infiles_templates:
             os.system("cp " + f + " .")
@@ -176,7 +190,14 @@ def setup_job(args: argparse.Namespace) -> int:
         ]
 
         # adjust the input files
-        adjust_cp2k_input_aimd(cp2k_infiles=cp2k_infiles, data=args_dict)
+        adjust_cp2k_input_aimd(
+            cp2k_infiles=cp2k_infiles, which_jobs=jobs_to_exec, data=args_dict
+        )
+
+        # remove the input files that are not needed
+        for i, job in enumerate(jobs_to_exec):
+            if not job:
+                os.system("rm " + cp2k_infiles[i])
 
         # copy run script and data files to the project directory
         copy_cp2k_data_and_runscript(
