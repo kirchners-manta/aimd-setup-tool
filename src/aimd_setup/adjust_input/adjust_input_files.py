@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+from typing import Any
 
 
 # Copy the CP2K data files and the runscript to a directory
@@ -100,7 +101,9 @@ def scan_adjustment(llist: str) -> str:
 
 
 # Modify the CP2K input files for the AIMD simulation
-def adjust_cp2k_input_aimd(cp2k_infiles: list, which_jobs: list, data: dict) -> None:
+def adjust_cp2k_input_aimd(
+    cp2k_infiles: list[str], which_jobs: list[bool], data: dict[str, Any]
+) -> None:
     """Adjust the CP2K input files for an AIMD simulation
 
     Parameters
@@ -317,8 +320,8 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
 
 # modify the CP2K input file for the bqb calculations
 def adjust_cp2k_input_bqb(
-    cp2k_infiles: list,
-    data: dict,
+    cp2k_infiles: list[str],
+    data: dict[str, Any],
     runscript_name: str,
     queue: str,
     template_dir: str,

@@ -109,6 +109,7 @@ def setup_job(args: argparse.Namespace) -> int:
 
     # create a dictionary with the arguments and add pp_func
     args_dict = vars(args)
+    print(type(args_dict))
     args_dict["pp_func"] = pp_func
 
     #############################################
