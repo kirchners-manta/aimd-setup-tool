@@ -275,7 +275,7 @@ def adjust_cp2k_input_aimd(
 
 
 # modify the CP2K input file for a single point calculation
-def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
+def adjust_cp2k_input_sp(cp2k_infiles: list[str], data: dict[str, Any]) -> None:
     """Adjust the CP2K input file for a single point calculation
 
     Parameters
@@ -287,7 +287,7 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
     """
 
     # check if this function was called for the correct type of calculation
-    if data["type"] != "single-point":
+    if data["type"] != "energy":
         sys.exit(
             "Error: adjust_cp2k_input_sp() was called for the wrong type of calculation."
         )
@@ -301,13 +301,13 @@ def adjust_cp2k_input_sp(cp2k_infiles: list, data: dict) -> None:
                 "Part of the AIMD setup tool", "Created by the AIMD setup tool", lines
             )
             lines = re.sub("\$\{PROJECT_NAME\}", str(data["project"]), lines)
+            lines = re.sub("\$\{SIMBOX_XYZ\}", str(data["coord"]), lines)
             lines = re.sub("\$\{BOX_LENGTH\}", str(data["boxsize"]), lines)
             lines = re.sub("\$\{COORD_FILE\}", str(data["coord"]), lines)
             lines = re.sub("\$\{FUNC\}", str(data["func"]), lines)
             lines = re.sub("\$\{BASIS\}", str(data["basis"]), lines)
             lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
-            lines = re.sub("\$\{ENERGY_CUTOFF\}", str(data["e_conv"]), lines)
-            lines = re.sub("\$\{ENERGY_CUTOFF_2\}", str(data["e_conv"] ** 2), lines)
+
             if data["func"] == "REVPBE":
                 lines = revpbe_adjustment(lines)
             elif data["func"] == "SCAN":

@@ -11,6 +11,7 @@ import sys
 from ..adjust_input import (
     adjust_cp2k_input_aimd,
     adjust_cp2k_input_bqb,
+    adjust_cp2k_input_sp,
     adjust_runscript,
     copy_cp2k_data_and_runscript,
 )
@@ -109,7 +110,6 @@ def setup_job(args: argparse.Namespace) -> int:
 
     # create a dictionary with the arguments and add pp_func
     args_dict = vars(args)
-    print(type(args_dict))
     args_dict["pp_func"] = pp_func
 
     #############################################
@@ -125,7 +125,7 @@ def setup_job(args: argparse.Namespace) -> int:
         script_dir + "/../cp2k-input/eq.inp",
         script_dir + "/../cp2k-input/relax.inp",
         script_dir + "/../cp2k-input/prod.inp",
-        # script_dir + "/../cp2k-input/single-point.inp",
+        script_dir + "/../cp2k-input/energy.inp",
         script_dir + "/../cp2k-datafiles/BASIS_MOLOPT",
         script_dir + "/../cp2k-datafiles/GTH_POTENTIALS",
         script_dir + "/../cp2k-datafiles/dftd3.dat",
@@ -261,9 +261,50 @@ def setup_job(args: argparse.Namespace) -> int:
         os.chdir(start_dir)
 
     # single-point
-    elif args.type == "single-point":
-        # print warning
-        sys.exit("This feature is still under development.")
+    elif args.type == "energy":
+        # generate a project directory
+        make_project_dir(project_dir, args.overwrite)
+
+        # change to the project directory
+        os.chdir(project_dir)
+
+        # define the input files
+        cp2k_infiles_templates = [
+            script_dir + "/../cp2k-input/energy.inp",
+        ]
+
+        # copy the template files to the project directory
+        for f in cp2k_infiles_templates:
+            os.system("cp " + f + " .")
+
+        # get a list with the input files in the project directory
+        cp2k_infiles = getFileList(project_dir, "*.inp")
+
+        #  copy the coordinate to the project directory
+        os.system("cp " + abs_coord + " .")
+
+        # adjust the input files
+        adjust_cp2k_input_sp(
+            cp2k_infiles=cp2k_infiles,
+            data=args_dict,
+        )
+
+        # copy run script and data files to the project directory
+        copy_cp2k_data_and_runscript(
+            template_dir=script_dir,
+            project_dir=project_dir,
+            runscript=runscript_name,
+        )
+
+        # adjust the job name in the run script
+        adjust_runscript(
+            runscript=runscript_name,
+            project=args.project,
+            queue=args.queue,
+        )
+
+        # in the end, change back to the directory from which the script was called
+        os.chdir(start_dir)
 
     # print a message that the script has finished
     print(

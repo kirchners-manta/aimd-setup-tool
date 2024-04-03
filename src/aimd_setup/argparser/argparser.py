@@ -336,7 +336,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         type=str,
         metavar="QUEUE",
         help="R|Cluster/queue to submit the job to.",
-        default="hedy",
+        default="noctua2",
         dest="queue",
         choices=["hedy", "iris", "noctua2"],
     )
@@ -402,7 +402,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         type=str,
         help="R|Type of calculation to perform.",
         dest="type",
-        choices=["aimd", "bqb", "single-point"],
+        choices=["aimd", "bqb", "energy"],
         default="aimd",
     )
     p.add_argument(

@@ -7,99 +7,8 @@
   PREFERRED_FFT_LIBRARY FFTW      # use FFTW for FFTs        
   PRINT_LEVEL LOW                 # print level, low is sufficient
   PROJECT ${PROJECT_NAME}         # project name  
-  RUN_TYPE MD                     # MD simulation
+  RUN_TYPE ENERGY_FORCE           # single-point, energy and forces are calculated
 &END GLOBAL
-
-# Motions of nuclei
-&MOTION
-
-  # AIMD settings
-  &MD
-    ENSEMBLE ${ENSEMBLE}                # ensemble
-    STEPS ${NSTEPS}             # number of MD steps
-    TIMESTEP 0.5                # time step in fs
-    TEMPERATURE ${TEMP}         # temperature in K
-
-    # thermostat settings
-    &THERMOSTAT
-      REGION GLOBAL             # thermostat region, GLOBAL is recommended for AIMD production, MASSIVE for AIMD equilibration
-      TYPE ${THERMO}                 # thermostat type, e.g. CSVR or NOSE (Nose-Hoover)
-
-      # coupling constant settings
-      &${THERMO}
-       TIMECON 100              # time constant in fs
-      &END ${THERMO}
-
-    &END THERMOSTAT
-
-  &END MD
-
-  # print settings of simulation
-  &PRINT
-    
-    # print settings of cell
-    &CELL
-
-      # frequency of printing cell
-      &EACH
-        MD 1
-      &END EACH
-
-    &END CELL
-  
-    # print settings of forces
-    &FORCES
-
-      # frequency of printing forces
-      &EACH
-        MD 1
-      &END EACH
-
-    &END FORCES
-
-    # print settings of restart file
-    &RESTART
-
-      # frequency of printing restart file
-      &EACH
-        MD 1
-      &END EACH
-
-    &END RESTART
-
-    # print settings of restart history 
-    &RESTART_HISTORY
-
-      # frequency of printing restart history
-      &EACH
-        MD 500
-      &END EACH
-
-    &END RESTART_HISTORY
-
-    # print settings of trajectory
-    &TRAJECTORY
-
-      # frequency of printing trajectory
-      &EACH
-        MD 1
-      &END EACH
-
-    &END TRAJECTORY
-
-    # print settings of velocities
-    &VELOCITIES
-
-      # frequency of printing velocities
-      &EACH
-        MD 1
-      &END EACH
-
-    &END VELOCITIES
-
-  &END PRINT
-
-&END MOTION
 
 # calculate energy and forces
 &FORCE_EVAL
@@ -110,31 +19,6 @@
     # basis set file, potential file. no comment after file name!
     BASIS_SET_FILE_NAME BASIS_MOLOPT
     POTENTIAL_FILE_NAME GTH_POTENTIALS
-
-    # localization of electrons
-    &LOCALIZE
-      MAX_ITER 2000               # maximum number of iterations of method chosen below
-      METHOD CRAZY                # localization method, falls back to JACOBI method after fail
-      USE_HISTORY                 # uses history for speedup
-
-      # print settings for localization 
-      &PRINT
-
-        # print settings for wannier centers
-        &WANNIER_CENTERS
-          IONS+CENTERS            # use ions+centers
-          FILENAME =wannier.xyz
-          
-          # frequency of printing wannier centers
-          &EACH
-            MD 1
-          &END EACH
-
-        &END WANNIER_CENTERS
-
-      &END PRINT
-
-    &END LOCALIZE
     
     # multigrid settings
     &MGRID
@@ -153,7 +37,7 @@
     &SCF
       EPS_SCF 1.0E-6              # SCF convergence threshold
       MAX_SCF 20                  # maximum number of SCF cycles
-      SCF_GUESS RESTART           # restart from previous SCF cycle
+      SCF_GUESS ATOMIC           # restart from previous SCF cycle
 
       # orbital transformation settings
       &OT
@@ -216,6 +100,15 @@
     &END XC
 
   &END DFT
+
+  # print settings
+  &PRINT
+    # print forces
+    &FORCES
+      FILENAME forces.xyz
+    &END FORCES
+    
+  &END PRINT
 
   # molecular geometry
   &SUBSYS
@@ -297,8 +190,3 @@
   &END SUBSYS
 
 &END FORCE_EVAL
-
-# restart settings
-&EXT_RESTART
-  RESTART_FILE_NAME ${PROJECT_NAME}-1.restart
-&END EXT_RESTART
