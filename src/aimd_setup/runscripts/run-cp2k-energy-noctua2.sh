@@ -5,7 +5,7 @@
 
 #SBATCH -t 0-12:00:00
 #SBATCH -p normal
-#SBATCH --ntasks-per-node=32
+#SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH -N 1
 #SBATCH -J "PROJECT_NAME"

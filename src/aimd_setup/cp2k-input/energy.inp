@@ -66,7 +66,7 @@
         APPEND
         FILENAME =traj.voronoi
         MOLECULAR_PROPERTIES
-        MOLPROP_FILE_NAME =moments.molprop
+        MOLPROP_FILE_NAME moments
         OUTPUT_EMP
       &END VORONOI
       
@@ -105,7 +105,7 @@
   &PRINT
     # print forces
     &FORCES
-      FILENAME forces.xyz
+      FILENAME force
     &END FORCES
     
   &END PRINT
