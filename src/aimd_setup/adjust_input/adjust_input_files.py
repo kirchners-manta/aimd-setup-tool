@@ -164,6 +164,25 @@ def adjust_cp2k_input_aimd(
                     lines = revpbe_adjustment(lines)
                 elif data["func"] == "SCAN":
                     lines = scan_adjustment(lines)
+
+                # if a velocity file is provided, add the velocities to the input file
+                if data["velocity"] is not None:
+                    # insert the velocity section after the topology section
+                    with open(data["velocity"], "r") as h:
+                        velocity_lines = h.read()
+                        lines = re.sub(
+                            "&END TOPOLOGY",
+                            "&END TOPOLOGY\n\t\t"
+                            + "&VELOCITY\n"
+                            + velocity_lines
+                            + "\t\t"
+                            + "&END VELOCITY\n\t",
+                            lines,
+                        )
+                    # remove the restart section from the input file
+                    # remove the last three lines of the input file
+                    lines = re.sub("\n&EXT_RESTART\n.*\n&END EXT_RESTART", "", lines)
+
                 lines = remove_comments_and_whitespace(lines)
 
                 with open(file, "w") as g:

@@ -233,9 +233,10 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         "--boxsize",
         type=float,
         dest="boxsize",
-        help="R|Box edge length in Angstrom.",
+        help="R|Box edge length in Angstrom. For cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
         metavar="LENGTH",
         default=10.0,
+        nargs="+",
         action=action_not_less_than(5.0),
     )
     p.add_argument(
@@ -254,7 +255,34 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         metavar="FILE",
     )
     p.add_argument(
-        "--e-conv",
+        "--cpu",
+        type=int,
+        metavar="N",
+        help="R|Number of CPUs to use.",
+        default=64,
+        dest="cpu",
+        action=action_not_less_than(1),
+    )
+    p.add_argument(
+        "--e-conv-equi",
+        type=float,
+        metavar="CUTOFF",
+        dest="e_conv",
+        help="R|Energy convergence criterion in Hartree.",
+        default=1.0e-6,
+        action=action_not_more_than(1e-4),
+    )
+    p.add_argument(
+        "--e-conv-relax",
+        type=float,
+        metavar="CUTOFF",
+        dest="e_conv",
+        help="R|Energy convergence criterion in Hartree.",
+        default=1.0e-6,
+        action=action_not_more_than(1e-4),
+    )
+    p.add_argument(
+        "--e-conv-prod",
         type=float,
         metavar="CUTOFF",
         dest="e_conv",
@@ -421,7 +449,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=400.0,
         action=action_not_less_than(250),
     )
-
     p.add_argument(
         "--t-relax",
         type=float,
@@ -430,7 +457,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=350.0,
         action=action_not_less_than(250),
     )
-
     p.add_argument(
         "--t-prod",
         type=float,
@@ -438,6 +464,13 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Production temperature in K.",
         default=350.0,
         action=action_not_less_than(250),
+    )
+    p.add_argument(
+        "--vel",
+        type=is_file,
+        metavar="FILE",
+        help="R|Initial velocities file in Bohr/au_time.\nIf provided, no geometry optimization will be performed.",
+        dest="velocity",
     )
     p.add_argument(
         "-w",

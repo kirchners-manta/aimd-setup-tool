@@ -115,7 +115,7 @@
 
     # define cell
     &CELL
-      ABC ${BOX_LENGTH} ${BOX_LENGTH} ${BOX_LENGTH}     # cell dimensions in Angstrom
+      ABC ${BOX_LENGTH}     # cell dimensions in Angstrom
     &END CELL
 
     # define species

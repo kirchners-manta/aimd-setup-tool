@@ -62,6 +62,30 @@ def setup_job(args: argparse.Namespace) -> int:
         # get basename of the reference trajectory file
         args.reftraj = os.path.basename(abs_reftraj)
 
+    # check given box dimensions
+    # if only one is given -> cubic box, set all box dimensions to the same value
+    if len(args.boxsize) == 1:
+        args.boxsize = (
+            str(args.boxsize[0])
+            + " "
+            + str(args.boxsize[0])
+            + " "
+            + str(args.boxsize[0])
+        )
+    # if three are given -> orthorhombic boxsize
+    elif len(args.boxsize) == 3:
+        args.boxsize = " ".join([str(x) for x in args.boxsize])
+    else:
+        sys.exit(
+            "Invalid box dimensions. Provide either one (cubic) or three (orthorhombic) box lengths."
+        )
+
+    # if velocity is given, no geometry optimization is performed
+    if args.velocity is not None:
+        args.no_geoopt = True
+        abs_velocity = os.path.abspath(args.velocity)
+        args.velocity = os.path.basename(abs_velocity)
+
     # print the arguments relevant for the type of calculation
     print("The following arguments were given (including defaults):")
 
@@ -91,6 +115,8 @@ def setup_job(args: argparse.Namespace) -> int:
         if not args.no_prod:
             print("Thermodynamic ensemble in production:", args.ensemble)
             print("Thermostat:", args.thermo)
+        if args.velocity is not None:
+            print("Initial velocities:", args.velocity)
         print("Print BQB file:", args.bqb_in_prod)
         print("Calculate Wannier functions:", args.wannier)
 
@@ -161,6 +187,10 @@ def setup_job(args: argparse.Namespace) -> int:
 
         #  copy the coordinate to the project directory
         os.system("cp " + abs_coord + " .")
+
+        # copy velocities if given
+        if args.velocity is not None:
+            os.system("cp " + abs_velocity + " .")
 
         # define the input files
         cp2k_infiles_templates = [
