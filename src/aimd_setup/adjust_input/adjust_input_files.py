@@ -96,7 +96,7 @@ def scan_adjustment(llist: str) -> str:
             "&XC_FUNCTIONAL\n\t\t\t\t&MGGA_C_SCAN\n\t\t\t\t&END MGGA_C_SCAN\n\t\t\t\t&MGGA_X_SCAN\n\t\t\t\t&END MGGA_X_SCAN",
             llist,
         )
-    elif "R2SCAN" in llist:
+    if "R2SCAN" in llist:
         llist = re.sub(
             "&XC_FUNCTIONAL R2SCAN",
             "&XC_FUNCTIONAL\n\t\t\t\t&MGGA_C_R2SCAN\n\t\t\t\t&END MGGA_C_R2SCAN\n\t\t\t\t&MGGA_X_R2SCAN\n\t\t\t\t&END MGGA_X_R2SCAN",
@@ -484,6 +484,8 @@ def adjust_cp2k_input_bqb(
                                 runscript=runscript_name,
                                 project="bqb_" + str(j + 1).zfill(2),
                                 queue=queue,
+                                ncpu=data["ncpu"],
+                                joblist=[False, False, False, False, True, False],
                             )
 
                         # change back to the main directory
@@ -615,6 +617,8 @@ def adjust_cp2k_input_bqb(
                                     runscript=runscript_name,
                                     project=str(os.path.basename(os.getcwd())),
                                     queue=queue,
+                                    ncpu=data["ncpu"],
+                                    joblist=[False, False, False, False, True, False],
                                 )
 
                             # change back to the main directory
@@ -658,7 +662,7 @@ def adjust_runscript(
         )
         lines = re.sub("N_CPU", str(ncpu), lines)
 
-        jobs = ["geoopt", "eq", "relax", "prod"]
+        jobs = ["geoopt", "eq", "relax", "prod", "bqb", "energy"]
 
         for i, job in enumerate(jobs):
             if joblist[i] == False:

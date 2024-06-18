@@ -24,6 +24,9 @@ def setup_job(args: argparse.Namespace) -> int:
     # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
     if args.func == "REVPBE":
         pp_func = "PBE"
+    # if R2SCAN, use SCAN for the pseudopotential, because CP2K does not have a R2SCAN pseudopotential
+    if args.func == "R2SCAN":
+        pp_func = "SCAN"
     # otherwise, use the functional for the pseudopotential
     else:
         pp_func = args.func
@@ -42,7 +45,7 @@ def setup_job(args: argparse.Namespace) -> int:
     args.ensemble = args.ensemble.upper()
 
     # runscript name
-    runscript_name = "run-cp2k-" + args.type + "-" + args.queue + ".sh"
+    runscript_name = "run-cp2k-" + args.queue + ".sh"
 
     # project path
     project_dir = os.path.abspath(args.project)
@@ -100,6 +103,15 @@ def setup_job(args: argparse.Namespace) -> int:
 
     # arguments that are only needed for a certain type of calculation are printed last
     if args.type == "aimd":
+        # set variables for which jobs to execute
+        exec_geoopt = not args.no_geoopt
+        exec_eq = not args.no_equi
+        exec_relax = not args.no_relax
+        exec_prod = not args.no_prod
+        exec_bqb = False
+        exec_energy = False
+
+        # print the relevant arguments
         if not args.no_equi:
             print("Equilibration steps:", args.steps_equi)
             print("Equilibration temperature [K]:", args.t_equi)
@@ -121,13 +133,31 @@ def setup_job(args: argparse.Namespace) -> int:
         print("Calculate Wannier functions:", args.wannier)
 
     elif args.type == "bqb":
+        # set variables for which jobs to execute
+        exec_geoopt = False
+        exec_eq = False
+        exec_relax = False
+        exec_prod = False
+        exec_bqb = True
+        exec_energy = False
+
+        # print the relevant arguments
         print("Reference trajectory:", args.reftraj)
         print("Process Trajectory from step:", args.start_from)
         print("Bqb files:", args.n_bqb)
         print("Steps per bqb file:", args.steps_bqb)
         print("Spectrum:", args.spectrum)
 
-    elif args.type == "single-point":
+    elif args.type == "energy":
+        # set variables for which jobs to execute
+        exec_geoopt = False
+        exec_eq = False
+        exec_relax = False
+        exec_prod = False
+        exec_bqb = False
+        exec_energy = True
+
+        # print the relevant arguments
         print("Energy convergence criterion [Hartree]:", args.e_conv)
 
     print("Queue:", args.queue)
@@ -138,6 +168,15 @@ def setup_job(args: argparse.Namespace) -> int:
     # create a dictionary with the arguments and add pp_func
     args_dict = vars(args)
     args_dict["pp_func"] = pp_func
+
+    jobs_to_exec = [
+        exec_geoopt,
+        exec_eq,
+        exec_relax,
+        exec_prod,
+        exec_bqb,
+        exec_energy,
+    ]
 
     #############################################
 
@@ -199,14 +238,6 @@ def setup_job(args: argparse.Namespace) -> int:
             script_dir + "/../cp2k-input/eq.inp",
             script_dir + "/../cp2k-input/relax.inp",
             script_dir + "/../cp2k-input/prod.inp",
-        ]
-
-        # list with bools stating whether the input files should be created
-        jobs_to_exec = [
-            not args.no_geoopt,
-            not args.no_equi,
-            not args.no_relax,
-            not args.no_prod,
         ]
 
         # copy the template files to the project directory
