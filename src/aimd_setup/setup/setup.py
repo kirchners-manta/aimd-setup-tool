@@ -132,6 +132,7 @@ def setup_job(args: argparse.Namespace) -> int:
 
     print("Queue:", args.queue)
     print("Runscript:", runscript_name)
+    print("CPU cores:", args.cpu)
     print("")
 
     # create a dictionary with the arguments and add pp_func
@@ -242,6 +243,8 @@ def setup_job(args: argparse.Namespace) -> int:
             runscript=runscript_name,
             project=args.project,
             queue=args.queue,
+            ncpu=args.cpu,
+            joblist=jobs_to_exec,
         )
 
         # in the end, change back to the directory from which the script was called

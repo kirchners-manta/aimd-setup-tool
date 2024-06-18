@@ -80,7 +80,7 @@ def revpbe_adjustment(llist: str) -> str:
 
 # special adjustment for SCAN functional
 def scan_adjustment(llist: str) -> str:
-    """Takes a string and adds an additional line to the CP2K input file if the SCAN functional is used
+    """Takes a string and adds an additional line to the CP2K input file if the SCAN or R2SCAN functional is used
 
     Parameters
     ----------
@@ -94,6 +94,12 @@ def scan_adjustment(llist: str) -> str:
         llist = re.sub(
             "&XC_FUNCTIONAL SCAN",
             "&XC_FUNCTIONAL\n\t\t\t\t&MGGA_C_SCAN\n\t\t\t\t&END MGGA_C_SCAN\n\t\t\t\t&MGGA_X_SCAN\n\t\t\t\t&END MGGA_X_SCAN",
+            llist,
+        )
+    elif "R2SCAN" in llist:
+        llist = re.sub(
+            "&XC_FUNCTIONAL R2SCAN",
+            "&XC_FUNCTIONAL\n\t\t\t\t&MGGA_C_R2SCAN\n\t\t\t\t&END MGGA_C_R2SCAN\n\t\t\t\t&MGGA_X_R2SCAN\n\t\t\t\t&END MGGA_X_R2SCAN",
             llist,
         )
 
@@ -142,7 +148,7 @@ def adjust_cp2k_input_aimd(
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
-                elif data["func"] == "SCAN":
+                elif data["func"] == "SCAN" or data["func"] == "R2SCAN":
                     lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
@@ -162,7 +168,7 @@ def adjust_cp2k_input_aimd(
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
-                elif data["func"] == "SCAN":
+                elif data["func"] == "SCAN" or data["func"] == "R2SCAN":
                     lines = scan_adjustment(lines)
 
                 # if a velocity file is provided, add the velocities to the input file
@@ -201,7 +207,7 @@ def adjust_cp2k_input_aimd(
                 lines = re.sub("\$\{PP_FUNC\}", str(data["pp_func"]), lines)
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
-                elif data["func"] == "SCAN":
+                elif data["func"] == "SCAN" or data["func"] == "R2SCAN":
                     lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
@@ -223,7 +229,7 @@ def adjust_cp2k_input_aimd(
 
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
-                elif data["func"] == "SCAN":
+                elif data["func"] == "SCAN" or data["func"] == "R2SCAN":
                     lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
@@ -329,7 +335,7 @@ def adjust_cp2k_input_sp(cp2k_infiles: list[str], data: dict[str, Any]) -> None:
 
             if data["func"] == "REVPBE":
                 lines = revpbe_adjustment(lines)
-            elif data["func"] == "SCAN":
+            elif data["func"] == "SCAN" or data["func"] == "R2SCAN":
                 lines = scan_adjustment(lines)
             lines = remove_comments_and_whitespace(lines)
 
@@ -421,7 +427,7 @@ def adjust_cp2k_input_bqb(
                 )
                 if data["func"] == "REVPBE":
                     lines = revpbe_adjustment(lines)
-                elif data["func"] == "SCAN":
+                elif data["func"] == "SCAN" or data["func"] == "R2SCAN":
                     lines = scan_adjustment(lines)
                 lines = remove_comments_and_whitespace(lines)
 
@@ -619,7 +625,9 @@ def adjust_cp2k_input_bqb(
 
 
 # modify the bash runscript for the queue system
-def adjust_runscript(runscript: str, project: str, queue: str) -> None:
+def adjust_runscript(
+    runscript: str, project: str, queue: str, ncpu: int, joblist: list[bool]
+) -> None:
     """Adjust the runscript for the queue system
 
     Parameters
@@ -630,6 +638,10 @@ def adjust_runscript(runscript: str, project: str, queue: str) -> None:
         project name
     queue : str
         queue system to execute the calculation
+    ncpu : int
+        number of CPUs to use
+    joblist : list
+        list of booleans indicating which jobs are to be executed
     """
 
     # open the file
@@ -644,6 +656,15 @@ def adjust_runscript(runscript: str, project: str, queue: str) -> None:
             "Created by the AIMD setup tool",
             lines,
         )
+        lines = re.sub("N_CPU", str(ncpu), lines)
+
+        jobs = ["geoopt", "eq", "relax", "prod"]
+
+        for i, job in enumerate(jobs):
+            if joblist[i] == False:
+                lines = re.sub(".*" + job + ".*\n", "", lines)
+
+        # remove the job submission lines for jobs that are not requested
 
         with open(runscript, "w") as g:
             g.writelines(lines)
