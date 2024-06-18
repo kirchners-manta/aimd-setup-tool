@@ -7,7 +7,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ..argparser import parser
-from ..functions import getFileList, make_project_dir
 from ..setup import setup_job
 
 

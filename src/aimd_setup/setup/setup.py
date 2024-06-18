@@ -15,6 +15,7 @@ from ..adjust_input import (
     adjust_runscript,
     copy_cp2k_data_and_runscript,
 )
+from ..snippets import generate_input_files
 from ..functions import getFileList, make_project_dir
 
 
@@ -195,12 +196,7 @@ def setup_job(args: argparse.Namespace) -> int:
         script_dir + "/../cp2k-datafiles/BASIS_MOLOPT",
         script_dir + "/../cp2k-datafiles/GTH_POTENTIALS",
         script_dir + "/../cp2k-datafiles/dftd3.dat",
-        script_dir + "/../runscripts/run-cp2k-aimd-hedy.sh",
-        script_dir + "/../runscripts/run-cp2k-aimd-iris.sh",
-        script_dir + "/../runscripts/run-cp2k-aimd-noctua2.sh",
-        script_dir + "/../runscripts/run-cp2k-bqb-hedy.sh",
-        script_dir + "/../runscripts/run-cp2k-bqb-iris.sh",
-        script_dir + "/../runscripts/run-cp2k-bqb-noctua2.sh",
+        script_dir + "/../runscripts/run-cp2k-noctua2.sh",
     ]
     for f in files:
         if not os.path.isfile(f):
@@ -217,8 +213,25 @@ def setup_job(args: argparse.Namespace) -> int:
     # setting up the calculation
     # depending on the type of calculation, different input files are needed
 
+    if args.type == "aimd" or args.type == "bqb" or args.type == "energy":
+        # generate a project directory
+        make_project_dir(project_dir, args.overwrite)
+
+        # change to the project directory
+        os.chdir(project_dir)
+
+        #  copy the coordinate to the project directory
+        os.system("cp " + abs_coord + " .")
+
+        # copy velocities if given
+        if args.velocity is not None:
+            os.system("cp " + abs_velocity + " .")
+
+        # generate input files from snippets
+        generate_input_files(data=args_dict, joblist=jobs_to_exec)
+
     # AIMD
-    if args.type == "aimd":
+    elif args.type == "aimd":
         # generate a project directory
         make_project_dir(project_dir, args.overwrite)
 
