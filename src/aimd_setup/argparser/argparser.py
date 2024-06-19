@@ -240,9 +240,9 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         action=action_not_less_than(5.0),
     )
     p.add_argument(
-        "--bqb-in-prod",
-        help="R|Write BQB files during production run (can produce large file).",
-        dest="bqb_in_prod",
+        "--bqb",
+        help="R|Write BQB file during production run (can produce large file).\nDefault for type 'bqb'.",
+        dest="bqb",
         action="store_true",
         default=False,
     )
@@ -262,6 +262,13 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=64,
         dest="cpu",
         action=action_not_less_than(1),
+    )
+    p.add_argument(
+        "--cube",
+        help="R|Write CUBE file during production run (can produce large file) instead of BQB.",
+        dest="cube",
+        action="store_true",
+        default=False,
     )
     p.add_argument(
         "--e-conv-equi",
@@ -426,14 +433,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         action=action_not_less_than(1),
     )
     p.add_argument(
-        "--type",
-        type=str,
-        help="R|Type of calculation to perform.",
-        dest="type",
-        choices=["aimd", "bqb", "energy"],
-        default="aimd",
-    )
-    p.add_argument(
         "--thermo",
         type=str,
         metavar="THERMO",
@@ -464,6 +463,14 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Production temperature in K.",
         default=350.0,
         action=action_not_less_than(250),
+    )
+    p.add_argument(
+        "--type",
+        type=str,
+        help="R|Type of calculation to perform.\nAIMD: AIMD simulation.\nBQB: BQB file production.\nENERGY: Single point energy calculation.",
+        dest="type",
+        choices=["aimd", "bqb", "energy"],
+        default="aimd",
     )
     p.add_argument(
         "--vel",

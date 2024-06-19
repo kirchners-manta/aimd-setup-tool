@@ -130,7 +130,7 @@ def setup_job(args: argparse.Namespace) -> int:
             print("Thermostat:", args.thermo)
         if args.velocity is not None:
             print("Initial velocities:", args.velocity)
-        print("Print BQB file:", args.bqb_in_prod)
+        print("Print BQB file:", args.bqb)
         print("Calculate Wannier functions:", args.wannier)
 
     elif args.type == "bqb":
