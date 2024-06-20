@@ -1,0 +1,2 @@
+MAX_SCF 20                # maximum number of outer SCF cycles
+EPS_SCF 1.0E-6            # outer SCF convergence threshold must be <= EPS_SCF in the &SCF section

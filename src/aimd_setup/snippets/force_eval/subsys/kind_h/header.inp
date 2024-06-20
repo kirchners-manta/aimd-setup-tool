@@ -1,0 +1,4 @@
+&KIND H
+  BASIS_SET ORB ${BASIS}                  # basis set
+  POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
+&END KIND

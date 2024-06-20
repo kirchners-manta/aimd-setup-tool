@@ -1,0 +1,2 @@
+EPS_DEFAULT 1.0E-12         # default convergence threshold
+EXTRAPOLATION_ORDER 4       # extrapolation order

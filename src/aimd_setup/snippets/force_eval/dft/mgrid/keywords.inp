@@ -1,0 +1,3 @@
+CUTOFF 280                  # cutoff for multigrid
+NGRIDS 5                    # number of multigrid levels
+REL_CUTOFF 60               # relative cutoff for multigrid

@@ -20,17 +20,16 @@ from ..functions import getFileList, make_project_dir
 
 
 def setup_job(args: argparse.Namespace) -> int:
-    # capitalize the functional
-    args.func = args.func.upper()
     # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
-    if args.func == "REVPBE":
+
+    if args.func == "revpbe":
         pp_func = "PBE"
     # if R2SCAN, use SCAN for the pseudopotential, because CP2K does not have a R2SCAN pseudopotential
-    if args.func == "R2SCAN":
+    elif args.func == "r2scan":
         pp_func = "SCAN"
     # otherwise, use the functional for the pseudopotential
     else:
-        pp_func = args.func
+        pp_func = args.func.upper()
 
     # capitalize the basis set
     # if a cardinal number < 2, use SR-GTH
@@ -98,7 +97,7 @@ def setup_job(args: argparse.Namespace) -> int:
     print("Job type:", args.type)
     print("Box size [Angstrom]:", args.boxsize)
     print("Coordinate file:", args.coord)
-    print("Density functional:", args.func)
+    print("Density functional:", args.func.upper())
     print("Pseudopotential:", pp_func)
     print("Basis set:", args.basis)
 

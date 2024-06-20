@@ -1,0 +1,2 @@
+XC_DERIV NN10_SMOOTH        # grid for XC derivatives
+XC_SMOOTH_RHO NN10          # grid for XC smoothing

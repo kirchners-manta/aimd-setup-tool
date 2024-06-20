@@ -1,0 +1,6 @@
+&KIND D
+  BASIS_SET ORB ${BASIS}                  # basis set
+  POTENTIAL GTH-${PP_FUNC}-q1         # pseudopotential
+  ELEMENT H                           # element symbol
+  MASS 2.0141                         # mass in atomic mass units
+&END KIND

@@ -209,6 +209,34 @@ def get_default_sections() -> dict[str, Any]:
                         "add": True,
                         "header": "header.inp",
                         "keywords": "keywords.inp",
+                        "blyp": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
+                        "bp": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
+                        "pade": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
+                        "pbe": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
+                        "r2scan": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
+                        "revpbe": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
+                        "scan": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
                     },
                     "xc_grid": {
                         "add": True,
@@ -317,33 +345,34 @@ def print_structure(
 
 
 def build_file(
-    lines: List[str],  # Added type annotation for "lines"
+    lines: List[str],
     sections: dict[str, Any],
-    directory: Path,
-    output_file: Path | str,
     prefix: str = "",
-) -> List[str]:  # Added type annotation for return value
+) -> List[str]:
     """Build a CP2k input file based on a dictionary containing the sections for the CP2K input file.
     A section is added if the key "add" is set to True.
     This is a recursive function.
 
     Parameters
     ----------
-    lines : List[str]  # Added type annotation for "lines"
+    lines : List[str]
         List containing the lines of the CP2K input file.
     sections : dict[str, Any]
         Dictionary containing the sections for the CP2K input file.
-    directory : Path | str
-        Directory where the snippets are located.
-    output_file : Path | str
-        Path to the output file.
     prefix : str, optional
         For navigating, by default "". Exists because of the recursive nature of the function. Do not set manually.
     """
 
+    # where the snippets are located
+    directory = Path(__file__).parent
+    tab = "  "
     # iterate through dictionary
     for section, content in sections.items():
         if isinstance(content, dict) and content.get("add"):
+
+            # current depth determines the position of the lines
+            current_depth = f"{prefix}{section}".count("/")
+
             # read header
             if "header" in content:
                 with open(
@@ -355,7 +384,13 @@ def build_file(
                     lines_to_add = f.read().splitlines()
                     # add at the second to last position
                     for i in range(len(lines_to_add)):
-                        lines.insert(len(lines) - 1, lines_to_add[i])
+                        if current_depth == 0:
+                            lines.insert(-1, lines_to_add[i])
+                        else:
+                            lines.insert(
+                                len(lines) - 1 - current_depth,
+                                f"{tab * current_depth}{lines_to_add[i]}",
+                            )
 
             # read keywords
             if "keywords" in content:
@@ -368,11 +403,16 @@ def build_file(
                     lines_to_add = f.read().splitlines()
                     # add at the second to last position
                     for i in range(len(lines_to_add)):
-                        lines.insert(len(lines) - 1, lines_to_add[i])
+                        lines.insert(
+                            len(lines) - 2 - current_depth,
+                            f"{tab * (current_depth + 1)}{lines_to_add[i]}",
+                        )
 
             # recursive call
             lines = build_file(
-                lines, content, directory, output_file, prefix=f"{prefix}{section}/"
+                lines,
+                content,
+                prefix=f"{prefix}{section}/",
             )
 
     return lines
@@ -420,41 +460,19 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
         - single point energy calculation
     """
 
-    # where are the snippets located?
-    snip_dir = Path(__file__).parent
-
     # get default sections
     sections = get_default_sections()
 
     # get atom types from coordinate file
-    atom_types = get_atom_types(data["coord"])
-    # debug
-    # print(atom_types)
     # add atom types to sections
-    for atom in atom_types:
+    for atom in get_atom_types(data["coord"]):
         if f"kind_{atom.lower()}" in sections["force_eval"]["subsys"]:
             sections["force_eval"]["subsys"][f"kind_{atom.lower()}"]["add"] = True
         else:
             sys.exit(f"Atom type {atom} not supported.")
 
-    # debug
-    # print_structure(sections)
-
-    # debug
-    # print(joblist)
-
-    # TEST
-    sections_test = copy.deepcopy(sections)
-    # set everything off except global
-    sections_test["motion"]["add"] = False
-    sections_test["force_eval"]["add"] = False
-    sections_test["ext_restart"]["add"] = True
-    # initialize empty list for lines
-    lines = []
-    lines = build_file(lines, sections_test, snip_dir, "test.inp")
-
-    for line in lines:
-        print(line)
+    # add density functional
+    sections["force_eval"]["dft"]["xc"]["xc_functional"][data["func"]]["add"] = True
 
     # geometry optimization
     if joblist[0]:
@@ -470,6 +488,12 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
         # debug
         # print_structure(sections_geoopt)
 
+        lines = build_file([""], sections_geoopt)
+
+        # debug
+        for line in lines:
+            print(line)
+
     # equilibration
     if joblist[1]:
         # take a deep copy of the sections
@@ -477,8 +501,7 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
 
         # ext_restart
         # read restart file if geoopt was done before
-        if joblist[0]:
-            sections_eq["ext_restart"]["add"] = True
+        sections_eq["ext_restart"]["add"] = joblist[0]
         # add velocities if requested
         if data["velocity"] is not None:
             sections_eq["force_eval"]["subsys"]["velocity"]["add"] = True
@@ -509,8 +532,7 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
         sections_prod["motion"]["print"]["forces"]["add"] = True
         sections_prod["motion"]["print"]["velocities"]["add"] = True
         # enable wannier centers if requested
-        if data["wannier"]:
-            sections_prod["force_eval"]["dft"]["localize"]["add"] = True
+        sections_prod["force_eval"]["dft"]["localize"]["add"] = data["wannier"]
         # electronic density
         if data["bqb"]:
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
