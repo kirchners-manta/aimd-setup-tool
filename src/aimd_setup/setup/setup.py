@@ -8,15 +8,9 @@ import argparse
 import os
 import sys
 
-from ..adjust_input import (
-    adjust_cp2k_input_aimd,
-    adjust_cp2k_input_bqb,
-    adjust_cp2k_input_sp,
-    adjust_runscript,
-    copy_cp2k_data_and_runscript,
-)
+from ..adjust_input import cp_cp2kdata_runscript
+from ..functions import make_project_dir
 from ..snippets import generate_input_files
-from ..functions import getFileList, make_project_dir
 
 
 def setup_job(args: argparse.Namespace) -> int:
@@ -67,13 +61,9 @@ def setup_job(args: argparse.Namespace) -> int:
 
     # check given box dimensions
     # if only one is given -> cubic box, set all box dimensions to the same value
-    if len(args.boxsize) == 1:
+    if type(args.boxsize) == float:
         args.boxsize = (
-            str(args.boxsize[0])
-            + " "
-            + str(args.boxsize[0])
-            + " "
-            + str(args.boxsize[0])
+            str(args.boxsize) + " " + str(args.boxsize) + " " + str(args.boxsize)
         )
     # if three are given -> orthorhombic boxsize
     elif len(args.boxsize) == 3:
@@ -165,10 +155,6 @@ def setup_job(args: argparse.Namespace) -> int:
     print("CPU cores:", args.cpu)
     print("")
 
-    # create a dictionary with the arguments and add pp_func
-    args_dict = vars(args)
-    args_dict["pp_func"] = pp_func
-
     jobs_to_exec = [
         exec_geoopt,
         exec_eq,
@@ -178,6 +164,12 @@ def setup_job(args: argparse.Namespace) -> int:
         exec_energy,
     ]
 
+    # create a dictionary with the arguments
+    args_dict = vars(args)
+    args_dict["pp_func"] = pp_func
+    args_dict["joblist"] = jobs_to_exec
+    args_dict["runscript"] = runscript_name
+
     #############################################
 
     # get the absolute path of the directory where the script is located
@@ -186,12 +178,6 @@ def setup_job(args: argparse.Namespace) -> int:
     # check if all relevant files are present in the script directory
     # if not, print warning and exit
     files = [
-        script_dir + "/../cp2k-input/bqb.inp",
-        script_dir + "/../cp2k-input/geoopt.inp",
-        script_dir + "/../cp2k-input/eq.inp",
-        script_dir + "/../cp2k-input/relax.inp",
-        script_dir + "/../cp2k-input/prod.inp",
-        script_dir + "/../cp2k-input/energy.inp",
         script_dir + "/../cp2k-datafiles/BASIS_MOLOPT",
         script_dir + "/../cp2k-datafiles/GTH_POTENTIALS",
         script_dir + "/../cp2k-datafiles/dftd3.dat",
@@ -212,172 +198,45 @@ def setup_job(args: argparse.Namespace) -> int:
     # setting up the calculation
     # depending on the type of calculation, different input files are needed
 
-    if args.type == "aimd" or args.type == "bqb" or args.type == "energy":
+    if args.type == "aimd" or args.type == "energy":
         # generate a project directory
         make_project_dir(project_dir, args.overwrite)
 
-        # change to the project directory
+        # change to the project directory and copy coords
         os.chdir(project_dir)
-
-        #  copy the coordinate to the project directory
         os.system("cp " + abs_coord + " .")
-
         # copy velocities if given
         if args.velocity is not None:
             os.system("cp " + abs_velocity + " .")
-
-        # generate input files from snippets
-        generate_input_files(data=args_dict, joblist=jobs_to_exec)
-
-    # AIMD
-    elif args.type == "aimd":
-        # generate a project directory
-        make_project_dir(project_dir, args.overwrite)
-
-        # change to the project directory
-        os.chdir(project_dir)
-
-        #  copy the coordinate to the project directory
-        os.system("cp " + abs_coord + " .")
-
-        # copy velocities if given
-        if args.velocity is not None:
-            os.system("cp " + abs_velocity + " .")
-
-        # define the input files
-        cp2k_infiles_templates = [
-            script_dir + "/../cp2k-input/geoopt.inp",
-            script_dir + "/../cp2k-input/eq.inp",
-            script_dir + "/../cp2k-input/relax.inp",
-            script_dir + "/../cp2k-input/prod.inp",
-        ]
-
-        # copy the template files to the project directory
-        for f in cp2k_infiles_templates:
-            os.system("cp " + f + " .")
-
-        # get a list with the input files in the project directory
-        cp2k_infiles = [
-            project_dir + "/geoopt.inp",
-            project_dir + "/eq.inp",
-            project_dir + "/relax.inp",
-            project_dir + "/prod.inp",
-        ]
-
-        # adjust the input files
-        adjust_cp2k_input_aimd(
-            cp2k_infiles=cp2k_infiles, which_jobs=jobs_to_exec, data=args_dict
-        )
-
-        # remove the input files that are not needed
-        for i, job in enumerate(jobs_to_exec):
-            if not job:
-                os.system("rm " + cp2k_infiles[i])
 
         # copy run script and data files to the project directory
-        copy_cp2k_data_and_runscript(
+        cp_cp2kdata_runscript(
+            data=args_dict,
             template_dir=script_dir,
             project_dir=project_dir,
-            runscript=runscript_name,
         )
 
-        # adjust the job name in the run script
-        adjust_runscript(
-            runscript=runscript_name,
-            project=args.project,
-            queue=args.queue,
-            ncpu=args.cpu,
-            joblist=jobs_to_exec,
-        )
+        # generate input files from snippets
+        generate_input_files(data=args_dict)
 
         # in the end, change back to the directory from which the script was called
         os.chdir(start_dir)
 
-    # BQB
     elif args.type == "bqb":
         # generate a project directory
         make_project_dir(project_dir, args.overwrite)
 
-        # change to the project directory
+        # change to the project directory and copy coords
         os.chdir(project_dir)
 
-        # define the input files
-        cp2k_infiles_templates = [
-            script_dir + "/../cp2k-input/bqb.inp",
-        ]
-
-        # copy the template files to the project directory
-        for f in cp2k_infiles_templates:
-            os.system("cp " + f + " .")
-
-        # get a list with the input files in the project directory
-        cp2k_infiles = getFileList(project_dir, "*.inp")
-
-        # adjust the input files
-        adjust_cp2k_input_bqb(
-            cp2k_infiles=cp2k_infiles,
-            data=args_dict,
-            runscript_name=runscript_name,
-            queue=args.queue,
-            template_dir=script_dir,
-        )
-
-        # copy the coordinates and trajectory files to the project directory
-        print("Copying coordinates and reference trajectory to bqbs...\n")
-
-        os.system(
-            "for dir in $(ls -d bqb_*[0-9]*); do cp "
-            + abs_reftraj
-            + " $dir; cp "
-            + abs_coord
-            + " $dir; done"
-        )
-
-        # in the end, change back to the directory from which the script was called
-        os.chdir(start_dir)
-
-    # single-point
-    elif args.type == "energy":
-        # generate a project directory
-        make_project_dir(project_dir, args.overwrite)
-
-        # change to the project directory
-        os.chdir(project_dir)
-
-        # define the input files
-        cp2k_infiles_templates = [
-            script_dir + "/../cp2k-input/energy.inp",
-        ]
-
-        # copy the template files to the project directory
-        for f in cp2k_infiles_templates:
-            os.system("cp " + f + " .")
-
-        # get a list with the input files in the project directory
-        cp2k_infiles = getFileList(project_dir, "*.inp")
-
-        #  copy the coordinate to the project directory
-        os.system("cp " + abs_coord + " .")
-
-        # adjust the input files
-        adjust_cp2k_input_sp(
-            cp2k_infiles=cp2k_infiles,
-            data=args_dict,
-        )
-
-        # copy run script and data files to the project directory
-        copy_cp2k_data_and_runscript(
-            template_dir=script_dir,
-            project_dir=project_dir,
-            runscript=runscript_name,
-        )
-
-        # adjust the job name in the run script
-        adjust_runscript(
-            runscript=runscript_name,
-            project=args.project,
-            queue=args.queue,
-        )
+        # generate subdirectories for the bqb jobs
+        for i in range(args.n_bqb):
+            os.mkdir("bqb_" + str(i + 1))
+            os.system("cp " + abs_coord + " bqb_" + str(i + 1) + "/")
+            os.system("cp " + abs_reftraj + " bqb_" + str(i + 1) + "/")
+            os.chdir("bqb_" + str(i + 1))
+            generate_input_files(data=args_dict, bqb_count=i)
+            os.chdir("..")
 
         # in the end, change back to the directory from which the script was called
         os.chdir(start_dir)

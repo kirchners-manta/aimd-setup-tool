@@ -1,0 +1,3 @@
+MAX_ITER 2000               # maximum number of iterations of method chosen below
+METHOD CRAZY                # localization method, falls back to JACOBI method after fail
+USE_HISTORY                 # uses history for speedup

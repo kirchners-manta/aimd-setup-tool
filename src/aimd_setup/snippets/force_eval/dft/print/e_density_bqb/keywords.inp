@@ -1,0 +1,2 @@
+FILENAME =edens.bqb
+HISTORY ${HISTORY_BQB}      # controls how many previous steps are taken into account

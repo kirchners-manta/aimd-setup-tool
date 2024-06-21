@@ -1,0 +1,4 @@
+ENSEMBLE ${ENSEMBLE}
+STEPS ${NSTEPS}             # number of MD steps
+TIMESTEP 0.5                # time step in fs
+TEMPERATURE ${TEMP}         # temperature in K

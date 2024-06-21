@@ -5,7 +5,6 @@ Script to build input files for CP2K simulations, based on pre-defined input sni
 from __future__ import annotations
 
 import copy
-import os
 import sys
 from pathlib import Path
 from typing import Any, List
@@ -385,11 +384,11 @@ def build_file(
                     # add at the second to last position
                     for i in range(len(lines_to_add)):
                         if current_depth == 0:
-                            lines.insert(-1, lines_to_add[i])
+                            lines.insert(-1, lines_to_add[i].split("#")[0].rstrip())
                         else:
                             lines.insert(
                                 len(lines) - 1 - current_depth,
-                                f"{tab * current_depth}{lines_to_add[i]}",
+                                f"{tab * current_depth}{lines_to_add[i].split('#')[0].rstrip()}",
                             )
 
             # read keywords
@@ -405,7 +404,7 @@ def build_file(
                     for i in range(len(lines_to_add)):
                         lines.insert(
                             len(lines) - 2 - current_depth,
-                            f"{tab * (current_depth + 1)}{lines_to_add[i]}",
+                            f"{tab * (current_depth + 1)}{lines_to_add[i].split('#')[0].rstrip()}",
                         )
 
             # recursive call
@@ -442,14 +441,20 @@ def get_atom_types(coord_file: str) -> list[str]:
     return atom_types
 
 
-def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
+def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
     """Generate input files for CP2K simulations.
 
     Parameters
     ----------
     data : dict[str, Any]
         Dictionary containing the input parameters specified by the user.
-    joblist : list[bool]
+    bqb_count : int, optional
+        Counter for the bqb files, by default 0. Used to name the bqb files.
+        Not used for the other input files.
+
+    Important:
+    The dictionary must contain the following key:
+    joblist :
         List of boolean values indicating if the input files should be generated.
         Entries correspond to the following jobs:
         - geometry optimization
@@ -475,7 +480,7 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
     sections["force_eval"]["dft"]["xc"]["xc_functional"][data["func"]]["add"] = True
 
     # geometry optimization
-    if joblist[0]:
+    if data["joblist"][0]:
         # take a deep copy of the sections. Deep copy is necessary because of the nested structure of the dictionary.
         sections_geoopt = copy.deepcopy(sections)
 
@@ -485,42 +490,137 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
         sections_geoopt["motion"]["md"]["add"] = False
         sections_geoopt["motion"]["print"]["add"] = False
 
-        # debug
-        # print_structure(sections_geoopt)
-
         lines = build_file([""], sections_geoopt)
 
-        # debug
-        for line in lines:
-            print(line)
+        # replace keywords
+        for i, line in enumerate(lines):
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace(
+                    "${PROJECT_NAME}", data["project"]
+                )  # only one replacement necessary
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "GEOOPT")
+            if "${SCFGUESS}" in line:
+                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${PP_FUNC}" in line:
+                lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+            if "${BASIS}" in line:
+                lines[i] = line.replace("${BASIS}", data["basis"])
+            if "${BOX_LENGTH}" in line:
+                lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${SIMBOX_XYZ}" in line:
+                lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+
+        # write to file
+        with open("geoopt.inp", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
 
     # equilibration
-    if joblist[1]:
+    if data["joblist"][1]:
         # take a deep copy of the sections
         sections_eq = copy.deepcopy(sections)
 
         # ext_restart
         # read restart file if geoopt was done before
-        sections_eq["ext_restart"]["add"] = joblist[0]
+        sections_eq["ext_restart"]["add"] = data["joblist"][0]
         # add velocities if requested
         if data["velocity"] is not None:
             sections_eq["force_eval"]["subsys"]["velocity"]["add"] = True
 
-        # debug
-        # print_structure(sections_eq)
+        lines = build_file([""], sections_eq)
+
+        # replace keywords
+        for i, line in enumerate(lines):
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace(
+                    "${PROJECT_NAME}", data["project"]
+                )  # only one replacement necessary
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "MD")
+            if "${ENSEMBLE}" in line:
+                lines[i] = line.replace("${ENSEMBLE}", "NVT")
+            if "${NSTEPS}" in line:
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_equi"]))
+            if "${TEMP}" in line:
+                lines[i] = line.replace("${TEMP}", str(data["t_equi"]))
+            if "${REGION_THERMO}" in line:
+                lines[i] = line.replace("${REGION_THERMO}", "MASSIVE")
+            if "${THERMO}" in line:
+                lines[i] = line.replace("${THERMO}", data["thermo"])
+            if "${TIMECON_THERMO}" in line:
+                lines[i] = line.replace("${TIMECON_THERMO}", str(10))
+            if "${SCFGUESS}" in line:
+                if data["joblist"][0]:
+                    lines[i] = line.replace("${SCFGUESS}", "RESTART")
+                else:
+                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${PP_FUNC}" in line:
+                lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+            if "${BASIS}" in line:
+                lines[i] = line.replace("${BASIS}", data["basis"])
+            if "${BOX_LENGTH}" in line:
+                lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${SIMBOX_XYZ}" in line:
+                lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+            if "&VELOCITY" in line and data["velocity"] is not None:
+                with open(data["velocity"], "r", encoding="utf-8") as v:
+                    lines_to_add = v.read().splitlines()
+                    print(i)
+                    for j in range(len(lines_to_add)):
+                        lines.insert(
+                            i + j + 1,
+                            f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
+                        )
+
+        # write to file
+        with open("eq.inp", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
 
     # relaxation
-    if joblist[2]:
+    if data["joblist"][2]:
         # take a deep copy of the sections
         sections_relax = copy.deepcopy(sections)
 
-        # currently, no changes are necessary for relaxation
+        # ext_restart
+        sections_relax["ext_restart"]["add"] = True
 
-        # debug
-        # print_structure(sections_relax)
+        lines = build_file([""], sections_relax)
+
+        # replace keywords
+        for i, line in enumerate(lines):
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "MD")
+            if "${ENSEMBLE}" in line:
+                lines[i] = line.replace("${ENSEMBLE}", "NVT")
+            if "${NSTEPS}" in line:
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_relax"]))
+            if "${TEMP}" in line:
+                lines[i] = line.replace("${TEMP}", str(data["t_relax"]))
+            if "${REGION_THERMO}" in line:
+                lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
+            if "${THERMO}" in line:
+                lines[i] = line.replace("${THERMO}", data["thermo"])
+            if "${TIMECON_THERMO}" in line:
+                lines[i] = line.replace("${TIMECON_THERMO}", str(50))
+            if "${SCFGUESS}" in line:
+                lines[i] = line.replace("${SCFGUESS}", "RESTART")
+            if "${PP_FUNC}" in line:
+                lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+            if "${BASIS}" in line:
+                lines[i] = line.replace("${BASIS}", data["basis"])
+            if "${BOX_LENGTH}" in line:
+                lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${SIMBOX_XYZ}" in line:
+                lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+
+        # write to file
+        with open("relax.inp", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
 
     # production
-    if joblist[3]:
+    if data["joblist"][3]:
         # take a deep copy of the sections
         sections_prod = copy.deepcopy(sections)
 
@@ -541,11 +641,48 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
             sections_prod["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
 
-        # debug
-        # print_structure(sections_prod)
+        # ext_restart
+        sections_prod["ext_restart"]["add"] = True
+
+        lines = build_file([""], sections_prod)
+
+        # replace keywords
+        for i, line in enumerate(lines):
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "MD")
+            if "${ENSEMBLE}" in line:
+                lines[i] = line.replace("${ENSEMBLE}", "NVT")
+            if "${NSTEPS}" in line:
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_prod"]))
+            if "${TEMP}" in line:
+                lines[i] = line.replace("${TEMP}", str(data["t_prod"]))
+            if "${REGION_THERMO}" in line:
+                lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
+            if "${THERMO}" in line:
+                lines[i] = line.replace("${THERMO}", data["thermo"])
+            if "${TIMECON_THERMO}" in line:
+                lines[i] = line.replace("${TIMECON_THERMO}", str(100))
+            if "${SCFGUESS}" in line:
+                lines[i] = line.replace("${SCFGUESS}", "RESTART")
+            if "${HISTORY_BQB}" in line:
+                lines[i] = line.replace("${HISTORY_BQB}", str(10))
+            if "${PP_FUNC}" in line:
+                lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+            if "${BASIS}" in line:
+                lines[i] = line.replace("${BASIS}", data["basis"])
+            if "${BOX_LENGTH}" in line:
+                lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${SIMBOX_XYZ}" in line:
+                lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+
+        # write to file
+        with open("prod.inp", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
 
     # bqb file calculation
-    if joblist[4]:
+    if data["joblist"][4]:
         # take a deep copy of the sections
         sections_bqb = copy.deepcopy(sections)
 
@@ -567,11 +704,83 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
             sections_bqb["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
             sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = False
 
-        # debug
-        # print_structure(sections_bqb)
+        # spectra settings
+        if data["spectrum"] == "ir":
+            calc_efield = False
+            stride = 8
+            overlap = 0
+        elif data["spectrum"] == "raman":
+            calc_efield = True
+            stride = 8
+            overlap = 0
+            sys.exit("Raman spectrum not implemented yet.")
+        elif data["spectrum"] == "vcd":
+            calc_efield = False
+            stride = 1
+            overlap = 2
+        elif data["spectrum"] == "roa":
+            calc_efield = True
+            stride = 1
+            overlap = 2
+            sys.exit("ROA spectrum not implemented yet.")
+        elif data["spectrum"] == "dipoles":
+            calc_efield = False
+            stride = 1
+            overlap = 0
+
+        lines = build_file([""], sections_bqb)
+
+        # replace keywords
+        for i, line in enumerate(lines):
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "MD")
+            if "${ENSEMBLE}" in line:
+                lines[i] = line.replace("${ENSEMBLE}", "REFTRAJ")
+            if "${NSTEPS}" in line:
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_bqb"]))
+            if "${FIRST_SNAPSHOT}" in line:
+                lines[i] = line.replace(
+                    "${FIRST_SNAPSHOT}",
+                    str(data["start_from"] + bqb_count * data["steps_bqb"] * stride),
+                )
+            if "${STRIDE}" in line:
+                lines[i] = line.replace("${STRIDE}", str(stride))
+            if "${LAST_SNAPSHOT}" in line:
+                lines[i] = line.replace(
+                    "${LAST_SNAPSHOT}",
+                    str(
+                        data["start_from"]
+                        + (bqb_count + 1) * data["steps_bqb"] * stride
+                        + overlap
+                        - stride
+                    ),
+                )
+            if "${TRAJ_FILE_NAME}" in line:
+                lines[i] = line.replace(
+                    "${TRAJ_FILE_NAME}",
+                    data["reftraj"],
+                )
+            if "${SCFGUESS}" in line:
+                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${HISTORY_BQB}" in line:
+                lines[i] = line.replace("${HISTORY_BQB}", str(10))
+            if "${PP_FUNC}" in line:
+                lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+            if "${BASIS}" in line:
+                lines[i] = line.replace("${BASIS}", data["basis"])
+            if "${BOX_LENGTH}" in line:
+                lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${SIMBOX_XYZ}" in line:
+                lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+
+        # write to file
+        with open("bqb.inp", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
 
     # single point energy calculation
-    if joblist[5]:
+    if data["joblist"][5]:
         # take a deep copy of the sections
         sections_energy = copy.deepcopy(sections)
 
@@ -588,5 +797,27 @@ def generate_input_files(data: dict[str, Any], joblist: list[bool]) -> None:
                 "add"
             ] = True
 
-        # debug
-        # print_structure(sections_energy)
+        lines = build_file([""], sections_energy)
+
+        # replace keywords
+        for i, line in enumerate(lines):
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "ENERGY_FORCE")
+            if "${SCFGUESS}" in line:
+                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${HISTORY_energy}" in line:
+                lines[i] = line.replace("${HISTORY_energy}", str(1))
+            if "${PP_FUNC}" in line:
+                lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+            if "${BASIS}" in line:
+                lines[i] = line.replace("${BASIS}", data["basis"])
+            if "${BOX_LENGTH}" in line:
+                lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${SIMBOX_XYZ}" in line:
+                lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+
+        # write to file
+        with open("energy.inp", "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))

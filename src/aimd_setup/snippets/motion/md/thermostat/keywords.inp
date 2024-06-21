@@ -1,0 +1,2 @@
+REGION ${REGION_THERMO}            #  thermostat region, GLOBAL is recommended for AIMD production, MASSIVE for AIMD equilibration
+TYPE ${THERMO}                 # thermostat type, e.g. CSVR or NOSE (Nose-Hoover)

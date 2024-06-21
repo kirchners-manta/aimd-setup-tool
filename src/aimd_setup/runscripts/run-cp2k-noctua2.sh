@@ -20,10 +20,4 @@ module load chem/CP2K/2023.1-foss-2022b-gcc-openmpi-openblas
 
 # execute job
 
-# AIMD simulation
-srun cp2k.psmp geoopt.inp >geoopt.out
-srun cp2k.psmp eq.inp >eq.out
-srun cp2k.psmp relax.inp >relax.out
-srun cp2k.psmp prod.inp >prod.out
-srun cp2k.psmp bqb.inp >bqb.out
-srun cp2k.psmp energy.inp >energy.out
+
