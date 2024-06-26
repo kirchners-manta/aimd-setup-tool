@@ -235,6 +235,11 @@ def setup_job(args: argparse.Namespace) -> int:
             os.system("cp " + abs_coord + " bqb_" + str(i + 1) + "/")
             os.system("cp " + abs_reftraj + " bqb_" + str(i + 1) + "/")
             os.chdir("bqb_" + str(i + 1))
+            cp_cp2kdata_runscript(
+                data=args_dict,
+                template_dir=script_dir,
+                project_dir=".",
+            )
             generate_input_files(data=args_dict, bqb_count=i)
             os.chdir("..")
 
