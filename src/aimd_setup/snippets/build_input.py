@@ -739,7 +739,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${ENSEMBLE}" in line:
                 lines[i] = line.replace("${ENSEMBLE}", "REFTRAJ")
             if "${NSTEPS}" in line:
-                lines[i] = line.replace("${NSTEPS}", str(data["steps_bqb"]))
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_bqb"] + overlap))
             if "${FIRST_SNAPSHOT}" in line:
                 lines[i] = line.replace(
                     "${FIRST_SNAPSHOT}",
