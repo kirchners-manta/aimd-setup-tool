@@ -15,7 +15,6 @@ from ..snippets import generate_input_files
 
 def setup_job(args: argparse.Namespace) -> int:
     # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
-
     if args.func == "revpbe":
         pp_func = "PBE"
     # if R2SCAN, use SCAN for the pseudopotential, because CP2K does not have a R2SCAN pseudopotential
@@ -24,6 +23,12 @@ def setup_job(args: argparse.Namespace) -> int:
     # otherwise, use the functional for the pseudopotential
     else:
         pp_func = args.func.upper()
+
+    # if xTB is chosen, the QS method is xTB, else GPW
+    if args.func == "xtb":
+        qs_method = "XTB"
+    else:
+        qs_method = "GPW"
 
     # capitalize the basis set
     # if a cardinal number < 2, use SR-GTH
@@ -87,8 +92,10 @@ def setup_job(args: argparse.Namespace) -> int:
     print("Job type:", args.type)
     print("Box size [Angstrom]:", args.boxsize)
     print("Coordinate file:", args.coord)
-    print("Density functional:", args.func.upper())
-    print("Pseudopotential:", pp_func)
+    print("QS method:", qs_method)
+    if qs_method == "GPW":
+        print("Density functional:", args.func.upper())
+        print("Pseudopotential:", pp_func)
     print("Basis set:", args.basis)
 
     # arguments that are only needed for a certain type of calculation are printed last
@@ -169,6 +176,7 @@ def setup_job(args: argparse.Namespace) -> int:
     args_dict["pp_func"] = pp_func
     args_dict["joblist"] = jobs_to_exec
     args_dict["runscript"] = runscript_name
+    args_dict["qs_method"] = qs_method
 
     #############################################
 

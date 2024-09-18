@@ -174,6 +174,11 @@ def get_default_sections() -> dict[str, Any]:
                     "add": True,
                     "header": "header.inp",
                     "keywords": "keywords.inp",
+                    "xtb": {
+                        "add": False,
+                        "header": "header.inp",
+                        "keywords": "keywords.inp",
+                    },
                 },
                 "scf": {
                     "add": True,
@@ -382,14 +387,18 @@ def build_file(
                     # get a list of lines that should be added
                     lines_to_add = f.read().splitlines()
                     # add at the second to last position
-                    for i in range(len(lines_to_add)):
-                        if current_depth == 0:
-                            lines.insert(-1, lines_to_add[i].split("#")[0].rstrip())
-                        else:
-                            lines.insert(
-                                len(lines) - 1 - current_depth,
-                                f"{tab * current_depth}{lines_to_add[i].split('#')[0].rstrip()}",
-                            )
+                    for i, line in enumerate(lines_to_add):
+                        # remove comments and empty lines
+                        if len(line.split("#")[0].rstrip()) != 0:
+                            # if the current depth is 0, add at the last position
+                            if current_depth == 0:
+                                lines.insert(-1, line.split("#")[0].rstrip())
+                            # else, add at the second to last position
+                            else:
+                                lines.insert(
+                                    len(lines) - 1 - current_depth,
+                                    f"{tab * current_depth}{line.split('#')[0].rstrip()}",
+                                )
 
             # read keywords
             if "keywords" in content:
@@ -401,11 +410,12 @@ def build_file(
                     # get a list of lines that should be added
                     lines_to_add = f.read().splitlines()
                     # add at the second to last position
-                    for i in range(len(lines_to_add)):
-                        lines.insert(
-                            len(lines) - 2 - current_depth,
-                            f"{tab * (current_depth + 1)}{lines_to_add[i].split('#')[0].rstrip()}",
-                        )
+                    for i, line in enumerate(lines_to_add):
+                        if len(line.split("#")[0].rstrip()) != 0:
+                            lines.insert(
+                                len(lines) - 2 - current_depth,
+                                f"{tab * (current_depth + 1)}{line.split('#')[0].rstrip()}",
+                            )
 
             # recursive call
             lines = build_file(
@@ -476,8 +486,13 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         else:
             sys.exit(f"Atom type {atom} not supported.")
 
-    # add density functional
-    sections["force_eval"]["dft"]["xc"]["xc_functional"][data["func"]]["add"] = True
+    # if xtb is used, add the xtb section and deactivate the dft section
+    if data["func"] == "xtb":
+        sections["force_eval"]["dft"]["qs"]["xtb"]["add"] = True
+        sections["force_eval"]["dft"]["xc"]["add"] = False
+    # else, add dft functional
+    else:
+        sections["force_eval"]["dft"]["xc"]["xc_functional"][data["func"]]["add"] = True
 
     # geometry optimization
     if data["joblist"][0]:
@@ -500,6 +515,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 )  # only one replacement necessary
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "GEOOPT")
+            if "${QS_METHOD}" in line:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${PP_FUNC}" in line:
@@ -549,6 +566,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${THERMO}", data["thermo"])
             if "${TIMECON_THERMO}" in line:
                 lines[i] = line.replace("${TIMECON_THERMO}", str(10))
+            if "${QS_METHOD}" in line:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 if data["joblist"][0]:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
@@ -571,6 +590,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             i + j + 1,
                             f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
                         )
+            if "${QS_METHOD}" in line:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
 
         # write to file
         with open("eq.inp", "w", encoding="utf-8") as f:
@@ -604,6 +625,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${THERMO}", data["thermo"])
             if "${TIMECON_THERMO}" in line:
                 lines[i] = line.replace("${TIMECON_THERMO}", str(50))
+            if "${QS_METHOD}" in line:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "RESTART")
             if "${PP_FUNC}" in line:
@@ -664,6 +687,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${THERMO}", data["thermo"])
             if "${TIMECON_THERMO}" in line:
                 lines[i] = line.replace("${TIMECON_THERMO}", str(100))
+            if "${QS_METHOD}" in line:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "RESTART")
             if "${HISTORY_BQB}" in line:
@@ -762,6 +787,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     "${TRAJ_FILE_NAME}",
                     data["reftraj"],
                 )
+            if "${QS_METHOD}" in line:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${HISTORY_BQB}" in line:
@@ -805,10 +832,12 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${PROJECT_NAME}", data["project"])
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "ENERGY_FORCE")
+            if "${QS_METHOD}" in line:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
-            if "${HISTORY_energy}" in line:
-                lines[i] = line.replace("${HISTORY_energy}", str(1))
+            if "${HISTORY_BQB}" in line:
+                lines[i] = line.replace("${HISTORY_BQB}", str(1))
             if "${PP_FUNC}" in line:
                 lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
             if "${BASIS}" in line:

@@ -311,7 +311,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Density functional.",
         default="revpbe",
         dest="func",
-        choices=["blyp", "bp", "pade", "pbe", "revpbe", "scan", "r2scan"],
+        choices=["blyp", "bp", "pade", "pbe", "revpbe", "scan", "r2scan", "xtb"],
     )
     p.add_argument(
         "--n-bqb",
