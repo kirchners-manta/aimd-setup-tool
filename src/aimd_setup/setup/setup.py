@@ -96,7 +96,7 @@ def setup_job(args: argparse.Namespace) -> int:
     if qs_method == "GPW":
         print("Density functional:", args.func.upper())
         print("Pseudopotential:", pp_func)
-    print("Basis set:", args.basis)
+        print("Basis set:", args.basis)
 
     # arguments that are only needed for a certain type of calculation are printed last
     if args.type == "aimd":

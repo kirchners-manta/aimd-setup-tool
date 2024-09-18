@@ -584,7 +584,6 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "&VELOCITY" in line and data["velocity"] is not None:
                 with open(data["velocity"], "r", encoding="utf-8") as v:
                     lines_to_add = v.read().splitlines()
-                    print(i)
                     for j in range(len(lines_to_add)):
                         lines.insert(
                             i + j + 1,
