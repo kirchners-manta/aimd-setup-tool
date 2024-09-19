@@ -8,7 +8,7 @@ import argparse
 import os
 import sys
 
-from ..adjust_input import cp_cp2kdata_runscript
+from ..adjust_input import cp_runscript
 from ..functions import make_project_dir
 from ..snippets import generate_input_files
 
@@ -218,7 +218,7 @@ def setup_job(args: argparse.Namespace) -> int:
             os.system("cp " + abs_velocity + " .")
 
         # copy run script and data files to the project directory
-        cp_cp2kdata_runscript(
+        cp_runscript(
             data=args_dict,
             template_dir=script_dir,
             project_dir=project_dir,
@@ -243,7 +243,7 @@ def setup_job(args: argparse.Namespace) -> int:
             os.system("cp " + abs_coord + " bqb_" + str(i + 1) + "/")
             os.system("cp " + abs_reftraj + " bqb_" + str(i + 1) + "/")
             os.chdir("bqb_" + str(i + 1))
-            cp_cp2kdata_runscript(
+            cp_runscript(
                 data=args_dict,
                 template_dir=script_dir,
                 project_dir=".",

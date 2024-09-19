@@ -11,5 +11,5 @@ from .adjust_input_files import (
     adjust_cp2k_input_sp,
     adjust_runscript,
     copy_cp2k_data_and_runscript,
-    cp_cp2kdata_runscript,
+    cp_runscript,
 )
