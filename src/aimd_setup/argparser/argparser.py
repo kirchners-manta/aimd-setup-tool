@@ -373,7 +373,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Cluster/queue to submit the job to.",
         default="noctua2",
         dest="queue",
-        choices=["noctua2"],
+        choices=["noctua2", "bonna"],
     )
     p.add_argument(
         "--reftraj",
