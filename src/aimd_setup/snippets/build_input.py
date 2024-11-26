@@ -573,7 +573,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${QS_METHOD}" in line:
                 lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
-                if data["joblist"][0]:
+                if sections_eq["ext_restart"]["add"]:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
                 else:
                     lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
@@ -606,7 +606,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         sections_relax = copy.deepcopy(sections)
 
         # ext_restart
-        sections_relax["ext_restart"]["add"] = True
+        # if any job was executed before, read the restart file
+        if any(data["joblist"][:2]):
+            sections_relax["ext_restart"]["add"] = True
 
         lines = build_file([""], sections_relax)
 
@@ -631,7 +633,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${QS_METHOD}" in line:
                 lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
-                lines[i] = line.replace("${SCFGUESS}", "RESTART")
+                if sections_relax["ext_restart"]["add"]:
+                    lines[i] = line.replace("${SCFGUESS}", "RESTART")
+                else:
+                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${PP_FUNC}" in line:
                 lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
             if "${BASIS}" in line:
@@ -659,16 +664,19 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         sections_prod["motion"]["print"]["velocities"]["add"] = True
         # enable wannier centers if requested
         sections_prod["force_eval"]["dft"]["localize"]["add"] = data["wannier"]
-        # electronic density
+        # electron density output
         if data["bqb"]:
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
             sections_prod["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = True
         if data["cube"]:
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
             sections_prod["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
-
         # ext_restart
-        sections_prod["ext_restart"]["add"] = True
+        if any(data["joblist"][:3]):
+            sections_prod["ext_restart"]["add"] = True
+        # velocity
+        if data["velocity"] is not None:
+            sections_prod["force_eval"]["subsys"]["velocity"]["add"] = True
 
         lines = build_file([""], sections_prod)
 
@@ -693,9 +701,12 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${QS_METHOD}" in line:
                 lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
-                lines[i] = line.replace("${SCFGUESS}", "RESTART")
+                if sections_prod["ext_restart"]["add"]:
+                    lines[i] = line.replace("${SCFGUESS}", "RESTART")
+                else:
+                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${HISTORY_BQB}" in line:
-                lines[i] = line.replace("${HISTORY_BQB}", str(10))
+                lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
             if "${PP_FUNC}" in line:
                 lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
             if "${BASIS}" in line:
@@ -704,6 +715,14 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+            if "&VELOCITY" in line and data["velocity"] is not None:
+                with open(data["velocity"], "r", encoding="utf-8") as v:
+                    lines_to_add = v.read().splitlines()
+                    for j in range(len(lines_to_add)):
+                        lines.insert(
+                            i + j + 1,
+                            f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
+                        )
 
         # write to file
         with open("prod.inp", "w", encoding="utf-8") as f:
@@ -795,7 +814,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${HISTORY_BQB}" in line:
-                lines[i] = line.replace("${HISTORY_BQB}", str(10))
+                lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
             if "${PP_FUNC}" in line:
                 lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
             if "${BASIS}" in line:

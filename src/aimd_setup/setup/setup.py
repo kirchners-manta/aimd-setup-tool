@@ -157,11 +157,33 @@ def setup_job(args: argparse.Namespace) -> int:
         # print the relevant arguments
         print("Energy convergence criterion [Hartree]:", args.e_conv)
 
+    elif args.type == "adapt-sampl":
+        exec_geoopt = False
+        exec_eq = False
+        exec_relax = False
+        exec_prod = True
+        exec_bqb = False
+        exec_energy = False
+
+        # set extra arguments specific to this type of calculation
+        args.steps_prod = 2
+        args.bqb = True
+        # velocity is required
+        if args.velocity is None:
+            sys.exit(
+                " *** Velocity file is required for adaptive sampling. Watch the velocity format. Exiting."
+            )
+
+        print("Production steps:", args.steps_prod)
+        print("Production temperature [K]:", args.t_prod)
+        print("Print BQB file:", args.bqb)
+
     print("Queue:", args.queue)
     print("Runscript:", runscript_name)
     print("CPU cores:", args.cpu)
     print("")
 
+    # which jobs to execute
     jobs_to_exec = [
         exec_geoopt,
         exec_eq,
@@ -178,6 +200,16 @@ def setup_job(args: argparse.Namespace) -> int:
     args_dict["runscript"] = runscript_name
     args_dict["qs_method"] = qs_method
 
+    # adjust bqb history parameter if necessary
+    if (
+        (args.type == "bqb" and args.steps_bqb < 10)
+        or args.type == "adapt-sampl"
+        or (args.type == "aimd" and args.bqb and args.steps_prod < 10)
+    ):
+        args_dict["bqb_history"] = 1
+    else:
+        args_dict["bqb_history"] = 10
+
     #############################################
 
     # get the absolute path of the directory where the script is located
@@ -186,10 +218,8 @@ def setup_job(args: argparse.Namespace) -> int:
     # check if all relevant files are present in the script directory
     # if not, print warning and exit
     files = [
-        script_dir + "/../cp2k-datafiles/BASIS_MOLOPT",
-        script_dir + "/../cp2k-datafiles/GTH_POTENTIALS",
-        script_dir + "/../cp2k-datafiles/dftd3.dat",
         script_dir + "/../runscripts/run-cp2k-noctua2.sh",
+        script_dir + "/../runscripts/run-cp2k-bonna.sh",
     ]
     for f in files:
         if not os.path.isfile(f):
@@ -206,7 +236,7 @@ def setup_job(args: argparse.Namespace) -> int:
     # setting up the calculation
     # depending on the type of calculation, different input files are needed
 
-    if args.type == "aimd" or args.type == "energy":
+    if args.type in ["aimd", "energy", "adapt-sampl"]:
         # generate a project directory
         make_project_dir(project_dir, args.overwrite)
 

@@ -209,9 +209,32 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         add_help=False,
     )
     p.add_argument(
-        "project",
+        "-p",
+        "--project",
         type=str,
         help="R|Name of the project. A directory with this name will be created.",
+        required=True,
+        dest="project",
+    )
+    p.add_argument(
+        "-c",
+        "--coord-file",
+        type=is_file,
+        help="R|Coordinate file (in xyz format).",
+        dest="coord",
+        metavar="FILE",
+        required=True,
+    )
+    p.add_argument(
+        "-b",
+        "--boxsize",
+        type=float,
+        dest="boxsize",
+        help="R|Box edge length in Angstrom. For cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
+        metavar="LENGTH",
+        required=True,
+        nargs="+",
+        action=action_not_less_than(5.0),
     )
     p.add_argument(
         "-h",
@@ -229,30 +252,11 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         choices=["svz", "dzvp", "tzvp", "tzv2p", "tzv2px"],
     )
     p.add_argument(
-        "-b",
-        "--boxsize",
-        type=float,
-        dest="boxsize",
-        help="R|Box edge length in Angstrom. For cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
-        metavar="LENGTH",
-        default=10.0,
-        nargs="+",
-        action=action_not_less_than(5.0),
-    )
-    p.add_argument(
         "--bqb",
         help="R|Write BQB file during production run (can produce large file).\nDefault for type 'bqb'.",
         dest="bqb",
         action="store_true",
         default=False,
-    )
-    p.add_argument(
-        "-c",
-        "--coord-file",
-        type=is_file,
-        help="R|Coordinate file (in xyz format).",
-        dest="coord",
-        metavar="FILE",
     )
     p.add_argument(
         "--cpu",
@@ -467,13 +471,13 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     p.add_argument(
         "--type",
         type=str,
-        help="R|Type of calculation to perform.\nAIMD: AIMD simulation.\nBQB: BQB file production.\nENERGY: Single point energy calculation.",
+        help="R|Type of calculation to perform.\nAIMD: AIMD simulation.\nBQB: BQB file production.\nENERGY: Single point energy calculation.\nADAPT-SAMPL: Adaptive sampling.",
         dest="type",
-        choices=["aimd", "bqb", "energy"],
+        choices=["aimd", "bqb", "energy", "adapt-sampl"],
         default="aimd",
     )
     p.add_argument(
-        "--vel",
+        "-v" "--velocity",
         type=is_file,
         metavar="FILE",
         help="R|Initial velocities file in Bohr/au_time.\nIf provided, no geometry optimization will be performed.",
