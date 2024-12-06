@@ -662,6 +662,11 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # print forces and velocities
         sections_prod["motion"]["print"]["forces"]["add"] = True
         sections_prod["motion"]["print"]["velocities"]["add"] = True
+        # remove restart in case of adaptive sampling
+        if data["type"] == "adapt-sampl":
+            sections_prod["motion"]["print"]["restart"]["add"] = False
+            sections_prod["motion"]["print"]["restart_history"]["add"] = False
+        # force evaluation
         # enable wannier centers if requested
         sections_prod["force_eval"]["dft"]["localize"]["add"] = data["wannier"]
         # electron density output
