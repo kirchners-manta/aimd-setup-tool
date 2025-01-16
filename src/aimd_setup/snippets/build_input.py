@@ -5,6 +5,8 @@ Script to build input files for CP2K simulations, based on pre-defined input sni
 from __future__ import annotations
 
 import copy
+import os
+import shutil
 import sys
 from pathlib import Path
 from typing import Any, List
@@ -147,6 +149,11 @@ def get_default_sections() -> dict[str, Any]:
                 },
                 "mgrid": {
                     "add": True,
+                    "header": "header.inp",
+                    "keywords": "keywords.inp",
+                },
+                "periodic_efield": {
+                    "add": False,
                     "header": "header.inp",
                     "keywords": "keywords.inp",
                 },
@@ -738,6 +745,30 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # take a deep copy of the sections
         sections_bqb = copy.deepcopy(sections)
 
+        # spectra settings
+        if data["spectrum"] == "ir":
+            stride = 8
+            overlap = 0
+        elif data["spectrum"] == "raman":
+            stride = 8
+            overlap = 0
+        elif data["spectrum"] == "vcd":
+            stride = 1
+            overlap = 2
+        elif data["spectrum"] == "roa":
+            stride = 1
+            overlap = 2
+        elif data["spectrum"] == "dipoles":
+            stride = 1
+            overlap = 0
+
+        if data["spectrum"] in ["raman", "roa"]:
+            # "n" means no electric field and is the case for ir, vcd and dipoles
+            # "x", "y", "z" are the three components of the electric field needed for raman and roa
+            fields = ["n", "x", "y", "z"]
+        else:
+            fields = [""]
+
         # motion
         # change ensemble
         sections_bqb["motion"]["md"]["thermostat"]["add"] = False
@@ -756,82 +787,93 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             sections_bqb["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
             sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = False
 
-        # spectra settings
-        if data["spectrum"] == "ir":
-            calc_efield = False
-            stride = 8
-            overlap = 0
-        elif data["spectrum"] == "raman":
-            calc_efield = True
-            stride = 8
-            overlap = 0
-            sys.exit("Raman spectrum not implemented yet.")
-        elif data["spectrum"] == "vcd":
-            calc_efield = False
-            stride = 1
-            overlap = 2
-        elif data["spectrum"] == "roa":
-            calc_efield = True
-            stride = 1
-            overlap = 2
-            sys.exit("ROA spectrum not implemented yet.")
-        elif data["spectrum"] == "dipoles":
-            calc_efield = False
-            stride = 1
-            overlap = 0
+        # iterate over all fields
+        vectors = ["", "1.0 0.0 0.0", "0.0 1.0 0.0", "0.0 0.0 1.0"]  # no entry for "n"
+        for k, vec in enumerate(fields):
 
-        lines = build_file([""], sections_bqb)
+            if k > 0:
+                # add efield if requested
+                sections_bqb["force_eval"]["dft"]["periodic_efield"]["add"] = True
 
-        # replace keywords
-        for i, line in enumerate(lines):
-            if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
-            if "${TYPE}" in line:
-                lines[i] = line.replace("${TYPE}", "MD")
-            if "${ENSEMBLE}" in line:
-                lines[i] = line.replace("${ENSEMBLE}", "REFTRAJ")
-            if "${NSTEPS}" in line:
-                lines[i] = line.replace("${NSTEPS}", str(data["steps_bqb"] + overlap))
-            if "${FIRST_SNAPSHOT}" in line:
-                lines[i] = line.replace(
-                    "${FIRST_SNAPSHOT}",
-                    str(data["start_from"] + bqb_count * data["steps_bqb"] * stride),
-                )
-            if "${STRIDE}" in line:
-                lines[i] = line.replace("${STRIDE}", str(stride))
-            if "${LAST_SNAPSHOT}" in line:
-                lines[i] = line.replace(
-                    "${LAST_SNAPSHOT}",
-                    str(
-                        data["start_from"]
-                        + (bqb_count + 1) * data["steps_bqb"] * stride
-                        + overlap
-                        - stride
-                    ),
-                )
-            if "${TRAJ_FILE_NAME}" in line:
-                lines[i] = line.replace(
-                    "${TRAJ_FILE_NAME}",
-                    data["reftraj"],
-                )
-            if "${QS_METHOD}" in line:
-                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
-            if "${SCFGUESS}" in line:
-                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
-            if "${HISTORY_BQB}" in line:
-                lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
-            if "${PP_FUNC}" in line:
-                lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
-            if "${BASIS}" in line:
-                lines[i] = line.replace("${BASIS}", data["basis"])
-            if "${BOX_LENGTH}" in line:
-                lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
-            if "${SIMBOX_XYZ}" in line:
-                lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+            # build default input file
+            lines = build_file([""], sections_bqb)
 
-        # write to file
-        with open("bqb.inp", "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
+            # replace keywords
+            for i, line in enumerate(lines):
+                if "${PROJECT_NAME}" in line:
+                    lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+                if "${TYPE}" in line:
+                    lines[i] = line.replace("${TYPE}", "MD")
+                if "${ENSEMBLE}" in line:
+                    lines[i] = line.replace("${ENSEMBLE}", "REFTRAJ")
+                if "${NSTEPS}" in line:
+                    lines[i] = line.replace(
+                        "${NSTEPS}", str(data["steps_bqb"] + overlap)
+                    )
+                if "${FIRST_SNAPSHOT}" in line:
+                    lines[i] = line.replace(
+                        "${FIRST_SNAPSHOT}",
+                        str(
+                            data["start_from"] + bqb_count * data["steps_bqb"] * stride
+                        ),
+                    )
+                if "${STRIDE}" in line:
+                    lines[i] = line.replace("${STRIDE}", str(stride))
+                if "${LAST_SNAPSHOT}" in line:
+                    lines[i] = line.replace(
+                        "${LAST_SNAPSHOT}",
+                        str(
+                            data["start_from"]
+                            + (bqb_count + 1) * data["steps_bqb"] * stride
+                            + overlap
+                            - stride
+                        ),
+                    )
+                if "${TRAJ_FILE_NAME}" in line:
+                    lines[i] = line.replace(
+                        "${TRAJ_FILE_NAME}",
+                        data["reftraj"],
+                    )
+                if "${QS_METHOD}" in line:
+                    lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+                if "${SCFGUESS}" in line:
+                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+                if "${FIELD_VECTOR}" in line:
+                    lines[i] = line.replace("${FIELD_VECTOR}", vectors[k])
+                if "edens.bqb" in line and len(fields) > 1:
+                    lines[i] = line.replace("edens.bqb", f"edens-{vec}.bqb")
+                if "${HISTORY_BQB}" in line:
+                    lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
+                if "${PP_FUNC}" in line:
+                    lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+                if "${BASIS}" in line:
+                    lines[i] = line.replace("${BASIS}", data["basis"])
+                if "${BOX_LENGTH}" in line:
+                    lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+                if "${SIMBOX_XYZ}" in line:
+                    lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+
+            if len(fields) > 1:
+                # create directory for each field
+                os.mkdir(f"{vec}_field")
+
+                # write to file
+                with open(f"{vec}_field/bqb.inp", "w", encoding="utf-8") as f:
+                    f.write("\n".join(lines))
+
+                # copy the other (identical) files like coordinates and run script
+                shutil.copy2(data["coord"], f"{vec}_field/")
+                shutil.copy2(data["runscript"], f"{vec}_field/")
+                shutil.copy2(data["reftraj"], f"{vec}_field/")
+
+                if k == 3:
+                    # remove the files from the main directory
+                    os.remove(f"./{data['coord']}")
+                    os.remove(f"./{data['runscript']}")
+                    os.remove(f"./{data['reftraj']}")
+            else:
+                with open("bqb.inp", "w", encoding="utf-8") as f:
+                    f.write("\n".join(lines))
 
     # single point energy calculation
     if data["joblist"][5]:
