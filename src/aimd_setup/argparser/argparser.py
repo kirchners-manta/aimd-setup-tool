@@ -310,6 +310,23 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         choices=["nvt", "nve"],
     )
     p.add_argument(
+        "--field",
+        type=str,
+        help="R|Add a periodic electric field in given directions.",
+        default=None,
+        dest="efield",
+        choices=["x", "y", "z", "xy", "xz", "yz", "xyz"],
+    )
+    p.add_argument(
+        "--field-strength",
+        type=float,
+        metavar="STRENGTH",
+        help="R|Strength of the electric field in a.u.",
+        default=5.0e-3,
+        dest="efield_strength",
+        action=action_not_less_than(0.0),
+    )
+    p.add_argument(
         "--func",
         type=str,
         help="R|Density functional.",
@@ -439,7 +456,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     p.add_argument(
         "--thermo",
         type=str,
-        metavar="THERMO",
         help="R|Thermostat.",
         default="NOSE",
         choices=["nose", "csvr"],
@@ -477,7 +493,8 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default="aimd",
     )
     p.add_argument(
-        "-v" "--velocity",
+        "-v",
+        "--velocity",
         type=is_file,
         metavar="FILE",
         help="R|Initial velocities file in Bohr/au_time.\nIf provided, no geometry optimization will be performed.",

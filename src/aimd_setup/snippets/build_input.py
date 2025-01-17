@@ -505,6 +505,28 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
     else:
         sections["force_eval"]["dft"]["xc"]["xc_functional"][data["func"]]["add"] = True
 
+    # check periodic efield
+    if data["efield"] is not None:
+        sections["force_eval"]["dft"]["periodic_efield"]["add"] = True
+
+        # define efield dictionary
+        efield_vectors = {
+            "x": "1.0 0.0 0.0",
+            "y": "0.0 1.0 0.0",
+            "z": "0.0 0.0 1.0",
+            "xy": "1.0 1.0 0.0",
+            "xz": "1.0 0.0 1.0",
+            "yz": "0.0 1.0 1.0",
+            "xyz": "1.0 1.0 1.0",
+        }
+
+        if data["type"] == "bqb":
+            # "n" means no electric field and is the case for ir, vcd and dipoles
+            # "x", "y", "z" are the three components of the electric field needed for raman and roa
+            fields = ["n", "x", "y", "z"]
+    else:
+        fields = [""]
+
     # geometry optimization
     if data["joblist"][0]:
         # take a deep copy of the sections. Deep copy is necessary because of the nested structure of the dictionary.
@@ -584,6 +606,14 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
                 else:
                     lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${FIELD_STRENGTH}" in line:
+                lines[i] = line.replace(
+                    "${FIELD_STRENGTH}", str(data["efield_strength"])
+                )
+            if "${FIELD_VECTOR}" in line:
+                lines[i] = line.replace(
+                    "${FIELD_VECTOR}", efield_vectors[data["efield"]]
+                )
             if "${PP_FUNC}" in line:
                 lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
             if "${BASIS}" in line:
@@ -644,6 +674,14 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
                 else:
                     lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${FIELD_STRENGTH}" in line:
+                lines[i] = line.replace(
+                    "${FIELD_STRENGTH}", str(data["efield_strength"])
+                )
+            if "${FIELD_VECTOR}" in line:
+                lines[i] = line.replace(
+                    "${FIELD_VECTOR}", efield_vectors[data["efield"]]
+                )
             if "${PP_FUNC}" in line:
                 lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
             if "${BASIS}" in line:
@@ -717,6 +755,14 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
                 else:
                     lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${FIELD_STRENGTH}" in line:
+                lines[i] = line.replace(
+                    "${FIELD_STRENGTH}", str(data["efield_strength"])
+                )
+            if "${FIELD_VECTOR}" in line:
+                lines[i] = line.replace(
+                    "${FIELD_VECTOR}", efield_vectors[data["efield"]]
+                )
             if "${HISTORY_BQB}" in line:
                 lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
             if "${PP_FUNC}" in line:
@@ -762,13 +808,6 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             stride = 1
             overlap = 0
 
-        if data["spectrum"] in ["raman", "roa"]:
-            # "n" means no electric field and is the case for ir, vcd and dipoles
-            # "x", "y", "z" are the three components of the electric field needed for raman and roa
-            fields = ["n", "x", "y", "z"]
-        else:
-            fields = [""]
-
         # motion
         # change ensemble
         sections_bqb["motion"]["md"]["thermostat"]["add"] = False
@@ -787,12 +826,12 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             sections_bqb["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
             sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = False
 
-        # iterate over all fields
-        vectors = ["", "1.0 0.0 0.0", "0.0 1.0 0.0", "0.0 0.0 1.0"]  # no entry for "n"
         for k, vec in enumerate(fields):
 
-            if k > 0:
+            if vec in ["", "n"]:
                 # add efield if requested
+                sections_bqb["force_eval"]["dft"]["periodic_efield"]["add"] = False
+            else:
                 sections_bqb["force_eval"]["dft"]["periodic_efield"]["add"] = True
 
             # build default input file
@@ -838,10 +877,12 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
                 if "${SCFGUESS}" in line:
                     lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+                if "${FIELD_STRENGTH}" in line:
+                    lines[i] = line.replace(
+                        "${FIELD_STRENGTH}", str(data["efield_strength"])
+                    )
                 if "${FIELD_VECTOR}" in line:
-                    lines[i] = line.replace("${FIELD_VECTOR}", vectors[k])
-                if "edens.bqb" in line and len(fields) > 1:
-                    lines[i] = line.replace("edens.bqb", f"edens-{vec}.bqb")
+                    lines[i] = line.replace("${FIELD_VECTOR}", efield_vectors[vec])
                 if "${HISTORY_BQB}" in line:
                     lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
                 if "${PP_FUNC}" in line:

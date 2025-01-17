@@ -64,6 +64,10 @@ def setup_job(args: argparse.Namespace) -> int:
         # get basename of the reference trajectory file
         args.reftraj = os.path.basename(abs_reftraj)
 
+        # if raman or roa spectrum is requested, set periodic efield to xyz
+        if args.spectrum in ["raman", "roa"]:
+            args.efield = "xyz"
+
     # check given box dimensions
     # if only one is given -> cubic box, set all box dimensions to the same value
     if type(args.boxsize) == float:
@@ -178,6 +182,9 @@ def setup_job(args: argparse.Namespace) -> int:
         print("Production temperature [K]:", args.t_prod)
         print("Print BQB file:", args.bqb)
 
+    if args.efield is not None:
+        print("Periodic E-field:", args.efield)
+        print("E-field strength [a.u.]:", args.efield_strength)
     print("Queue:", args.queue)
     print("Runscript:", runscript_name)
     print("CPU cores:", args.cpu)
