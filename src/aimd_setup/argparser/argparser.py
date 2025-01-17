@@ -388,9 +388,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     )
     p.add_argument(
         "-q",
-        "--queue",
         type=str,
-        metavar="QUEUE",
         help="R|Cluster/queue to submit the job to.",
         default="noctua2",
         dest="queue",
