@@ -16,6 +16,13 @@ The tool can be installed using `pip`:
 
 ```bash
 git clone git@github.com:tomfroembgen/aimd-setup-tool.git
+```
+or
+```bash
+git clone git@github.com:kirchners-manta/aimd-setup.git
+```
+and then
+```bash
 cd aimd-setup-tool
 pip install .
 ```
@@ -25,9 +32,9 @@ pip install .
 Currently, the tool has features to set up AIMD simulations and subsequent calculations of vibrational spectra in CP2K.
 It can be called from the command line as
 ```bash
-aimd_setup [OPTIONS] project_name
+aimd_setup -p PROJECT -c FILE -b LENGTH [OPTIONS]
 ```
-where `project_name` is the name of the directory to be created.
+where `PROJECT` is the name of the directory to be created, `FILE` is the input coordinate file for the AIMD simulation, and `LENGTH` is the box length of the simulation cell.
 Various options are available to customize the setup.
 A full list of options can be obtained by calling
 ```bash
