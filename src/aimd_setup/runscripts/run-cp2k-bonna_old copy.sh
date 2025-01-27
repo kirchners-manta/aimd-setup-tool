@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Part of the AIMD setup tool
-# CP2K 2024.3 run script
+# CP2K 2023.1 run script
 
 #SBATCH --partition=long
 #SBATCH --account=ag_mctc_kirchner
@@ -18,3 +18,11 @@ module load OpenMPI/4.1.6-GCC-13.2.0
 source /home/chemie/install_cp2k/cp2k-2024.3/tools/toolchain/install/setup
 
 # execute job
+
+# - cp2k-2024.3
+# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  eq.inp > eq_output 
+# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  relax.inp > relax_output 
+# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  prod.inp > prod_output 
+
+# standard cp2k on bonna:
+#

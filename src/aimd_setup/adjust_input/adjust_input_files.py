@@ -57,7 +57,13 @@ def cp_runscript(
 
         for i, job in enumerate(jobs):
             if data["joblist"][i] == True:
-                lines.insert(-1, f"srun cp2k.psmp {job}.inp >{job}.out\n")
+                if data["queue"] == "noctua2":
+                    lines.insert(len(lines), f"srun cp2k.psmp {job}.inp >{job}.out\n")
+                elif data["queue"] == "bonna":
+                    lines.insert(
+                        len(lines),
+                        f"mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp {job}.inp >{job}_output\n",
+                    )
 
         # remove the job submission lines for jobs that are not requested
 
