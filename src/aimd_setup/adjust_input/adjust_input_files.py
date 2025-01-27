@@ -13,7 +13,7 @@ from typing import Any
 
 
 def cp_runscript(
-    data: dict[str, Any], template_dir: str, project_dir: str, bqb_count: int = 0
+    data: dict[str, Any], template_dir: str, project_dir: str, bqb_count: int = -1
 ) -> None:
     """Copy the runscript to the project directory, and edit the runscript according to user input
 
@@ -40,7 +40,7 @@ def cp_runscript(
         lines = f.readlines()
         for i, line in enumerate(lines):
             if "PROJECT_NAME" in line:
-                if bqb_count > 0:
+                if bqb_count >= 0:
                     lines[i] = line.replace(
                         "PROJECT_NAME", data["project"] + f"_{bqb_count+1:02d}"
                     )

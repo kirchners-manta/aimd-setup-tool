@@ -840,7 +840,15 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             # replace keywords
             for i, line in enumerate(lines):
                 if "${PROJECT_NAME}" in line:
-                    lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+                    if len(fields) > 1:
+                        lines[i] = line.replace(
+                            "${PROJECT_NAME}",
+                            data["project"] + f"_{bqb_count+1:02d}_{vec}",
+                        )
+                    else:
+                        lines[i] = line.replace(
+                            "${PROJECT_NAME}", data["project"] + f"_{bqb_count+1:02d}"
+                        )
                 if "${TYPE}" in line:
                     lines[i] = line.replace("${TYPE}", "MD")
                 if "${ENSEMBLE}" in line:
@@ -902,10 +910,15 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 with open(f"{vec}_field/bqb.inp", "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))
 
-                # copy the other (identical) files like coordinates and run script
+                # copy the other (identical) files like coordinates and trajectory
                 shutil.copy2(data["coord"], f"{vec}_field/")
-                shutil.copy2(data["runscript"], f"{vec}_field/")
                 shutil.copy2(data["reftraj"], f"{vec}_field/")
+                shutil.copy2(data["runscript"], f"{vec}_field/")
+
+                # adjust the runscript and copy it
+                os.system(
+                    f"sed -i 's@{data['project']}_{bqb_count+1:02d}@{data['project']}_{bqb_count+1:02d}_{vec}@g' ./{vec}_field/{data['runscript']}"
+                )
 
                 if k == 3:
                     # remove the files from the main directory

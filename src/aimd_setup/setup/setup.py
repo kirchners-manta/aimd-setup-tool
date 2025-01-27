@@ -276,14 +276,15 @@ def setup_job(args: argparse.Namespace) -> int:
 
         # generate subdirectories for the bqb jobs
         for i in range(args.n_bqb):
-            os.mkdir("bqb_" + str(i + 1))
-            os.system("cp " + abs_coord + " bqb_" + str(i + 1) + "/")
-            os.system("cp " + abs_reftraj + " bqb_" + str(i + 1) + "/")
-            os.chdir("bqb_" + str(i + 1))
+            os.mkdir("bqb_" + f"{i+1:02d}")
+            os.system("cp " + abs_coord + " bqb_" + f"{i+1:02d}" + "/")
+            os.system("cp " + abs_reftraj + " bqb_" + f"{i+1:02d}" + "/")
+            os.chdir("bqb_" + f"{i+1:02d}")
             cp_runscript(
                 data=args_dict,
                 template_dir=script_dir,
                 project_dir=".",
+                bqb_count=i,
             )
             generate_input_files(data=args_dict, bqb_count=i)
             os.chdir("..")

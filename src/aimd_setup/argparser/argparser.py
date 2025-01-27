@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from typing import Any, Sequence
 
 
 # file and directory checks
@@ -46,7 +47,7 @@ def is_dir(path: str | Path) -> str | Path:
 
 
 # custom actions
-def action_not_less_than(min_value: float = 0.0):
+def action_not_less_than(min_value: float = 0.0) -> type[argparse.Action]:
     class CustomActionLessThan(argparse.Action):
         """
         Custom action for limiting possible input values. Raise error if value is smaller than min_value.
@@ -56,9 +57,10 @@ def action_not_less_than(min_value: float = 0.0):
             self,
             p: argparse.ArgumentParser,
             args: argparse.Namespace,
-            values: list[float | int] | float | int,
+            values: list[float | int] | float | int,  # type: ignore
             option_string: str | None = None,
         ) -> None:
+
             if isinstance(values, (int, float)):
                 values = [values]
 
@@ -75,7 +77,7 @@ def action_not_less_than(min_value: float = 0.0):
     return CustomActionLessThan
 
 
-def action_not_more_than(max_value: float = 0.0):
+def action_not_more_than(max_value: float = 0.0) -> type[argparse.Action]:
     class CustomActionMoreThan(argparse.Action):
         """
         Custom action for limiting possible input values. Raise error if value is larger than max_value.
@@ -85,7 +87,7 @@ def action_not_more_than(max_value: float = 0.0):
             self,
             p: argparse.ArgumentParser,
             args: argparse.Namespace,
-            values: list[float | int] | float | int,
+            values: list[float | int] | float | int,  # type: ignore
             option_string: str | None = None,
         ) -> None:
             if isinstance(values, (int, float)):
@@ -104,7 +106,9 @@ def action_not_more_than(max_value: float = 0.0):
     return CustomActionMoreThan
 
 
-def action_in_range(min_value: float = 0.0, max_value: float = 1.0):
+def action_in_range(
+    min_value: float = 0.0, max_value: float = 1.0
+) -> type[argparse.Action]:
     class CustomActionInRange(argparse.Action):
         """
         Custom action for limiting possible input values in a range. Raise error if value is not in range [min_value, max_value].
@@ -114,7 +118,7 @@ def action_in_range(min_value: float = 0.0, max_value: float = 1.0):
             self,
             p: argparse.ArgumentParser,
             args: argparse.Namespace,
-            values: list[float | int] | float | int,
+            values: list[float | int] | float | int,  # type: ignore
             option_string: str | None = None,
         ) -> None:
             if isinstance(values, (int, float)):
