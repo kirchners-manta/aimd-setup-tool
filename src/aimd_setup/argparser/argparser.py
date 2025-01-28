@@ -7,10 +7,10 @@ Parser for command line options.
 #############################################
 
 from __future__ import annotations
+from .. import __version__
 
 import argparse
 from pathlib import Path
-from typing import Any, Sequence
 
 
 # file and directory checks
@@ -239,13 +239,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         required=True,
         nargs="+",
         action=action_not_less_than(5.0),
-    )
-    p.add_argument(
-        "-h",
-        "--help",
-        action="help",
-        default=argparse.SUPPRESS,
-        help="Show this help message and exit.",
     )
     p.add_argument(
         "--basis",
@@ -495,8 +488,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default="aimd",
     )
     p.add_argument(
-        "-v",
-        "--velocity",
+        "--vel",
         type=is_file,
         metavar="FILE",
         help="R|Initial velocities file in Bohr/au_time.\nIf provided, no geometry optimization will be performed.",
@@ -509,6 +501,20 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=False,
         action="store_true",
         dest="wannier",
+    )
+    p.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="%(prog)s " + str(__version__),
+        help="Show program's version number and exit.",
+    )
+    p.add_argument(
+        "-h",
+        "--help",
+        action="help",
+        default=argparse.SUPPRESS,
+        help="Show this help message and exit.",
     )
 
     return p
