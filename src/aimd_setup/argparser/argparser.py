@@ -347,30 +347,30 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=False,
         dest="no_copy",
     )
-    p.add_argument(
-        "--no-geoopt",
-        help="R|Do not perform geometry optimization.",
-        action="store_true",
-        default=False,
-        dest="no_geoopt",
-    )
+    # p.add_argument(
+    #     "--no-geoopt",
+    #     help="R|Do not perform geometry optimization as part of an 'aimd' type calculation.",
+    #     action="store_true",
+    #     default=False,
+    #     dest="no_geoopt",
+    # )
     p.add_argument(
         "--no-equi",
-        help="R|Do not perform equilibration.",
+        help="R|Do not perform equilibration as part of an 'aimd' type calculation.",
         action="store_true",
         default=False,
         dest="no_equi",
     )
     p.add_argument(
         "--no-relax",
-        help="R|Do not perform relaxation.",
+        help="R|Do not perform relaxation as part of an 'aimd' type calculation.",
         action="store_true",
         default=False,
         dest="no_relax",
     )
     p.add_argument(
         "--no-prod",
-        help="R|Do not perform production run.",
+        help="R|Do not perform production run as part of an 'aimd' type calculation.",
         action="store_true",
         default=False,
         dest="no_prod",
@@ -482,16 +482,16 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     p.add_argument(
         "--type",
         type=str,
-        help="R|Type of calculation to perform.\nAIMD: AIMD simulation.\nBQB: BQB file production.\nENERGY: Single point energy calculation.\nADAPT-SAMPL: Adaptive sampling.",
+        help="R|Type of calculation to perform.\nAIMD: AIMD simulation.\nBQB: BQB file production.\nENERGY: Single point energy calculation.\nADAPT-SAMPL: Adaptive sampling.\nGEOOPT: Geometry optimization.",
         dest="type",
-        choices=["aimd", "bqb", "energy", "adapt-sampl"],
+        choices=["aimd", "bqb", "energy", "adapt-sampl", "geoopt"],
         default="aimd",
     )
     p.add_argument(
         "--vel",
         type=is_file,
         metavar="FILE",
-        help="R|Initial velocities file in Bohr/au_time.\nIf provided, no geometry optimization will be performed.",
+        help="R|Initial velocities file in Bohr/au_time.",
         dest="velocity",
     )
     p.add_argument(

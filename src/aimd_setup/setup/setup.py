@@ -82,9 +82,8 @@ def setup_job(args: argparse.Namespace) -> int:
             "Invalid box dimensions. Provide either one (cubic) or three (orthorhombic) box lengths."
         )
 
-    # if velocity is given, no geometry optimization is performed
+    # if velocity is given, get the absolute path of the velocity file
     if args.velocity is not None:
-        args.no_geoopt = True
         abs_velocity = os.path.abspath(args.velocity)
         args.velocity = os.path.basename(abs_velocity)
 
@@ -105,7 +104,7 @@ def setup_job(args: argparse.Namespace) -> int:
     # arguments that are only needed for a certain type of calculation are printed last
     if args.type == "aimd":
         # set variables for which jobs to execute
-        exec_geoopt = not args.no_geoopt
+        exec_geoopt = False
         exec_eq = not args.no_equi
         exec_relax = not args.no_relax
         exec_prod = not args.no_prod
@@ -182,6 +181,14 @@ def setup_job(args: argparse.Namespace) -> int:
         print("Production temperature [K]:", args.t_prod)
         print("Print BQB file:", args.bqb)
 
+    elif args.type == "geoopt":
+        exec_geoopt = True
+        exec_eq = False
+        exec_relax = False
+        exec_prod = False
+        exec_bqb = False
+        exec_energy = False
+
     if args.efield is not None:
         print("Periodic E-field:", args.efield)
         print("E-field strength [a.u.]:", args.efield_strength)
@@ -243,7 +250,7 @@ def setup_job(args: argparse.Namespace) -> int:
     # setting up the calculation
     # depending on the type of calculation, different input files are needed
 
-    if args.type in ["aimd", "energy", "adapt-sampl"]:
+    if args.type in ["aimd", "energy", "adapt-sampl", "geoopt"]:
         # generate a project directory
         make_project_dir(project_dir, args.overwrite)
 
