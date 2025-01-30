@@ -84,6 +84,10 @@ def setup_job(args: argparse.Namespace) -> int:
         abs_velocity = os.path.abspath(args.velocity)
         args.velocity = os.path.basename(abs_velocity)
 
+    # check open shell calculation
+    if args.mult > 1:
+        args.uks = True
+
     # print the arguments relevant for the type of calculation
     print("The following arguments were given (including defaults):")
 
@@ -92,6 +96,9 @@ def setup_job(args: argparse.Namespace) -> int:
     print("Box size [Angstrom]:", args.boxsize)
     print("Periodic boundary conditions:", args.pbc.upper())
     print("Coordinate file:", args.coord)
+    print("Charge:", args.charge)
+    print("Multiplicity:", args.mult)
+    print("Spin unrestricted calculation:", args.uks)
     print("QS method:", qs_method)
     if qs_method == "GPW":
         print("Density functional:", args.func.upper())

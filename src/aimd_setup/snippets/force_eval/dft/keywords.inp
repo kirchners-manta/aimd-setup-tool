@@ -1,2 +1,5 @@
-BASIS_SET_FILE_NAME BASIS_MOLOPT
-POTENTIAL_FILE_NAME GTH_POTENTIALS
+BASIS_SET_FILE_NAME BASIS_MOLOPT    # File name for basis sets
+CHARGE ${CHRG}                      # Charge of the system
+MULTIPLICITY ${MULT}                # Multiplicity of the system
+POTENTIAL_FILE_NAME GTH_POTENTIALS  # File name for pseudopotentials
+UKS ${UKS}                          # Unrestricted Kohn-Sham (UKS) calculation

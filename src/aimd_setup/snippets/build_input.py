@@ -573,6 +573,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         lines = build_file([""], sections_geoopt)
 
         # replace keywords
+        idx_to_remove = []
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
                 lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_opt")
@@ -594,8 +595,26 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace(
                     "${RMS_FORCE}", str(opt_constraints[data["opt_level"]]["rms_force"])
                 )
+            if "${CHRG}" in line:
+                if data["charge"] == 0:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${CHRG}", str(data["charge"]))
+            if "${MULT}" in line:
+                if data["mult"] == 1:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${MULT}", str(data["mult"]))
+            if "${UKS}" in line:
+                if not data["uks"]:
+                    idx_to_remove.append(i)  # remove if default
+                else:
+                    lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
             if "${QS_METHOD}" in line:
-                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+                if data["qs_method"] == "GPW":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${PP_FUNC}" in line:
@@ -605,12 +624,18 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
             if "${PBC}" in line:
-                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+                if data["pbc"] == "xyz":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${PBC}", data["pbc"].upper())
             if "${POISSON_SOLVER}" in line:
                 lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
 
+        # remove unnecessary keywords
+        for i in sorted(idx_to_remove, reverse=True):
+            lines.pop(i)
         # write to file
         with open("geoopt.inp", "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
@@ -630,6 +655,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         lines = build_file([""], sections_eq)
 
         # replace keywords
+        idx_to_remove = []
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
                 lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_eq")
@@ -647,8 +673,26 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${THERMO}", data["thermo"])
             if "${TIMECON_THERMO}" in line:
                 lines[i] = line.replace("${TIMECON_THERMO}", str(10))
+            if "${CHRG}" in line:
+                if data["charge"] == 0:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${CHRG}", str(data["charge"]))
+            if "${MULT}" in line:
+                if data["mult"] == 1:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${MULT}", str(data["mult"]))
+            if "${UKS}" in line:
+                if not data["uks"]:
+                    idx_to_remove.append(i)  # remove if default
+                else:
+                    lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
             if "${QS_METHOD}" in line:
-                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+                if data["qs_method"] == "GPW":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 if sections_eq["ext_restart"]["add"]:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
@@ -669,7 +713,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
             if "${PBC}" in line:
-                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+                if data["pbc"] == "xyz":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${PBC}", data["pbc"].upper())
             if "${POISSON_SOLVER}" in line:
                 lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
@@ -685,6 +732,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${QS_METHOD}" in line:
                 lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
 
+        # remove unnecessary keywords
+        for i in sorted(idx_to_remove, reverse=True):
+            lines.pop(i)
         # write to file
         with open("eq.inp", "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
@@ -702,6 +752,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         lines = build_file([""], sections_relax)
 
         # replace keywords
+        idx_to_remove = []
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
                 lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_relax")
@@ -719,8 +770,26 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${THERMO}", data["thermo"])
             if "${TIMECON_THERMO}" in line:
                 lines[i] = line.replace("${TIMECON_THERMO}", str(50))
+            if "${CHRG}" in line:
+                if data["charge"] == 0:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${CHRG}", str(data["charge"]))
+            if "${MULT}" in line:
+                if data["mult"] == 1:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${MULT}", str(data["mult"]))
+            if "${UKS}" in line:
+                if not data["uks"]:
+                    idx_to_remove.append(i)  # remove if default
+                else:
+                    lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
             if "${QS_METHOD}" in line:
-                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+                if data["qs_method"] == "GPW":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 if sections_relax["ext_restart"]["add"]:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
@@ -741,12 +810,18 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
             if "${PBC}" in line:
-                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+                if data["pbc"] == "xyz":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${PBC}", data["pbc"].upper())
             if "${POISSON_SOLVER}" in line:
                 lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
 
+        # remove unnecessary keywords
+        for i in sorted(idx_to_remove, reverse=True):
+            lines.pop(i)
         # write to file
         with open("relax.inp", "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
@@ -787,6 +862,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         lines = build_file([""], sections_prod)
 
         # replace keywords
+        idx_to_remove = []
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
                 lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_prod")
@@ -804,8 +880,26 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${THERMO}", data["thermo"])
             if "${TIMECON_THERMO}" in line:
                 lines[i] = line.replace("${TIMECON_THERMO}", str(100))
+            if "${CHRG}" in line:
+                if data["charge"] == 0:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${CHRG}", str(data["charge"]))
+            if "${MULT}" in line:
+                if data["mult"] == 1:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${MULT}", str(data["mult"]))
+            if "${UKS}" in line:
+                if not data["uks"]:
+                    idx_to_remove.append(i)  # remove if default
+                else:
+                    lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
             if "${QS_METHOD}" in line:
-                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+                if data["qs_method"] == "GPW":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 if sections_prod["ext_restart"]["add"]:
                     lines[i] = line.replace("${SCFGUESS}", "RESTART")
@@ -828,7 +922,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
             if "${PBC}" in line:
-                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+                if data["pbc"] == "xyz":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${PBC}", data["pbc"].upper())
             if "${POISSON_SOLVER}" in line:
                 lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
@@ -842,6 +939,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
                         )
 
+        # remove unnecessary keywords
+        for i in sorted(idx_to_remove, reverse=True):
+            lines.pop(i)
         # write to file
         with open("prod.inp", "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
@@ -898,6 +998,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             lines = build_file([""], sections_bqb)
 
             # replace keywords
+            idx_to_remove = []
             for i, line in enumerate(lines):
                 if "${PROJECT_NAME}" in line:
                     if len(fields) > 1:
@@ -941,8 +1042,26 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                         "${TRAJ_FILE_NAME}",
                         data["reftraj"],
                     )
+                if "${CHRG}" in line:
+                    if data["charge"] == 0:  # remove if default
+                        idx_to_remove.append(i)
+                    else:
+                        lines[i] = line.replace("${CHRG}", str(data["charge"]))
+                if "${MULT}" in line:
+                    if data["mult"] == 1:  # remove if default
+                        idx_to_remove.append(i)
+                    else:
+                        lines[i] = line.replace("${MULT}", str(data["mult"]))
+                if "${UKS}" in line:
+                    if not data["uks"]:
+                        idx_to_remove.append(i)  # remove if default
+                    else:
+                        lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
                 if "${QS_METHOD}" in line:
-                    lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+                    if data["qs_method"] == "GPW":
+                        idx_to_remove.append(i)
+                    else:
+                        lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
                 if "${SCFGUESS}" in line:
                     lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
                 if "${FIELD_STRENGTH}" in line:
@@ -960,7 +1079,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 if "${BOX_LENGTH}" in line:
                     lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
                 if "${PBC}" in line:
-                    lines[i] = line.replace("${PBC}", data["pbc"].upper())
+                    if data["pbc"] == "xyz":
+                        idx_to_remove.append(i)
+                    else:
+                        lines[i] = line.replace("${PBC}", data["pbc"].upper())
                 if "${POISSON_SOLVER}" in line:
                     lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
                 if "${SIMBOX_XYZ}" in line:
@@ -970,6 +1092,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 # create directory for each field
                 os.mkdir(f"{vec}_field")
 
+                # remove unnecessary keywords
+                for i in sorted(idx_to_remove, reverse=True):
+                    lines.pop(i)
                 # write to file
                 with open(f"{vec}_field/bqb.inp", "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))
@@ -990,6 +1115,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     os.remove(f"./{data['runscript']}")
                     os.remove(f"./{data['reftraj']}")
             else:
+                # remove unnecessary keywords
+                for i in sorted(idx_to_remove, reverse=True):
+                    lines.pop(i)
                 with open("bqb.inp", "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))
 
@@ -1014,13 +1142,32 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         lines = build_file([""], sections_energy)
 
         # replace keywords
+        idx_to_remove = []
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
                 lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_energy")
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "ENERGY_FORCE")
+            if "${CHRG}" in line:
+                if data["charge"] == 0:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${CHRG}", str(data["charge"]))
+            if "${MULT}" in line:
+                if data["mult"] == 1:  # remove if default
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${MULT}", str(data["mult"]))
+            if "${UKS}" in line:
+                if not data["uks"]:
+                    idx_to_remove.append(i)  # remove if default
+                else:
+                    lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
             if "${QS_METHOD}" in line:
-                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+                if data["qs_method"] == "GPW":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${HISTORY_BQB}" in line:
@@ -1032,12 +1179,18 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
             if "${PBC}" in line:
-                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+                if data["pbc"] == "xyz":
+                    idx_to_remove.append(i)
+                else:
+                    lines[i] = line.replace("${PBC}", data["pbc"].upper())
             if "${POISSON_SOLVER}" in line:
                 lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
 
+        # remove unnecessary keywords
+        for i in sorted(idx_to_remove, reverse=True):
+            lines.pop(i)
         # write to file
         with open("energy.inp", "w", encoding="utf-8") as f:
             f.write("\n".join(lines))

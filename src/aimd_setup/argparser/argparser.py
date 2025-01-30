@@ -256,6 +256,15 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=False,
     )
     p.add_argument(
+        "--chrg",
+        type=int,
+        metavar="N",
+        help="R|Charge of the system.",
+        default=0,
+        dest="charge",
+        action=action_in_range(-10, 10),
+    )
+    p.add_argument(
         "--cpu",
         type=int,
         metavar="N",
@@ -330,6 +339,15 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default="revpbe",
         dest="func",
         choices=["blyp", "bp", "pade", "pbe", "revpbe", "scan", "r2scan", "xtb"],
+    )
+    p.add_argument(
+        "--mult",
+        type=int,
+        metavar="N",
+        help="R|Multiplicity of the system.",
+        default=1,
+        dest="mult",
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--n-bqb",
@@ -496,6 +514,14 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         dest="type",
         choices=["aimd", "bqb", "energy", "adapt-sampl", "geoopt"],
         default="aimd",
+    )
+    p.add_argument(
+        "--uks",
+        "--lsd",
+        help="R|Use Unrestricted Kohn-Sham calculation, also known als Local Spin Density.\nIs automatically set for multiplicity > 1.",
+        default=False,
+        action="store_true",
+        dest="uks",
     )
     p.add_argument(
         "--vel",
