@@ -397,7 +397,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     p.add_argument(
         "--opt-level",
         type=str,
-        metavar="N",
         help="R|Level of geometry optimization convergence.",
         default="normal",
         choices=["loose", "normal", "tight"],
