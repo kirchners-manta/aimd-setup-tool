@@ -575,7 +575,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # replace keywords
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_opt")
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "GEO_OPT")
             if "${MAX_DR}" in line:
@@ -632,9 +632,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # replace keywords
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace(
-                    "${PROJECT_NAME}", data["project"]
-                )  # only one replacement necessary
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_eq")
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "MD")
             if "${ENSEMBLE}" in line:
@@ -706,7 +704,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # replace keywords
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_relax")
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "MD")
             if "${ENSEMBLE}" in line:
@@ -791,7 +789,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # replace keywords
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_prod")
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "MD")
             if "${ENSEMBLE}" in line:
@@ -1018,7 +1016,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # replace keywords
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_energy")
             if "${TYPE}" in line:
                 lines[i] = line.replace("${TYPE}", "ENERGY_FORCE")
             if "${QS_METHOD}" in line:
