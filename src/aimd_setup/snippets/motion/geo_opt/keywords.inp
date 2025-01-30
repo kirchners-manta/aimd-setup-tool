@@ -1,7 +1,7 @@
-MAX_DR    3.0E-03           # maximum displacement of nuclei
-MAX_FORCE 1.0E-03           # maximum force on nuclei
+MAX_DR    ${MAX_DR}         # maximum displacement of nuclei
+MAX_FORCE ${MAX_FORCE}      # maximum force on nuclei
 MAX_ITER  200               # maximum number of geometry optimization cycles
 OPTIMIZER CG                # use conjugate gradient optimizer
-RMS_DR    1.0E-03           # RMS displacement of nuclei
-RMS_FORCE 3.0E-03           # RMS force on nuclei
+RMS_DR    ${RMS_DR}         # RMS displacement of nuclei
+RMS_FORCE ${RMS_FORCE}      # RMS force on nuclei
 TYPE MINIMIZATION           # finding minimum, other option: TRANSITION_STATE

@@ -157,6 +157,11 @@ def get_default_sections() -> dict[str, Any]:
                     "header": "header.inp",
                     "keywords": "keywords.inp",
                 },
+                "poisson": {
+                    "add": False,
+                    "header": "header.inp",
+                    "keywords": "keywords.inp",
+                },
                 "print": {
                     "add": False,
                     "header": "header.inp",
@@ -527,8 +532,35 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
     else:
         fields = [""]
 
+    # add poisson section if system is not fully periodic
+    if data["pbc"] == "none":
+        sections["force_eval"]["dft"]["poisson"]["add"] = True
+
     # geometry optimization
     if data["joblist"][0]:
+
+        # constraints for geometry optimization
+        opt_constraints = {
+            "loose": {
+                "max_dr": 1.0e-2,
+                "max_force": 3.0e-3,
+                "rms_dr": 5.0e-3,
+                "rms_force": 1.0e-3,
+            },
+            "normal": {
+                "max_dr": 3.0e-3,
+                "max_force": 4.5e-4,
+                "rms_dr": 1.5e-3,
+                "rms_force": 3.0e-4,
+            },
+            "tight": {
+                "max_dr": 1.0e-3,
+                "max_force": 1.5e-4,
+                "rms_dr": 5.0e-4,
+                "rms_force": 1.0e-4,
+            },
+        }
+
         # take a deep copy of the sections. Deep copy is necessary because of the nested structure of the dictionary.
         sections_geoopt = copy.deepcopy(sections)
 
@@ -543,11 +575,25 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # replace keywords
         for i, line in enumerate(lines):
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace(
-                    "${PROJECT_NAME}", data["project"]
-                )  # only one replacement necessary
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"])
             if "${TYPE}" in line:
-                lines[i] = line.replace("${TYPE}", "GEOOPT")
+                lines[i] = line.replace("${TYPE}", "GEO_OPT")
+            if "${MAX_DR}" in line:
+                lines[i] = line.replace(
+                    "${MAX_DR}", str(opt_constraints[data["opt_level"]]["max_dr"])
+                )
+            if "${MAX_FORCE}" in line:
+                lines[i] = line.replace(
+                    "${MAX_FORCE}", str(opt_constraints[data["opt_level"]]["max_force"])
+                )
+            if "${RMS_DR}" in line:
+                lines[i] = line.replace(
+                    "${RMS_DR}", str(opt_constraints[data["opt_level"]]["rms_dr"])
+                )
+            if "${RMS_FORCE}" in line:
+                lines[i] = line.replace(
+                    "${RMS_FORCE}", str(opt_constraints[data["opt_level"]]["rms_force"])
+                )
             if "${QS_METHOD}" in line:
                 lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
             if "${SCFGUESS}" in line:
@@ -558,6 +604,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${BASIS}", data["basis"])
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${PBC}" in line:
+                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+            if "${POISSON_SOLVER}" in line:
+                lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
 
@@ -620,6 +670,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${BASIS}", data["basis"])
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${PBC}" in line:
+                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+            if "${POISSON_SOLVER}" in line:
+                lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
             if "&VELOCITY" in line and data["velocity"] is not None:
@@ -688,6 +742,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${BASIS}", data["basis"])
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${PBC}" in line:
+                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+            if "${POISSON_SOLVER}" in line:
+                lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
 
@@ -771,6 +829,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${BASIS}", data["basis"])
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${PBC}" in line:
+                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+            if "${POISSON_SOLVER}" in line:
+                lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
             if "&VELOCITY" in line and data["velocity"] is not None:
@@ -899,6 +961,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     lines[i] = line.replace("${BASIS}", data["basis"])
                 if "${BOX_LENGTH}" in line:
                     lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+                if "${PBC}" in line:
+                    lines[i] = line.replace("${PBC}", data["pbc"].upper())
+                if "${POISSON_SOLVER}" in line:
+                    lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
                 if "${SIMBOX_XYZ}" in line:
                     lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
 
@@ -967,6 +1033,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace("${BASIS}", data["basis"])
             if "${BOX_LENGTH}" in line:
                 lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            if "${PBC}" in line:
+                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+            if "${POISSON_SOLVER}" in line:
+                lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
             if "${SIMBOX_XYZ}" in line:
                 lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
 

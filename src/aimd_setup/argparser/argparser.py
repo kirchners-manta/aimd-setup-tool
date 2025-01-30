@@ -272,6 +272,14 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=False,
     )
     p.add_argument(
+        "--efield",
+        type=str,
+        help="R|Add a periodic electric field in given directions.",
+        default=None,
+        dest="efield",
+        choices=["x", "y", "z", "xy", "xz", "yz", "xyz"],
+    )
+    p.add_argument(
         "--e-conv-equi",
         type=float,
         metavar="CUTOFF",
@@ -307,14 +315,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         choices=["nvt", "nve"],
     )
     p.add_argument(
-        "--field",
-        type=str,
-        help="R|Add a periodic electric field in given directions.",
-        default=None,
-        dest="efield",
-        choices=["x", "y", "z", "xy", "xz", "yz", "xyz"],
-    )
-    p.add_argument(
         "--field-strength",
         type=float,
         metavar="STRENGTH",
@@ -347,13 +347,6 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=False,
         dest="no_copy",
     )
-    # p.add_argument(
-    #     "--no-geoopt",
-    #     help="R|Do not perform geometry optimization as part of an 'aimd' type calculation.",
-    #     action="store_true",
-    #     default=False,
-    #     dest="no_geoopt",
-    # )
     p.add_argument(
         "--no-equi",
         help="R|Do not perform equilibration as part of an 'aimd' type calculation.",
@@ -382,6 +375,23 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         dest="overwrite",
+    )
+    p.add_argument(
+        "--opt-level",
+        type=str,
+        metavar="N",
+        help="R|Level of geometry optimization convergence.",
+        default="normal",
+        choices=["loose", "normal", "tight"],
+        dest="opt_level",
+    )
+    p.add_argument(
+        "--pbc",
+        type=str,
+        help="R|Periodic boundary conditions.",
+        default="xyz",
+        dest="pbc",
+        choices=["xyz", "none"],
     )
     p.add_argument(
         "-q",

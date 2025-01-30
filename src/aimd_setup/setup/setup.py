@@ -30,18 +30,15 @@ def setup_job(args: argparse.Namespace) -> int:
     else:
         qs_method = "GPW"
 
-    # capitalize the basis set
-    # if a cardinal number < 2, use SR-GTH
+    # capitalize variables
+    args.thermo = args.thermo.upper()
+    args.ensemble = args.ensemble.upper()
+
+    # basis set: if a cardinal number < 2, use SR-GTH
     if args.basis in ["tzvp", "tzv2p", "tzv2px"]:
         args.basis = args.basis.upper() + "-MOLOPT-GTH"
     else:
         args.basis = args.basis.upper() + "-MOLOPT-SR-GTH"
-
-    # capitalize the thermostat
-    args.thermo = args.thermo.upper()
-
-    # capitalize the ensemble
-    args.ensemble = args.ensemble.upper()
 
     # runscript name
     runscript_name = "run-cp2k-" + args.queue + ".sh"
@@ -92,8 +89,8 @@ def setup_job(args: argparse.Namespace) -> int:
 
     # arguments that are always needed, printed first
     print("Project name:", args.project)
-    print("Job type:", args.type)
     print("Box size [Angstrom]:", args.boxsize)
+    print("Periodic boundary conditions:", args.pbc.upper())
     print("Coordinate file:", args.coord)
     print("QS method:", qs_method)
     if qs_method == "GPW":
@@ -112,6 +109,7 @@ def setup_job(args: argparse.Namespace) -> int:
         exec_energy = False
 
         # print the relevant arguments
+        print("Type of calculation: AIMD simulation")
         if not args.no_equi:
             print("Equilibration steps:", args.steps_equi)
             print("Equilibration temperature [K]:", args.t_equi)
@@ -142,6 +140,7 @@ def setup_job(args: argparse.Namespace) -> int:
         exec_energy = False
 
         # print the relevant arguments
+        print("Type of calculation: BQB file production")
         print("Reference trajectory:", args.reftraj)
         print("Process Trajectory from step:", args.start_from)
         print("Bqb files:", args.n_bqb)
@@ -158,6 +157,7 @@ def setup_job(args: argparse.Namespace) -> int:
         exec_energy = True
 
         # print the relevant arguments
+        print("Type of calculation: Single point energy calculation")
         print("Energy convergence criterion [Hartree]:", args.e_conv)
 
     elif args.type == "adapt-sampl":
@@ -177,6 +177,8 @@ def setup_job(args: argparse.Namespace) -> int:
                 " *** Velocity file is required for adaptive sampling. Watch the velocity format. Exiting."
             )
 
+        # print the relevant arguments
+        print("Type of calculation: Adaptive sampling (with Leipzig people)")
         print("Production steps:", args.steps_prod)
         print("Production temperature [K]:", args.t_prod)
         print("Print BQB file:", args.bqb)
@@ -189,9 +191,16 @@ def setup_job(args: argparse.Namespace) -> int:
         exec_bqb = False
         exec_energy = False
 
+        # print the relevant arguments
+        print("Type of calculation: Geometry optimization")
+        print("Convergence criteria:", args.opt_level)
+
+    # electric field settings
     if args.efield is not None:
         print("Periodic E-field:", args.efield)
         print("E-field strength [a.u.]:", args.efield_strength)
+
+    # other information
     print("Queue:", args.queue)
     print("Runscript:", runscript_name)
     print("CPU cores:", args.cpu)
@@ -223,6 +232,12 @@ def setup_job(args: argparse.Namespace) -> int:
         args_dict["bqb_history"] = 1
     else:
         args_dict["bqb_history"] = 10
+
+    # poisson solver
+    if args.pbc == "xyz":
+        args_dict["poisson_solver"] = "PERIODIC"
+    elif args.pbc == "none":
+        args_dict["poisson_solver"] = "WAVELET"
 
     #############################################
 
