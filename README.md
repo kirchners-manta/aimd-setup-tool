@@ -40,3 +40,9 @@ A full list of options can be obtained by calling
 ```bash
 aimd_setup -h
 ```
+All options can also be specified in a configuration file, which can be created by calling
+```bash
+aimd_setup -i FILE
+```
+where `FILE` is the name of the configuration file.
+**Note:** Options specified in the configuration file will overwrite options specified on the command line and default options.

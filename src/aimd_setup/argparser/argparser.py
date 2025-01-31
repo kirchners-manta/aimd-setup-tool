@@ -381,29 +381,38 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         "-p",
         "--project",
         type=str,
-        help="R|Name of the project. A directory with this name will be created.",
-        required=True,
+        help="R|Name of the project. Has to be given via command line or input file.\nA directory with this name will be created.",
+        default=None,
         dest="project",
     )
     p.add_argument(
         "-c",
-        "--coord-file",
+        "--coord",
         type=is_file,
-        help="R|Coordinate file (in xyz format).",
+        help="R|Coordinate file (in xyz format). Has to be given via command line or input file.",
         dest="coord",
         metavar="FILE",
-        required=True,
+        default=None,
     )
     p.add_argument(
         "-b",
         "--boxsize",
         type=float,
         dest="boxsize",
-        help="R|Box edge length in Angstrom. For cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
+        help="R|Box edge length in Angstrom. Has to be given via command line or input file.\nFor cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
         metavar="LENGTH",
-        required=True,
+        default=None,
         nargs="+",
         action=action_not_less_than(5.0),
+    )
+    p.add_argument(
+        "-i",
+        "--input",
+        type=is_file,
+        help="R|Input file containing the CP2K settings to be used by this script.",
+        dest="input",
+        metavar="FILE",
+        default=None,
     )
     p.add_argument(
         "--basis",
@@ -450,6 +459,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Use DFT+U.\nRequires three additional arguments per atom type (space separated):\nAtom type, orbital angular momentum quantum number, U-J value in eV.",
         nargs="+",
         dest="dftu",
+        metavar="ATOM, L, UJ",
         default=None,
         action=action_check_dftu(),
     )

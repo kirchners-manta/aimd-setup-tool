@@ -1062,7 +1062,14 @@ def standard_replacements(
         if "${BASIS}" in line:
             lines[i] = line.replace("${BASIS}", data["basis"])
         if "${BOX_LENGTH}" in line:
-            lines[i] = line.replace("${BOX_LENGTH}", data["boxsize"])
+            lines[i] = line.replace(
+                "${BOX_LENGTH}",
+                str(data["boxsize"][0])
+                + " "
+                + str(data["boxsize"][1])
+                + " "
+                + str(data["boxsize"][2]),
+            )
         if "${PBC}" in line:
             if data["pbc"] == "xyz":
                 idx_to_remove.append(i)
