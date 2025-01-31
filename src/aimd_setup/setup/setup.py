@@ -88,6 +88,13 @@ def setup_job(args: argparse.Namespace) -> int:
     if args.mult > 1:
         args.uks = True
 
+    # format dftu input
+    if args.dftu is not None:
+        dftu_dict = {}
+        for i in range(0, len(args.dftu), 3):
+            dftu_dict[args.dftu[i]] = [int(args.dftu[i + 1]), float(args.dftu[i + 2])]
+        args.dftu = dftu_dict
+
     # print the arguments relevant for the type of calculation
     print("The following arguments were given (including defaults):")
 
@@ -97,13 +104,20 @@ def setup_job(args: argparse.Namespace) -> int:
     print("Periodic boundary conditions:", args.pbc.upper())
     print("Coordinate file:", args.coord)
     print("Charge:", args.charge)
-    print("Multiplicity:", args.mult)
-    print("Spin unrestricted calculation:", args.uks)
+    if args.uks:
+        print("Multiplicity:", args.mult, "(open shell calculation)")
+    else:
+        print("Multiplicity:", args.mult)
     print("QS method:", qs_method)
     if qs_method == "GPW":
         print("Density functional:", args.func.upper())
         print("Pseudopotential:", pp_func)
         print("Basis set:", args.basis)
+        if args.dftu is not None:
+            print(
+                "DFT+U:",
+                [f"{k}: L={v[0]}, U-J={v[1]} eV" for k, v in args.dftu.items()],
+            )
 
     # arguments that are only needed for a certain type of calculation are printed last
     if args.type == "aimd":
@@ -207,7 +221,7 @@ def setup_job(args: argparse.Namespace) -> int:
         print("Periodic E-field:", args.efield)
         print("E-field strength [a.u.]:", args.efield_strength)
 
-    # other information
+    # HPC information
     print("Queue:", args.queue)
     print("Runscript:", runscript_name)
     print("CPU cores:", args.cpu)
