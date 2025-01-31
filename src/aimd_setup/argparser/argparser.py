@@ -7,10 +7,134 @@ Parser for command line options.
 #############################################
 
 from __future__ import annotations
-from .. import __version__
 
 import argparse
 from pathlib import Path
+
+from .. import __version__
+
+# define constants
+ELEMENTS = [
+    "H",
+    "He",
+    "Li",
+    "Be",
+    "B",
+    "C",
+    "N",
+    "O",
+    "F",
+    "Ne",
+    "Na",
+    "Mg",
+    "Al",
+    "Si",
+    "P",
+    "S",
+    "Cl",
+    "Ar",
+    "K",
+    "Ca",
+    "Sc",
+    "Ti",
+    "V",
+    "Cr",
+    "Mn",
+    "Fe",
+    "Co",
+    "Ni",
+    "Cu",
+    "Zn",
+    "Ga",
+    "Ge",
+    "As",
+    "Se",
+    "Br",
+    "Kr",
+    "Rb",
+    "Sr",
+    "Y",
+    "Zr",
+    "Nb",
+    "Mo",
+    "Tc",
+    "Ru",
+    "Rh",
+    "Pd",
+    "Ag",
+    "Cd",
+    "In",
+    "Sn",
+    "Sb",
+    "Te",
+    "I",
+    "Xe",
+    "Cs",
+    "Ba",
+    "La",
+    "Ce",
+    "Pr",
+    "Nd",
+    "Pm",
+    "Sm",
+    "Eu",
+    "Gd",
+    "Tb",
+    "Dy",
+    "Ho",
+    "Er",
+    "Tm",
+    "Yb",
+    "Lu",
+    "Hf",
+    "Ta",
+    "W",
+    "Re",
+    "Os",
+    "Ir",
+    "Pt",
+    "Au",
+    "Hg",
+    "Tl",
+    "Pb",
+    "Bi",
+    "Po",
+    "At",
+    "Rn",
+    "Fr",
+    "Ra",
+    "Ac",
+    "Th",
+    "Pa",
+    "U",
+    "Np",
+    "Pu",
+    "Am",
+    "Cm",
+    "Bk",
+    "Cf",
+    "Es",
+    "Fm",
+    "Md",
+    "No",
+    "Lr",
+    "Rf",
+    "Db",
+    "Sg",
+    "Bh",
+    "Hs",
+    "Mt",
+    "Ds",
+    "Rg",
+    "Cn",
+    "Nh",
+    "Fl",
+    "Mc",
+    "Lv",
+    "Ts",
+    "Og",
+]
+EXTRA_ATOM_TYPES = ["D"]
 
 
 # file and directory checks
@@ -135,6 +259,47 @@ def action_in_range(
             setattr(args, self.dest, values)
 
     return CustomActionInRange
+
+
+def action_check_dftu() -> type[argparse.Action]:
+    class CustomActionDFTU(argparse.Action):
+        """
+        Custom action for DFT+U. Check if the correct number of arguments is given.
+        """
+
+        def __call__(
+            self,
+            p: argparse.ArgumentParser,
+            args: argparse.Namespace,
+            values: list[str | float | int],  # type: ignore
+            option_string: str | None = None,
+        ) -> None:
+            # check if number of arguments is correct
+            if len(values) % 3 != 0:
+                p.error(
+                    f"Option '{option_string}' takes three arguments per atom type: Atom type, orbital angular momentum quantum number, U-J value in eV."
+                )
+            # iterate over each group of three arguments
+            for i in range(0, len(values), 3):
+                # check if atom type is valid
+                if values[i] not in ELEMENTS + EXTRA_ATOM_TYPES:
+                    p.error(
+                        f"Option '{option_string}' takes only valid elements / atom types. {values[i]} is not accepted."
+                    )
+                # check if orbital angular momentum quantum number is valid
+                if values[i + 1] not in ["0", "1", "2", "3"]:
+                    p.error(
+                        f"Option '{option_string}' takes only orbital angular momentum quantum numbers 0, 1, 2, 3. {values[i+1]} is not accepted."
+                    )
+                # check if U-J value is a physical
+                if float(values[i + 2]) < 0:
+                    p.error(
+                        f"Option '{option_string}' takes only positive values for U-J. {values[i+2]} is not accepted."
+                    )
+
+            setattr(args, self.dest, values)
+
+    return CustomActionDFTU
 
 
 # custom formatter
@@ -279,6 +444,14 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         dest="cube",
         action="store_true",
         default=False,
+    )
+    p.add_argument(
+        "--dftu",
+        help="R|Use DFT+U.\nRequires three additional arguments per atom type (space separated):\nAtom type, orbital angular momentum quantum number, U-J value in eV.",
+        nargs="+",
+        dest="dftu",
+        default=None,
+        action=action_check_dftu(),
     )
     p.add_argument(
         "--efield",

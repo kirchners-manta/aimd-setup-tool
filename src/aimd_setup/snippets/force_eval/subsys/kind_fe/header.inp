@@ -1,0 +1,4 @@
+&KIND Fe
+  BASIS_SET ORB ${BASIS}                  # basis set
+  POTENTIAL GTH-${PP_FUNC}-q16         # pseudopotential
+&END KIND

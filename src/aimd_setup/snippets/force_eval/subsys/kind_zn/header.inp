@@ -1,0 +1,4 @@
+&KIND Zn
+  BASIS_SET ORB ${BASIS}                  # basis set
+  POTENTIAL GTH-${PP_FUNC}-q12         # pseudopotential
+&END KIND
