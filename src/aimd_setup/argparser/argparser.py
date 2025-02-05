@@ -371,7 +371,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     """
 
     p = argparse.ArgumentParser(
-        prog="aimd-setup",
+        prog=name,
         description="Script to setup AIMD simulations or BQB file productions with CP2K.",
         epilog="Written for the Kirchner group by Tom Frömbgen. Internal use only.",
         formatter_class=lambda prog: Formatter(prog, max_help_position=60),
