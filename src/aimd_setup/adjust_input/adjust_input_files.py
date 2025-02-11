@@ -51,18 +51,25 @@ def cp_runscript(
                     "Part of the AIMD setup tool", "Created by the AIMD setup tool"
                 )
             if "N_CPU" in line:
-                # bonna has 32 cores per node, adjust the number of nodes
+                # define cpus per node
                 if data["queue"] == "bonna":
-                    if data["cpu"] % 32 == 0:
-                        nodes = data["cpu"] // 32
-                    else:
-                        nodes = data["cpu"] // 32 + 1
+                    cpuspernode = 32
+                elif data["queue"] == "noctua2":
+                    cpuspernode = 128
 
-                    # now that we have the node count, adjust cpu count, because it is multiplied by the number of nodes to reach the total number of cpus
-                    data["cpu"] = data["cpu"] // nodes
+                if data["cpu"] % cpuspernode == 0:
+                    nodes = data["cpu"] // cpuspernode
+                else:
+                    nodes = data["cpu"] // cpuspernode + 1
+                if data["cpu"] % nodes != 0:
+                    raise ValueError(
+                        f"Number of CPUs ({data['cpu']}) must be divisible by the number of nodes ({nodes})"
+                    )
 
-                # cpus to be used.
+                data["cpu"] = data["cpu"] // nodes
+
                 lines[i] = line.replace("N_CPU", str(data["cpu"]))
+
             if "N_NODES" in line:
                 lines[i] = line.replace("N_NODES", str(nodes))
 
