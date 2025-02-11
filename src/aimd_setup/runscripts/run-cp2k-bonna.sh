@@ -7,7 +7,7 @@
 #SBATCH --account=ag_mctc_kirchner
 #SBATCH --ntasks=N_CPU 
 #SBATCH --time=7-00:00:00
-#SBATCH --nodes=8
+#SBATCH --nodes=N_NODES
 #SBATCH --job-name="PROJECT_NAME"
 #SBATCH --output=cp2k.out 
 

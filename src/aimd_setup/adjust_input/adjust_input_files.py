@@ -51,7 +51,20 @@ def cp_runscript(
                     "Part of the AIMD setup tool", "Created by the AIMD setup tool"
                 )
             if "N_CPU" in line:
+                # bonna has 32 cores per node, adjust the number of nodes
+                if data["queue"] == "bonna":
+                    if data["cpu"] % 32 == 0:
+                        nodes = data["cpu"] // 32
+                    else:
+                        nodes = data["cpu"] // 32 + 1
+
+                    # now that we have the node count, adjust cpu count, because it is multiplied by the number of nodes to reach the total number of cpus
+                    data["cpu"] = data["cpu"] // nodes
+
+                # cpus to be used.
                 lines[i] = line.replace("N_CPU", str(data["cpu"]))
+            if "N_NODES" in line:
+                lines[i] = line.replace("N_NODES", str(nodes))
 
         jobs = ["geoopt", "eq", "relax", "prod", "bqb", "energy"]
 
@@ -68,4 +81,4 @@ def cp_runscript(
         # remove the job submission lines for jobs that are not requested
 
         with open(data["runscript"], "w") as g:
-            g.writelines(lines)
+            g.writelines(lines)  #
