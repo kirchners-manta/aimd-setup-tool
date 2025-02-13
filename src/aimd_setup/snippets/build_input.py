@@ -397,10 +397,10 @@ def print_structure(
 
 
 def build_file(
-    lines: List[str],
+    lines: list[str],
     sections: dict[str, Any],
     prefix: str = "",
-) -> List[str]:
+) -> list[str]:
     """Build a CP2k input file based on a dictionary containing the sections for the CP2K input file.
     A section is added if the key "add" is set to True.
     This is a recursive function.
@@ -429,7 +429,6 @@ def build_file(
             if "header" in content:
                 with open(
                     directory / prefix / section / content["header"],
-                    "r",
                     encoding="utf-8",
                 ) as f:
                     # get a list of lines that should be added
@@ -452,7 +451,6 @@ def build_file(
             if "keywords" in content:
                 with open(
                     directory / prefix / section / content["keywords"],
-                    "r",
                     encoding="utf-8",
                 ) as f:
                     # get a list of lines that should be added
@@ -489,7 +487,7 @@ def get_atom_types(coord_file: str) -> list[str]:
         List containing the atom types.
     """
 
-    with open(coord_file, "r", encoding="utf-8") as f:
+    with open(coord_file, encoding="utf-8") as f:
         lines = f.readlines()
         atom_types = [line.split()[0] for line in lines[2:]]
 
@@ -688,7 +686,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     "${FIELD_VECTOR}", efield_vectors[data["efield"]]
                 )
             if "&VELOCITY" in line and data["velocity"] is not None:
-                with open(data["velocity"], "r", encoding="utf-8") as v:
+                with open(data["velocity"], encoding="utf-8") as v:
                     lines_to_add = v.read().splitlines()
                     for j in range(len(lines_to_add)):
                         lines.insert(
@@ -821,7 +819,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${HISTORY_BQB}" in line:
                 lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
             if "&VELOCITY" in line and data["velocity"] is not None:
-                with open(data["velocity"], "r", encoding="utf-8") as v:
+                with open(data["velocity"], encoding="utf-8") as v:
                     lines_to_add = v.read().splitlines()
                     for j in range(len(lines_to_add)):
                         lines.insert(

@@ -1,5 +1,5 @@
 # conda env create -f environment.yaml
-name: squarer
+name: aimd-setup
 channels:
   - defaults
   - conda-forge

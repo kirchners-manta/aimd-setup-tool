@@ -4,11 +4,12 @@ Useful helper functions used for the AIMD setup.
 
 from __future__ import annotations
 
-from pathlib import Path
-import sys
 import os
+import sys
+from pathlib import Path
 
-def getFileList(path: str, regex: str) -> list:
+
+def getFileList(path: str, regex: str) -> list[Path]:
     """Get a list of files in a directory.
 
     Parameters
@@ -31,6 +32,7 @@ def getFileList(path: str, regex: str) -> list:
         sys.exit("No '*data' files found.")
 
     return filelist
+
 
 def make_project_dir(project_directory: str, overwrite: bool) -> None:
     """Create a project directory. Check if the project directory exists; if yes, ask if it should be overwritten; if no, create it

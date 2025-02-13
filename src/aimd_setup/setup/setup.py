@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import os
 import sys
+from typing import Any
 
 from ..adjust_input import cp_runscript
 from ..functions import make_project_dir
 from ..snippets import generate_input_files
-from typing import Any
 
 
 def setup_job(args: dict[str, Any]) -> int:

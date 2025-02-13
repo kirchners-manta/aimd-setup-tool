@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-import toml
+import toml  # type: ignore
 
 from ..argparser import parser
 from ..setup import setup_job

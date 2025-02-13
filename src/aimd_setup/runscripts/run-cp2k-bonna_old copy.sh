@@ -5,11 +5,11 @@
 
 #SBATCH --partition=long
 #SBATCH --account=ag_mctc_kirchner
-#SBATCH --ntasks=N_CPU 
+#SBATCH --ntasks=N_CPU
 #SBATCH --time=7-00:00:00
 #SBATCH --nodes=8
 #SBATCH --job-name="PROJECT_NAME"
-#SBATCH --output=cp2k.out 
+#SBATCH --output=cp2k.out
 
 export OMP_NUM_THREADS=1
 
@@ -20,9 +20,9 @@ source /home/chemie/install_cp2k/cp2k-2024.3/tools/toolchain/install/setup
 # execute job
 
 # - cp2k-2024.3
-# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  eq.inp > eq_output 
-# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  relax.inp > relax_output 
-# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  prod.inp > prod_output 
+# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  eq.inp > eq_output
+# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  relax.inp > relax_output
+# mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp  prod.inp > prod_output
 
 # standard cp2k on bonna:
 #

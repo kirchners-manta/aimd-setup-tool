@@ -35,7 +35,7 @@ def cp_runscript(
     )
 
     # open the file
-    with open(data["runscript"], "r") as f:
+    with open(data["runscript"]) as f:
 
         lines = f.readlines()
         for i, line in enumerate(lines):
