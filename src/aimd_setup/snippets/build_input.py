@@ -706,9 +706,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         sections_relax = copy.deepcopy(sections)
 
         # ext_restart
-        # if any job was executed before, read the restart file
-        if any(data["joblist"][:2]):
+        # if equilibration was executed before, read the restart file
+        if data["joblist"][1]:
             sections_relax["ext_restart"]["add"] = True
+            restart_ext = "_eq"
 
         lines = build_file([""], sections_relax)
 
@@ -742,6 +743,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${FIELD_VECTOR}" in line:
                 lines[i] = line.replace(
                     "${FIELD_VECTOR}", efield_vectors[data["efield"]]
+                )
+            if "${RESTART_NAME}" in line:
+                lines[i] = line.replace(
+                    "${RESTART_NAME}", data["project"] + restart_ext
                 )
 
         # standard replacements
@@ -777,8 +782,12 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
             sections_prod["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
         # ext_restart
-        if any(data["joblist"][:3]):
+        if data["joblist"][2]:
             sections_prod["ext_restart"]["add"] = True
+            restart_ext = "_relax"
+        elif data["joblist"][1]:
+            sections_prod["ext_restart"]["add"] = True
+            restart_ext = "_eq"
         # velocity
         if data["velocity"] is not None:
             sections_prod["force_eval"]["subsys"]["velocity"]["add"] = True
@@ -826,6 +835,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             i + j + 1,
                             f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
                         )
+            if "${RESTART_NAME}" in line:
+                lines[i] = line.replace(
+                    "${RESTART_NAME}", data["project"] + restart_ext
+                )
 
         # standard replacements
         lines = standard_replacements(lines, data)
