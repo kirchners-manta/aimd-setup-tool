@@ -1088,6 +1088,9 @@ def standard_replacements(
                 lines[i] = line.replace("${PBC}", data["pbc"].upper())
         if "${POISSON_SOLVER}" in line:
             lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
+        if "ANGVEL_TOL" in line:
+            if data["pbc"] != "none":
+                idx_to_remove.append(i)
         if "${L_ANG_QUANT_NUM}" in line:
             atom_type = lines[i - 4].split()[1]
             lines[i] = line.replace(

@@ -1,3 +1,5 @@
+ANGVEL_TOL 1.0E-12
+COMVEL_TOL 1.0E-12
 ENSEMBLE ${ENSEMBLE}
 STEPS ${NSTEPS}             # number of MD steps
 TIMESTEP 0.5                # time step in fs
