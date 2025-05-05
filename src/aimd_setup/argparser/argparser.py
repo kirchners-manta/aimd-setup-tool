@@ -399,7 +399,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         "--boxsize",
         type=float,
         dest="boxsize",
-        help="R|Box edge length in Angstrom. Has to be given via command line or input file.\nFor cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
+        help="R|Box edge length in Angstrom. Has to be given via command line, input file or in the second line of the coordinate file.\nFor cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
         metavar="LENGTH",
         default=None,
         nargs="+",
@@ -437,6 +437,14 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=0,
         dest="charge",
         action=action_in_range(-10, 10),
+    )
+    p.add_argument(
+        "--cp2k-version",
+        type=str,
+        help="R|Version of CP2K to use.",
+        default="2023.1",
+        dest="cp2k_version",
+        choices=["2023.1", "2025.1"],
     )
     p.add_argument(
         "--cpu",

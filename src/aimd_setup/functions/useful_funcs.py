@@ -4,7 +4,7 @@ Useful helper functions used for the AIMD setup.
 
 from __future__ import annotations
 
-import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -34,7 +34,7 @@ def getFileList(path: str, regex: str) -> list[Path]:
     return filelist
 
 
-def make_project_dir(project_directory: str, overwrite: bool) -> None:
+def make_project_dir(project_directory: Path, overwrite: bool) -> None:
     """Create a project directory. Check if the project directory exists; if yes, ask if it should be overwritten; if no, create it
 
     Parameters
@@ -45,23 +45,19 @@ def make_project_dir(project_directory: str, overwrite: bool) -> None:
         if True, overwrite existing project directory
     """
 
-    if os.path.isdir(project_directory) and not overwrite:
-        print(
-            "Project directory '"
-            + project_directory
-            + "' already exists. Shall is be overwritten? [y/n]"
-        )
-        answer = input()
-        if answer in ["y", "Y", "j", "J"]:
-            os.system("rm -rf " + project_directory)
-            print("Overwriting old project directory '" + project_directory + "'.\n")
-            os.system("mkdir " + project_directory)
-        else:
-            sys.exit("Project directory not overwritten. Exiting.\n")
-    elif os.path.isdir(project_directory) and overwrite:
-        os.system("rm -rf " + project_directory)
-        print("Overwriting old project directory '" + project_directory + "'.\n")
-        os.system("mkdir " + project_directory)
-    else:
-        print("Creating new project directory '" + project_directory + "'.\n")
-        os.system("mkdir " + project_directory)
+    if project_directory.exists():
+        if not overwrite:
+            print(
+                f"Project directory '{project_directory}' already exists. Shall it be overwritten? [y/n]"
+            )
+            answer = input().strip().lower()
+            if answer not in ["y", "j"]:
+                sys.exit("Project directory not overwritten. Exiting.\n")
+
+        # remove the existing directory
+        shutil.rmtree(project_directory)
+        print(f"Overwriting old project directory '{project_directory}'.\n")
+
+    # (re)create the directory
+    project_directory.mkdir(parents=True, exist_ok=True)
+    print(f"Creating new project directory '{project_directory}'.\n")

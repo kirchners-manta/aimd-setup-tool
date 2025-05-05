@@ -8,12 +8,13 @@ Functions to adjust input files for the AIMD setup tool.
 
 from __future__ import annotations
 
-import os
+import shutil
+from pathlib import Path
 from typing import Any
 
 
 def cp_runscript(
-    data: dict[str, Any], template_dir: str, project_dir: str, bqb_count: int = -1
+    data: dict[str, Any], template_dir: Path, project_dir: Path, bqb_count: int = -1
 ) -> None:
     """Copy the runscript to the project directory, and edit the runscript according to user input
 
@@ -29,9 +30,20 @@ def cp_runscript(
         Counter for the number of BQB calculations
     """
 
+    # dictionary with the cp2k version strings
+    cp2k_version_strings = {
+        "noctua2": {
+            "2023.1": "chem/CP2K/2023.1-foss-2022b-gcc-openmpi-openblas",
+            "2025.1": "chem/CP2K/2025.1-foss-2023b-gcc-openmpi-openblas",
+        },
+        "bonna": {},
+        "marvin": {},
+    }
+
     # copy the runscript
-    os.system(
-        "cp " + template_dir + "/../runscripts/" + data["runscript"] + " " + project_dir
+    shutil.copy(
+        (template_dir / "../runscripts" / data["runscript"]).resolve(),
+        project_dir.resolve() / data["runscript"],
     )
 
     # open the file
@@ -72,6 +84,12 @@ def cp_runscript(
 
             if "N_NODES" in line:
                 lines[i] = line.replace("N_NODES", str(nodes))
+
+            if "VERSION_CP2K" in line:
+                lines[i] = line.replace(
+                    "VERSION_CP2K",
+                    cp2k_version_strings[data["queue"]][data["cp2k_version"]],
+                )
 
         jobs = ["geoopt", "eq", "relax", "prod", "bqb", "energy"]
 

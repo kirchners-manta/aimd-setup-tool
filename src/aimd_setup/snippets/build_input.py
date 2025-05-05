@@ -958,7 +958,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             # special treatment for multiple fields
             if len(fields) > 1:
                 # create directory for each field
-                os.mkdir(f"{vec}_field")
+                Path.mkdir(Path(f"{vec}_field"))
 
                 # write to file
                 with open(f"{vec}_field/bqb.inp", "w", encoding="utf-8") as f:
@@ -976,9 +976,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
 
                 if k == 3:
                     # remove the files from the main directory
-                    os.remove(f"./{data['coord']}")
-                    os.remove(f"./{data['runscript']}")
-                    os.remove(f"./{data['reftraj']}")
+                    shutil.rmtree(f"./{data['coord']}")
+                    shutil.rmtree(f"./{data['runscript']}")
+                    shutil.rmtree(f"./{data['reftraj']}")
             else:
                 with open("bqb.inp", "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))

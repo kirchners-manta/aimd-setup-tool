@@ -16,6 +16,6 @@ export OMP_PROC_BIND=true
 
 # load modules
 module reset
-module load chem/CP2K/2023.1-foss-2022b-gcc-openmpi-openblas
+module load VERSION_CP2K
 
 # execute job

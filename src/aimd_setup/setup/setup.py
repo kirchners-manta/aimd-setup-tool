@@ -5,7 +5,9 @@ Main setup script for AIMD setup package.
 from __future__ import annotations
 
 import os
+import shutil
 import sys
+from pathlib import Path
 from typing import Any
 
 from ..adjust_input import cp_runscript
@@ -29,18 +31,38 @@ def setup_job(args: dict[str, Any]) -> int:
     """
 
     # project, coord file and box size are required, either from command line or toml file
+    # box size can also be found in the coordinate file
     if args["project"] is None:
         sys.exit(
             " *** Project name is required through command line or toml file. Exiting."
         )
-    elif args["coord"] is None:
+    if args["coord"] is None:
         sys.exit(
             " *** Coordinate file is required through command line or toml file. Exiting."
         )
-    elif args["boxsize"] is None:
-        sys.exit(
-            " *** Box size is required through command line or toml file. Exiting."
-        )
+    if args["boxsize"] is None:
+        with open(args["coord"], encoding="utf-8") as f:
+            # read the second line of the coordinate file
+            line = f.readlines()[1].split()
+            # convert the list of strings to a list of floats if it is not empty
+            if len(line) > 0:
+                args["boxsize"] = [float(i) for i in line]
+            else:
+                sys.exit(
+                    " *** Box size is required through command line or toml file or in the second line of the coordinate file. Exiting."
+                )
+    else:
+        # check given box dimensions
+        # if only one is given -> cubic box, set all box dimensions to the same value
+        if type(args["boxsize"]) == float or type(args["boxsize"]) == int:
+            args["boxsize"] = [args["boxsize"]] * 3
+        # if three are given -> orthorhombic boxsize
+        elif len(args["boxsize"]) == 3:
+            pass
+        else:
+            sys.exit(
+                "Invalid box dimensions. Provide either one (cubic) or three (orthorhombic) box lengths."
+            )
 
     # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
     if args["func"] == "revpbe":
@@ -73,43 +95,31 @@ def setup_job(args: dict[str, Any]) -> int:
     runscript_name = "run-cp2k-" + args["queue"] + ".sh"
 
     # project path
-    project_dir = os.path.abspath(args["project"])
-    args["project"] = os.path.basename(args["project"])
+    project_dir = Path(args["project"]).resolve()
+    args["project"] = project_dir.name
 
     # get absolute path of the coordinate file
-    abs_coord = os.path.abspath(args["coord"])
+    abs_coord = Path(args["coord"]).resolve()
 
     # get basename of the coordinate file
-    args["coord"] = os.path.basename(abs_coord)
+    args["coord"] = abs_coord.name
 
     # if bqb calculation, get absolute path of the reference trajectory file
     if args["type"] == "bqb":
         # get absolute path of the reference trajectory file
-        abs_reftraj = os.path.abspath(args["reftraj"])
+        abs_reftraj = Path(args["reftraj"]).resolve()
 
         # get basename of the reference trajectory file
-        args["reftraj"] = os.path.basename(abs_reftraj)
+        args["reftraj"] = abs_reftraj.name
 
         # if raman or roa spectrum is requested, set periodic efield to xyz
         if args["spectrum"] in ["raman", "roa"]:
             args["efield"] = "xyz"
 
-    # check given box dimensions
-    # if only one is given -> cubic box, set all box dimensions to the same value
-    if type(args["boxsize"]) == float or type(args["boxsize"]) == int:
-        args["boxsize"] = [args["boxsize"]] * 3
-    # if three are given -> orthorhombic boxsize
-    elif len(args["boxsize"]) == 3:
-        pass
-    else:
-        sys.exit(
-            "Invalid box dimensions. Provide either one (cubic) or three (orthorhombic) box lengths."
-        )
-
     # if velocity is given, get the absolute path of the velocity file
     if args["velocity"] is not None:
-        abs_velocity = os.path.abspath(args["velocity"])
-        args["velocity"] = os.path.basename(abs_velocity)
+        abs_velocity = Path(args["velocity"]).resolve()
+        args["velocity"] = abs_velocity.name
 
     # check open shell calculation
     if args["mult"] > 1:
@@ -284,20 +294,21 @@ def setup_job(args: dict[str, Any]) -> int:
     #############################################
 
     # get the absolute path of the directory where the script is located
-    script_dir = os.path.dirname(os.path.realpath(__file__))
+    script_dir = Path(__file__).resolve().parent
 
     # check if all relevant files are present in the script directory
     # if not, print warning and exit
     files = [
-        script_dir + "/../runscripts/run-cp2k-noctua2.sh",
-        script_dir + "/../runscripts/run-cp2k-bonna.sh",
+        script_dir / "../runscripts/run-cp2k-noctua2.sh",
+        script_dir / "../runscripts/run-cp2k-bonna.sh",
     ]
-    for f in files:
-        if not os.path.isfile(f):
+    # resolve '..' parts to absolute paths
+    files = [f.resolve() for f in files]
+
+    for file_path in files:
+        if not file_path.is_file():
             sys.exit(
-                " *** Warning: Input file '"
-                + f
-                + "' does not exist. Reinstall this setup tool. Exiting."
+                f" *** Warning: Input file '{file_path}' does not exist. Reinstall this setup tool. Exiting."
             )
 
     # get the abs path of the directory from which the script is called
@@ -313,10 +324,10 @@ def setup_job(args: dict[str, Any]) -> int:
 
         # change to the project directory and copy coords
         os.chdir(project_dir)
-        os.system("cp " + abs_coord + " .")
+        shutil.copy(abs_coord, project_dir)
         # copy velocities if given
         if args["velocity"] is not None:
-            os.system("cp " + abs_velocity + " .")
+            shutil.copy(abs_velocity, project_dir)
 
         # copy run script and data files to the project directory
         cp_runscript(
@@ -340,14 +351,16 @@ def setup_job(args: dict[str, Any]) -> int:
 
         # generate subdirectories for the bqb jobs
         for i in range(args["n_bqb"]):
-            os.mkdir("bqb_" + f"{i+1:02d}")
-            os.system("cp " + abs_coord + " bqb_" + f"{i+1:02d}" + "/")
-            os.system("cp " + abs_reftraj + " bqb_" + f"{i+1:02d}" + "/")
-            os.chdir("bqb_" + f"{i+1:02d}")
+            bqb_path = Path("bqb_" + f"{i+1:02d}")
+            bqb_path.mkdir(parents=True, exist_ok=True)
+            shutil.copy(abs_coord, bqb_path)
+            shutil.copy(abs_velocity, bqb_path)
+            shutil.copy(abs_reftraj, bqb_path)
+            os.chdir(bqb_path)
             cp_runscript(
                 data=args,
                 template_dir=script_dir,
-                project_dir=".",
+                project_dir=Path("."),
                 bqb_count=i,
             )
             generate_input_files(data=args, bqb_count=i)
