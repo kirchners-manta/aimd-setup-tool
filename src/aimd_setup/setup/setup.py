@@ -370,12 +370,7 @@ def setup_job(args: dict[str, Any]) -> int:
         os.chdir(start_dir)
 
     # print a message that the script has finished
-    print(
-        "Finished setting up the project '"
-        + args["project"]
-        + "' in "
-        + project_dir
-        + " ."
-    )
+    # print(type(args["project"]), type(project_dir))
+    print("Finished setting up the project '" + args["project"] + "' .")
 
     return 0
