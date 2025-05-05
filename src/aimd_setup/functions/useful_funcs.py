@@ -52,12 +52,14 @@ def make_project_dir(project_directory: Path, overwrite: bool) -> None:
             )
             answer = input().strip().lower()
             if answer not in ["y", "j"]:
-                sys.exit("Project directory not overwritten. Exiting.\n")
+                sys.exit("Project directory not overwritten. Exiting.")
 
         # remove the existing directory
         shutil.rmtree(project_directory)
-        print(f"Overwriting old project directory '{project_directory}'.\n")
+        print(f"Overwriting.")
 
-    # (re)create the directory
+    # create the project directory
+    else:
+        print(f"Creating new project directory '{project_directory}'.")
+
     project_directory.mkdir(parents=True, exist_ok=True)
-    print(f"Creating new project directory '{project_directory}'.\n")
