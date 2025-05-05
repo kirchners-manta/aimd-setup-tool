@@ -613,10 +613,6 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
 
         # replace keywords
         for i, line in enumerate(lines):
-            if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_opt")
-            if "${TYPE}" in line:
-                lines[i] = line.replace("${TYPE}", "GEO_OPT")
             if "${MAX_DR}" in line:
                 lines[i] = line.replace(
                     "${MAX_DR}", str(opt_constraints[data["opt_level"]]["max_dr"])
@@ -625,6 +621,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace(
                     "${MAX_FORCE}", str(opt_constraints[data["opt_level"]]["max_force"])
                 )
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_opt")
             if "${RMS_DR}" in line:
                 lines[i] = line.replace(
                     "${RMS_DR}", str(opt_constraints[data["opt_level"]]["rms_dr"])
@@ -635,6 +633,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 )
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "GEO_OPT")
 
         # standard replacements
         lines = standard_replacements(lines, data)
@@ -659,24 +659,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
 
         # replace keywords
         for i, line in enumerate(lines):
-            if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_eq")
-            if "${TYPE}" in line:
-                lines[i] = line.replace("${TYPE}", "MD")
             if "${ENSEMBLE}" in line:
                 lines[i] = line.replace("${ENSEMBLE}", "NVT")
-            if "${NSTEPS}" in line:
-                lines[i] = line.replace("${NSTEPS}", str(data["steps_equi"]))
-            if "${TEMP}" in line:
-                lines[i] = line.replace("${TEMP}", str(data["t_equi"]))
-            if "${REGION_THERMO}" in line:
-                lines[i] = line.replace("${REGION_THERMO}", "MASSIVE")
-            if "${THERMO}" in line:
-                lines[i] = line.replace("${THERMO}", data["thermo"])
-            if "${TIMECON_THERMO}" in line:
-                lines[i] = line.replace("${TIMECON_THERMO}", str(10))
-            if "${SCFGUESS}" in line:
-                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${FIELD_STRENGTH}" in line:
                 lines[i] = line.replace(
                     "${FIELD_STRENGTH}", str(data["efield_strength"])
@@ -685,6 +669,22 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace(
                     "${FIELD_VECTOR}", efield_vectors[data["efield"]]
                 )
+            if "${NSTEPS}" in line:
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_equi"]))
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_eq")
+            if "${REGION_THERMO}" in line:
+                lines[i] = line.replace("${REGION_THERMO}", "MASSIVE")
+            if "${SCFGUESS}" in line:
+                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${TEMP}" in line:
+                lines[i] = line.replace("${TEMP}", str(data["t_equi"]))
+            if "${THERMO}" in line:
+                lines[i] = line.replace("${THERMO}", data["thermo"])
+            if "${TIMECON_THERMO}" in line:
+                lines[i] = line.replace("${TIMECON_THERMO}", str(10))
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "MD")
             if "&VELOCITY" in line and data["velocity"] is not None:
                 with open(data["velocity"], encoding="utf-8") as v:
                     lines_to_add = v.read().splitlines()
@@ -693,6 +693,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             i + j + 1,
                             f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
                         )
+
         # standard replacements
         lines = standard_replacements(lines, data)
 
@@ -715,27 +716,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
 
         # replace keywords
         for i, line in enumerate(lines):
-            if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_relax")
-            if "${TYPE}" in line:
-                lines[i] = line.replace("${TYPE}", "MD")
             if "${ENSEMBLE}" in line:
                 lines[i] = line.replace("${ENSEMBLE}", "NVT")
-            if "${NSTEPS}" in line:
-                lines[i] = line.replace("${NSTEPS}", str(data["steps_relax"]))
-            if "${TEMP}" in line:
-                lines[i] = line.replace("${TEMP}", str(data["t_relax"]))
-            if "${REGION_THERMO}" in line:
-                lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
-            if "${THERMO}" in line:
-                lines[i] = line.replace("${THERMO}", data["thermo"])
-            if "${TIMECON_THERMO}" in line:
-                lines[i] = line.replace("${TIMECON_THERMO}", str(50))
-            if "${SCFGUESS}" in line:
-                if sections_relax["ext_restart"]["add"]:
-                    lines[i] = line.replace("${SCFGUESS}", "RESTART")
-                else:
-                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${FIELD_STRENGTH}" in line:
                 lines[i] = line.replace(
                     "${FIELD_STRENGTH}", str(data["efield_strength"])
@@ -744,10 +726,29 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 lines[i] = line.replace(
                     "${FIELD_VECTOR}", efield_vectors[data["efield"]]
                 )
+            if "${NSTEPS}" in line:
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_relax"]))
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_relax")
+            if "${REGION_THERMO}" in line:
+                lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
             if "${RESTART_NAME}" in line:
                 lines[i] = line.replace(
                     "${RESTART_NAME}", data["project"] + restart_ext
                 )
+            if "${SCFGUESS}" in line:
+                if sections_relax["ext_restart"]["add"]:
+                    lines[i] = line.replace("${SCFGUESS}", "RESTART")
+                else:
+                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${TEMP}" in line:
+                lines[i] = line.replace("${TEMP}", str(data["t_relax"]))
+            if "${THERMO}" in line:
+                lines[i] = line.replace("${THERMO}", data["thermo"])
+            if "${TIMECON_THERMO}" in line:
+                lines[i] = line.replace("${TIMECON_THERMO}", str(50))
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "MD")
 
         # standard replacements
         lines = standard_replacements(lines, data)
@@ -796,27 +797,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
 
         # replace keywords
         for i, line in enumerate(lines):
-            if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_prod")
-            if "${TYPE}" in line:
-                lines[i] = line.replace("${TYPE}", "MD")
             if "${ENSEMBLE}" in line:
                 lines[i] = line.replace("${ENSEMBLE}", data["ensemble"].upper())
-            if "${NSTEPS}" in line:
-                lines[i] = line.replace("${NSTEPS}", str(data["steps_prod"]))
-            if "${TEMP}" in line:
-                lines[i] = line.replace("${TEMP}", str(data["t_prod"]))
-            if "${REGION_THERMO}" in line:
-                lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
-            if "${THERMO}" in line:
-                lines[i] = line.replace("${THERMO}", data["thermo"])
-            if "${TIMECON_THERMO}" in line:
-                lines[i] = line.replace("${TIMECON_THERMO}", str(100))
-            if "${SCFGUESS}" in line:
-                if sections_prod["ext_restart"]["add"]:
-                    lines[i] = line.replace("${SCFGUESS}", "RESTART")
-                else:
-                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${FIELD_STRENGTH}" in line:
                 lines[i] = line.replace(
                     "${FIELD_STRENGTH}", str(data["efield_strength"])
@@ -827,6 +809,29 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 )
             if "${HISTORY_BQB}" in line:
                 lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
+            if "${NSTEPS}" in line:
+                lines[i] = line.replace("${NSTEPS}", str(data["steps_prod"]))
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_prod")
+            if "${REGION_THERMO}" in line:
+                lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
+            if "${RESTART_NAME}" in line:
+                lines[i] = line.replace(
+                    "${RESTART_NAME}", data["project"] + restart_ext
+                )
+            if "${SCFGUESS}" in line:
+                if sections_prod["ext_restart"]["add"]:
+                    lines[i] = line.replace("${SCFGUESS}", "RESTART")
+                else:
+                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${TEMP}" in line:
+                lines[i] = line.replace("${TEMP}", str(data["t_prod"]))
+            if "${THERMO}" in line:
+                lines[i] = line.replace("${THERMO}", data["thermo"])
+            if "${TIMECON_THERMO}" in line:
+                lines[i] = line.replace("${TIMECON_THERMO}", str(100))
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "MD")
             if "&VELOCITY" in line and data["velocity"] is not None:
                 with open(data["velocity"], encoding="utf-8") as v:
                     lines_to_add = v.read().splitlines()
@@ -835,10 +840,6 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             i + j + 1,
                             f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
                         )
-            if "${RESTART_NAME}" in line:
-                lines[i] = line.replace(
-                    "${RESTART_NAME}", data["project"] + restart_ext
-                )
 
         # standard replacements
         lines = standard_replacements(lines, data)
@@ -899,24 +900,14 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
 
             # replace keywords
             for i, line in enumerate(lines):
-                if "${PROJECT_NAME}" in line:
-                    if len(fields) > 1:
-                        lines[i] = line.replace(
-                            "${PROJECT_NAME}",
-                            data["project"] + f"_{bqb_count+1:02d}_{vec}",
-                        )
-                    else:
-                        lines[i] = line.replace(
-                            "${PROJECT_NAME}", data["project"] + f"_{bqb_count+1:02d}"
-                        )
-                if "${TYPE}" in line:
-                    lines[i] = line.replace("${TYPE}", "MD")
                 if "${ENSEMBLE}" in line:
                     lines[i] = line.replace("${ENSEMBLE}", "REFTRAJ")
-                if "${NSTEPS}" in line:
+                if "${FIELD_STRENGTH}" in line:
                     lines[i] = line.replace(
-                        "${NSTEPS}", str(data["steps_bqb"] + overlap)
+                        "${FIELD_STRENGTH}", str(data["efield_strength"])
                     )
+                if "${FIELD_VECTOR}" in line:
+                    lines[i] = line.replace("${FIELD_VECTOR}", efield_vectors[vec])
                 if "${FIRST_SNAPSHOT}" in line:
                     lines[i] = line.replace(
                         "${FIRST_SNAPSHOT}",
@@ -924,8 +915,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             data["start_from"] + bqb_count * data["steps_bqb"] * stride
                         ),
                     )
-                if "${STRIDE}" in line:
-                    lines[i] = line.replace("${STRIDE}", str(stride))
+                if "${HISTORY_BQB}" in line:
+                    lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
                 if "${LAST_SNAPSHOT}" in line:
                     lines[i] = line.replace(
                         "${LAST_SNAPSHOT}",
@@ -936,21 +927,31 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             - stride
                         ),
                     )
+                if "${NSTEPS}" in line:
+                    lines[i] = line.replace(
+                        "${NSTEPS}", str(data["steps_bqb"] + overlap)
+                    )
+                if "${PROJECT_NAME}" in line:
+                    if len(fields) > 1:
+                        lines[i] = line.replace(
+                            "${PROJECT_NAME}",
+                            data["project"] + f"_{bqb_count+1:02d}_{vec}",
+                        )
+                    else:
+                        lines[i] = line.replace(
+                            "${PROJECT_NAME}", data["project"] + f"_{bqb_count+1:02d}"
+                        )
+                if "${SCFGUESS}" in line:
+                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+                if "${STRIDE}" in line:
+                    lines[i] = line.replace("${STRIDE}", str(stride))
                 if "${TRAJ_FILE_NAME}" in line:
                     lines[i] = line.replace(
                         "${TRAJ_FILE_NAME}",
                         data["reftraj"],
                     )
-                if "${SCFGUESS}" in line:
-                    lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
-                if "${FIELD_STRENGTH}" in line:
-                    lines[i] = line.replace(
-                        "${FIELD_STRENGTH}", str(data["efield_strength"])
-                    )
-                if "${FIELD_VECTOR}" in line:
-                    lines[i] = line.replace("${FIELD_VECTOR}", efield_vectors[vec])
-                if "${HISTORY_BQB}" in line:
-                    lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
+                if "${TYPE}" in line:
+                    lines[i] = line.replace("${TYPE}", "MD")
 
             # standard replacements
             lines = standard_replacements(lines, data)
@@ -1005,14 +1006,14 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
 
         # replace keywords
         for i, line in enumerate(lines):
-            if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_energy")
-            if "${TYPE}" in line:
-                lines[i] = line.replace("${TYPE}", "ENERGY_FORCE")
-            if "${SCFGUESS}" in line:
-                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${HISTORY_BQB}" in line:
                 lines[i] = line.replace("${HISTORY_BQB}", str(1))
+            if "${PROJECT_NAME}" in line:
+                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_energy")
+            if "${SCFGUESS}" in line:
+                lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
+            if "${TYPE}" in line:
+                lines[i] = line.replace("${TYPE}", "ENERGY_FORCE")
 
         # standard replacements
         lines = standard_replacements(lines, data)
@@ -1043,35 +1044,9 @@ def standard_replacements(
 
     idx_to_remove = []
     for i, line in enumerate(lines):
-        if "${CHRG}" in line:
-            if data["charge"] == 0:  # remove if default
+        if "ANGVEL_TOL" in line:
+            if data["pbc"] != "none":
                 idx_to_remove.append(i)
-            else:
-                lines[i] = line.replace("${CHRG}", str(data["charge"]))
-        if "${MULT}" in line:
-            if data["mult"] == 1:  # remove if default
-                idx_to_remove.append(i)
-            else:
-                lines[i] = line.replace("${MULT}", str(data["mult"]))
-        if "${PLUS_U}" in line:
-            if data["dftu"] is None:
-                idx_to_remove.append(i)
-            else:
-                lines[i] = line.replace("${PLUS_U}", "MULLIKEN")
-        if "${UKS}" in line:
-            if not data["uks"]:
-                idx_to_remove.append(i)  # remove if default
-            else:
-                lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
-        if "${QS_METHOD}" in line:
-            if data["qs_method"] == "GPW":
-                idx_to_remove.append(i)
-            else:
-                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
-        if "${TIMESTEP}" in line:
-            lines[i] = line.replace("${TIMESTEP}", str(data["timestep"]))
-        if "${PP_FUNC}" in line:
-            lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
         if "${BASIS}" in line:
             lines[i] = line.replace("${BASIS}", data["basis"])
         if "${BOX_LENGTH}" in line:
@@ -1083,29 +1058,55 @@ def standard_replacements(
                 + " "
                 + str(data["boxsize"][2]),
             )
-        if "${PBC}" in line:
+        if "CENTER_COORDINATES" in line:
             if data["pbc"] == "xyz":
                 idx_to_remove.append(i)
-            else:
-                lines[i] = line.replace("${PBC}", data["pbc"].upper())
-        if "${POISSON_SOLVER}" in line:
-            lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
-        if "ANGVEL_TOL" in line:
-            if data["pbc"] != "none":
+        if "${CHRG}" in line:
+            if data["charge"] == 0:  # remove if default
                 idx_to_remove.append(i)
+            else:
+                lines[i] = line.replace("${CHRG}", str(data["charge"]))
         if "${L_ANG_QUANT_NUM}" in line:
             atom_type = lines[i - 4].split()[1]
             lines[i] = line.replace(
                 "${L_ANG_QUANT_NUM}", str(data["dftu"][atom_type][0])
             )
+        if "${MULT}" in line:
+            if data["mult"] == 1:  # remove if default
+                idx_to_remove.append(i)
+            else:
+                lines[i] = line.replace("${MULT}", str(data["mult"]))
+        if "${PBC}" in line:
+            if data["pbc"] == "xyz":
+                idx_to_remove.append(i)
+            else:
+                lines[i] = line.replace("${PBC}", data["pbc"].upper())
+        if "${PLUS_U}" in line:
+            if data["dftu"] is None:
+                idx_to_remove.append(i)
+            else:
+                lines[i] = line.replace("${PLUS_U}", "MULLIKEN")
+        if "${POISSON_SOLVER}" in line:
+            lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
+        if "${PP_FUNC}" in line:
+            lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+        if "${QS_METHOD}" in line:
+            if data["qs_method"] == "GPW":
+                idx_to_remove.append(i)
+            else:
+                lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+        if "${SIMBOX_XYZ}" in line:
+            lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
+        if "${TIMESTEP}" in line:
+            lines[i] = line.replace("${TIMESTEP}", str(data["timestep"]))
+        if "${UKS}" in line:
+            if not data["uks"]:
+                idx_to_remove.append(i)  # remove if default
+            else:
+                lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
         if "${U_MINUS_J}" in line:
             atom_type = lines[i - 5].split()[1]
             lines[i] = line.replace("${U_MINUS_J}", str(data["dftu"][atom_type][1]))
-        if "${SIMBOX_XYZ}" in line:
-            lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
-        if "CENTER_COORDINATES" in line:
-            if data["pbc"] == "xyz":
-                idx_to_remove.append(i)
 
     # remove unnecessary keywords
     for i in sorted(idx_to_remove, reverse=True):
