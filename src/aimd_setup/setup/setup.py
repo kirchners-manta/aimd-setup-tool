@@ -354,7 +354,11 @@ def setup_job(args: dict[str, Any]) -> int:
             bqb_path = Path("bqb_" + f"{i+1:02d}")
             bqb_path.mkdir(parents=True, exist_ok=True)
             shutil.copy(abs_coord, bqb_path)
-            shutil.copy(abs_velocity, bqb_path)
+
+            # copy velocities if given
+            if args["velocity"] is not None:
+                shutil.copy(abs_velocity, bqb_path)
+
             shutil.copy(abs_reftraj, bqb_path)
             os.chdir(bqb_path)
             cp_runscript(
