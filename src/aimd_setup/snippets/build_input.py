@@ -1068,6 +1068,8 @@ def standard_replacements(
                 idx_to_remove.append(i)
             else:
                 lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+        if "${TIMESTEP}" in line:
+            lines[i] = line.replace("${TIMESTEP}", str(data["timestep"]))
         if "${PP_FUNC}" in line:
             lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
         if "${BASIS}" in line:

@@ -463,6 +463,15 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=False,
     )
     p.add_argument(
+        "--timestep",
+        type=float,
+        help="R|Time step for the simulation in fs.",
+        default=0.5,
+        dest="timestep",
+        action=action_in_range(0.1, 4.0),
+        metavar="TIME",
+    )
+    p.add_argument(
         "--dftu",
         help="R|Use DFT+U.\nRequires three additional arguments per atom type (space separated):\nAtom type, orbital angular momentum quantum number, U-J value in eV.",
         nargs="+",

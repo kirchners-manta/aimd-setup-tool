@@ -159,24 +159,24 @@ def setup_job(args: dict[str, Any]) -> int:
 
     # print the arguments relevant for the type of calculation
     # general arguments are printed first
-    print("The following arguments were given (including defaults):")
-    print("Project name:", args["project"])
-    print("Box size [Angstrom]:", args["boxsize"])
-    print("Periodic boundary conditions:", args["pbc"].upper())
-    print("Coordinate file:", args["coord"])
-    print("Charge:", args["charge"])
+    print("\nThe following arguments were given (including defaults):")
+    print(f"{'Project name:'.ljust(35)}{args['project']}")
+    print(f"{'Box size [Angstrom]:'.ljust(35)}{args['boxsize']}")
+    print(f"{'Periodic boundary conditions:'.ljust(35)}{args['pbc'].upper()}")
+    print(f"{'Coordinate file:'.ljust(35)}{args['coord']}")
+    print(f"{'Charge:'.ljust(35)}{args['charge']}")
     if args["uks"]:
-        print("Multiplicity:", args["mult"], "(open shell calculation)")
+        print(f"{'Multiplicity:'.ljust(35)}{args['mult']} (open shell calculation)")
     else:
-        print("Multiplicity:", args["mult"])
-    print("QS method:", qs_method)
+        print(f"{'Multiplicity:'.ljust(35)}{args['mult']}")
+    print(f"{'QS method:'.ljust(35)}{qs_method}")
     if qs_method == "GPW":
-        print("Density functional:", args["func"].upper())
-        print("Pseudopotential:", pp_func)
-        print("Basis set:", args["basis"])
+        print(f"{'Density functional:'.ljust(35)}{args['func'].upper()}")
+        print(f"{'Pseudopotential:'.ljust(35)}{pp_func}")
+        print(f"{'Basis set:'.ljust(35)}{args['basis']}")
         if args["dftu"] is not None:
             print(
-                "DFT+U:",
+                f"{'DFT+U:'.ljust(35)}",
                 [f"{k}: L={v[0]}, U-J={v[1]} eV" for k, v in args["dftu"].items()],
             )
 
@@ -190,26 +190,27 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_bqb = False
         exec_energy = False
 
-        print("Type of calculation: AIMD simulation")
+        print(f"{'Type of calculation:'.ljust(35)}AIMD simulation")
+        print(f"{'Timestep [fs]:'.ljust(35)}{args['timestep']}")
         if not args["no_equi"]:
-            print("Equilibration steps:", args["steps_equi"])
-            print("Equilibration temperature [K]:", args["t_equi"])
+            print(f"{'Equilibration steps:'.ljust(35)}{args['steps_equi']}")
+            print(f"{'Equilibration temperature [K]:'.ljust(35)}{args['t_equi']}")
         if not args["no_relax"]:
-            print("Relaxation steps:", args["steps_relax"])
-            print("Relaxation temperature [K]:", args["t_relax"])
+            print(f"{'Relaxation steps:'.ljust(35)}{args['steps_relax']}")
+            print(f"{'Relaxation temperature [K]:'.ljust(35)}{args['t_relax']}")
         if not args["no_prod"]:
-            print("Production steps:", args["steps_prod"])
-            print("Production temperature [K]:", args["t_prod"])
+            print(f"{'Production steps:'.ljust(35)}{args['steps_prod']}")
+            print(f"{'Production temperature [K]:'.ljust(35)}{args['t_prod']}")
         if not args["no_equi"]:
-            print("Thermodynamic ensemble in equilibration:", "NVT")
-            print("Thermostat:", args["thermo"])
+            print(f"{'Ensemble in equilibration:'.ljust(35)}NVT")
+            print(f"{'Thermostat:'.ljust(35)}{args['thermo']}")
         if not args["no_prod"]:
-            print("Thermodynamic ensemble in production:", args["ensemble"])
-            print("Thermostat:", args["thermo"])
+            print(f"{'Ensemble in production:'.ljust(35)}{args['ensemble']}")
+            print(f"{'Thermostat:'.ljust(35)}{args['thermo']}")
         if args["velocity"] is not None:
-            print("Initial velocities:", args["velocity"])
-        print("Print BQB file:", args["bqb"])
-        print("Calculate Wannier functions:", args["wannier"])
+            print(f"{'Initial velocities:'.ljust(35)}{args['velocity']}")
+        print(f"{'Print BQB file:'.ljust(35)}{args['bqb']}")
+        print(f"{'Calculate Wannier functions:'.ljust(35)}{args['wannier']}")
 
     elif args["type"] == "bqb":
         exec_geoopt = False
@@ -219,12 +220,12 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_bqb = True
         exec_energy = False
 
-        print("Type of calculation: BQB file production")
-        print("Reference trajectory:", args["reftraj"])
-        print("Process Trajectory from step:", args["start_from"])
-        print("Bqb files:", args["n_bqb"])
-        print("Steps per bqb file:", args["steps_bqb"])
-        print("Spectrum:", args["spectrum"])
+        print(f"{'Type of calculation:'.ljust(35)}BQB file production")
+        print(f"{'Reference trajectory:'.ljust(35)}{args['reftraj']}")
+        print(f"{'Process Trajectory from step:'.ljust(35)}{args['start_from']}")
+        print(f"{'Bqb files:'.ljust(35)}{args['n_bqb']}")
+        print(f"{'Steps per bqb file:'.ljust(35)}{args['steps_bqb']}")
+        print(f"{'Spectrum:'.ljust(35)}{args['spectrum']}")
 
     elif args["type"] == "energy":
         exec_geoopt = False
@@ -234,8 +235,8 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_bqb = False
         exec_energy = True
 
-        print("Type of calculation: Single point energy calculation")
-        print("Energy convergence criterion [Hartree]:", args["e_conv"])
+        print(f"{'Type of calculation:'.ljust(35)}Single point energy calculation")
+        print(f"{'Energy convergence [Hartree]:'.ljust(35)}{args['e_conv']}")
 
     elif args["type"] == "adapt-sampl":
         exec_geoopt = False
@@ -254,10 +255,10 @@ def setup_job(args: dict[str, Any]) -> int:
                 " *** Velocity file is required for adaptive sampling. Watch the velocity format. Exiting."
             )
 
-        print("Type of calculation: Adaptive sampling (with Leipzig people)")
-        print("Production steps:", args["steps_prod"])
-        print("Production temperature [K]:", args["t_prod"])
-        print("Print BQB file:", args["bqb"])
+        print(f"{'Type of calculation:'.ljust(35)}Adaptive sampling")
+        print(f"{'Production steps:'.ljust(35)}{args['steps_prod']}")
+        print(f"{'Production temperature [K]:'.ljust(35)}{args['t_prod']}")
+        print(f"{'Print BQB file:'.ljust(35)}{args['bqb']}")
 
     elif args["type"] == "geoopt":
         exec_geoopt = True
@@ -267,18 +268,19 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_bqb = False
         exec_energy = False
 
-        print("Type of calculation: Geometry optimization")
-        print("Convergence criteria:", args["opt_level"])
+        print(f"{'Type of calculation:'.ljust(35)}Geometry optimization")
+        print(f"{'Convergence criteria:'.ljust(35)}{args['opt_level']}")
 
     # electric field settings
     if args["efield"] is not None:
-        print("Periodic E-field:", args["efield"])
-        print("E-field strength [a.u.]:", args["efield_strength"])
+        print(f"{'Periodic E-field:'.ljust(35)}{args['efield']}")
+        print(f"{'E-field strength [a.u.]:'.ljust(35)}{args['efield_strength']}")
 
     # HPC information
-    print("Queue:", args["queue"])
-    print("Runscript:", runscript_name)
-    print("CPU cores:", args["cpu"])
+    print(f"{'CP2K version:'.ljust(35)}{args['cp2k_version']}")
+    print(f"{'Queue:'.ljust(35)}{args['queue']}")
+    print(f"{'Runscript:'.ljust(35)}{runscript_name}")
+    print(f"{'CPU cores:'.ljust(35)}{args['cpu']}")
     print("")
 
     # add joblist
