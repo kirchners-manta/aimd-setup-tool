@@ -318,6 +318,10 @@ def get_default_sections() -> dict[str, Any]:
                     "add": False,
                     "header": "header.inp",
                 },
+                "kind_k": {
+                    "add": False,
+                    "header": "header.inp",
+                },
                 "kind_ti": {
                     "add": False,
                     "header": "header.inp",

@@ -56,7 +56,7 @@ def make_project_dir(project_directory: Path, overwrite: bool) -> None:
 
         # remove the existing directory
         shutil.rmtree(project_directory)
-        print(f"Overwriting.")
+        print(f"Overwriting existing project directory.")
 
     # create the project directory
     else:
