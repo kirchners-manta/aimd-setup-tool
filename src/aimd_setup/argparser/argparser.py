@@ -541,6 +541,33 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         choices=["blyp", "bp", "pade", "pbe", "revpbe", "scan", "r2scan", "xtb"],
     )
     p.add_argument(
+        "--grid-cutoff",
+        type=int,
+        metavar="CUTOFF",
+        help="R|Electron density integration grid cutoff in Ry.",
+        default=280,
+        dest="grid_cutoff",
+        action=action_not_less_than(100),
+    )
+    p.add_argument(
+        "--grid-n",
+        type=int,
+        metavar="N",
+        help="R|Number of grids for the electron density integration.",
+        default=5,
+        dest="grid_n",
+        action=action_not_less_than(1),
+    )
+    p.add_argument(
+        "--grid-rel-cutoff",
+        type=int,
+        metavar="CUTOFF",
+        help="R|Electron density integration relative grid cutoff in Ry.",
+        default=60,
+        dest="grid_rel_cutoff",
+        action=action_not_less_than(10),
+    )
+    p.add_argument(
         "--mult",
         type=int,
         metavar="N",

@@ -9,7 +9,7 @@ import os
 import shutil
 import sys
 from pathlib import Path
-from typing import Any, List
+from typing import Any
 
 
 def get_default_sections() -> dict[str, Any]:
@@ -1070,6 +1070,12 @@ def standard_replacements(
                 idx_to_remove.append(i)
             else:
                 lines[i] = line.replace("${CHRG}", str(data["charge"]))
+        if "${GRID_CUTOFF}" in line:
+            lines[i] = line.replace("${GRID_CUTOFF}", str(data["grid_cutoff"]))
+        if "${GRID_N}" in line:
+            lines[i] = line.replace("${GRID_N}", str(data["grid_n"]))
+        if "${GRID_REL_CUTOFF}" in line:
+            lines[i] = line.replace("${GRID_REL_CUTOFF}", str(data["grid_rel_cutoff"]))
         if "${L_ANG_QUANT_NUM}" in line:
             atom_type = lines[i - 4].split()[1]
             lines[i] = line.replace(
