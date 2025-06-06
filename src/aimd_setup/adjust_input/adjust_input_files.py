@@ -38,7 +38,23 @@ def cp_runscript(
         },
         "bonna": {},
         "marvin": {},
+        "berta2": {
+            "2024.3": "/software/cluster-2/cp2k-2024.3_berta",
+        },
+        "iris2": {
+            "2024.3": "/software/cluster-2/cp2k-2024.3_iris",
+        },
+        "hedy2": {
+            "2024.3": "/software/cluster-2/cp2k-2024.3_iris",
+        },
     }
+
+    # check if runscript for the requested queue exists
+    if data["cp2k_version"] not in cp2k_version_strings[data["queue"]]:
+        raise ValueError(
+            f"CP2K version {data['cp2k_version']} not available for queue {data['queue']}. "
+            f"Available versions: {', '.join(cp2k_version_strings[data['queue']].keys())}"
+        )
 
     # copy the runscript
     shutil.copy(
@@ -51,6 +67,10 @@ def cp_runscript(
 
         lines = f.readlines()
         for i, line in enumerate(lines):
+            # find line to insert the software execution command
+            if "# execute job" in line:
+                ijob = i + 1
+
             if "PROJECT_NAME" in line:
                 if bqb_count >= 0:
                     lines[i] = line.replace(
@@ -68,6 +88,14 @@ def cp_runscript(
                     cpuspernode = 32
                 elif data["queue"] == "noctua2":
                     cpuspernode = 128
+                elif data["queue"] == "marvin":
+                    cpuspernode = 64
+                elif data["queue"] == "berta2":
+                    cpuspernode = 32
+                elif data["queue"] == "iris2":
+                    cpuspernode = 64
+                elif data["queue"] == "hedy2":
+                    cpuspernode = 64
 
                 if data["cpu"] % cpuspernode == 0:
                     nodes = data["cpu"] // cpuspernode
@@ -79,6 +107,11 @@ def cp_runscript(
                     )
 
                 data["cpu"] = data["cpu"] // nodes
+
+                if nodes > 1 and data["queue"] in ["berta2", "iris2", "hedy2"]:
+                    raise ValueError(
+                        f"Number of nodes ({nodes}) must be 1 for {data['queue']} queue"
+                    )
 
                 lines[i] = line.replace("N_CPU", str(data["cpu"]))
 
@@ -96,14 +129,27 @@ def cp_runscript(
         for i, job in enumerate(jobs):
             if data["joblist"][i] == True:
                 if data["queue"] == "noctua2":
-                    lines.insert(len(lines), f"srun cp2k.psmp {job}.inp >{job}.out\n")
+                    lines.insert(ijob, f"srun cp2k.psmp {job}.inp >{job}.out\n")
                 elif data["queue"] == "bonna":
                     lines.insert(
-                        len(lines),
-                        f"mpirun /home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp {job}.inp >{job}_output\n",
+                        ijob,
+                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
+                    )
+                elif data["queue"] == "berta2":
+                    lines.insert(
+                        ijob,
+                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
+                    )
+                elif data["queue"] == "iris2":
+                    lines.insert(
+                        ijob,
+                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
+                    )
+                elif data["queue"] == "hedy2":
+                    lines.insert(
+                        ijob,
+                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
                     )
 
-        # remove the job submission lines for jobs that are not requested
-
         with open(data["runscript"], "w") as g:
-            g.writelines(lines)  #
+            g.writelines(lines)
