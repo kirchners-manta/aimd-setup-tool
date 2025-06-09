@@ -69,7 +69,7 @@ def cp_runscript(
         for i, line in enumerate(lines):
             # find line to insert the software execution command
             if "# execute job" in line:
-                ijob = i + 1
+                ijob = i
 
             if "PROJECT_NAME" in line:
                 if bqb_count >= 0:
@@ -129,25 +129,25 @@ def cp_runscript(
         for i, job in enumerate(jobs):
             if data["joblist"][i] == True:
                 if data["queue"] == "noctua2":
-                    lines.insert(ijob, f"srun cp2k.psmp {job}.inp >{job}.out\n")
+                    lines.insert(ijob + i, f"srun cp2k.psmp {job}.inp >{job}.out\n")
                 elif data["queue"] == "bonna":
                     lines.insert(
-                        ijob,
+                        ijob + i,
                         f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
                     )
                 elif data["queue"] == "berta2":
                     lines.insert(
-                        ijob,
+                        ijob + i,
                         f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
                     )
                 elif data["queue"] == "iris2":
                     lines.insert(
-                        ijob,
+                        ijob + i,
                         f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
                     )
                 elif data["queue"] == "hedy2":
                     lines.insert(
-                        ijob,
+                        ijob + i,
                         f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
                     )
 

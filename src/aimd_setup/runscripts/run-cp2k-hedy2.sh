@@ -30,8 +30,8 @@ source VERSION_CP2K/setup
 cat $PBS_NODEFILE>hosts_file
 echo $SDIR >tmp_dir
 
-
 # execute job
+
 
 # clean up
 cp -r /tmp1/$USER/$PBS_JOBID/* $PBS_O_WORKDIR
