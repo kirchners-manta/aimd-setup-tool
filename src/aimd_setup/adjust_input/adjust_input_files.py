@@ -130,25 +130,10 @@ def cp_runscript(
             if data["joblist"][i] == True:
                 if data["queue"] == "noctua2":
                     lines.insert(ijob + i, f"srun cp2k.psmp {job}.inp >{job}.out\n")
-                elif data["queue"] == "bonna":
+                elif data["queue"] in ["bonna", "berta2", "iris2", "hedy2"]:
                     lines.insert(
                         ijob + i,
-                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
-                    )
-                elif data["queue"] == "berta2":
-                    lines.insert(
-                        ijob + i,
-                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
-                    )
-                elif data["queue"] == "iris2":
-                    lines.insert(
-                        ijob + i,
-                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
-                    )
-                elif data["queue"] == "hedy2":
-                    lines.insert(
-                        ijob + i,
-                        f"mpirun {cp2k_version_strings[data["queue"]][data["cp2k_version"]]}/cp2k.psmp {job}.inp >{job}.out\n",
+                        f"mpirun {cp2k_version_strings[data['queue']][data['cp2k_version']]}/cp2k.psmp {job}.inp >{job}.out\n",
                     )
 
         with open(data["runscript"], "w") as g:
