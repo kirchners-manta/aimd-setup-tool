@@ -715,7 +715,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         metavar="TEMP",
         help="R|Equilibration temperature in K.",
         default=400.0,
-        action=action_not_less_than(250),
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--t-relax",
@@ -723,7 +723,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         metavar="TEMP",
         help="R|Relaxation temperature in K.",
         default=350.0,
-        action=action_not_less_than(250),
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--t-prod",
@@ -731,7 +731,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         metavar="TEMP",
         help="R|Production temperature in K.",
         default=350.0,
-        action=action_not_less_than(250),
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--type",
