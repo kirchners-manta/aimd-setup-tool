@@ -980,10 +980,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 )
 
                 if k == 3:
-                    # remove the files from the main directory
-                    shutil.rmtree(f"./{data['coord']}")
-                    shutil.rmtree(f"./{data['runscript']}")
-                    shutil.rmtree(f"./{data['reftraj']}")
+                    # remove the files from the main directory if they exist there (and were not copied from somewhere else)
+                    Path.unlink(Path(f"./{data['coord']}"), missing_ok=True)
+                    Path.unlink(Path(f"./{data['runscript']}"), missing_ok=True)
+                    Path.unlink(Path(f"./{data['reftraj']}"), missing_ok=True)
             else:
                 with open("bqb.inp", "w", encoding="utf-8") as f:
                     f.write("\n".join(lines))
