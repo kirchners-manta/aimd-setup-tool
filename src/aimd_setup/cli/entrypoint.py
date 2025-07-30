@@ -18,7 +18,9 @@ def console_entry_point(argv: Sequence[str] | None = None) -> int:
     cli_args = parser().parse_args(argv)
     args = vars(cli_args)
     # load toml options
-    toml_options = toml.load(cli_args.input) if cli_args.input is not None else {}
+    toml_options = (
+        toml.load(cli_args.input) if cli_args.input is not None else {}
+    )
     # merge toml options with command line options
     args.update(toml_options)
 

@@ -373,8 +373,8 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog=name,
         description="Script to setup AIMD simulations or BQB file productions with CP2K.",
-        epilog="Written for the Kirchner group by Tom Frömbgen. Internal use only.",
-        formatter_class=lambda prog: Formatter(prog, max_help_position=60),
+        epilog="Written for the Kirchner group at University of Bonn, by Tom Frömbgen.",
+        formatter_class=lambda prog: Formatter(prog, max_help_position=80),
         add_help=False,
     )
     p.add_argument(
@@ -399,7 +399,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         "--boxsize",
         type=float,
         dest="boxsize",
-        help="R|Box edge length in Angstrom. Has to be given via command line, input file or in the second line of the coordinate file.\nFor cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated).",
+        help="R|Box edge length in Angstrom. Has to be given via command line, input file or in\nthe second line of the coordinate file.\nFor cubic boxes only one value is needed.\nFor non-cubic boxes, supply a, b, c (space separated in the command line, or as\na comma separated list in the input file).",
         metavar="LENGTH",
         default=None,
         nargs="+",
@@ -463,17 +463,8 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default=False,
     )
     p.add_argument(
-        "--timestep",
-        type=float,
-        help="R|Time step for the simulation in fs.",
-        default=0.5,
-        dest="timestep",
-        action=action_in_range(0.1, 4.0),
-        metavar="TIME",
-    )
-    p.add_argument(
         "--dftu",
-        help="R|Use DFT+U.\nRequires three additional arguments per atom type (space separated):\nAtom type, orbital angular momentum quantum number, U-J value in eV.",
+        help="R|Use DFT+U.\nRequires three additional arguments per atom type (space separated in the\ncommand line, or as a comma separated list in the input file):\nAtom type, orbital angular momentum quantum number, U-J value in eV.",
         nargs="+",
         dest="dftu",
         metavar="ATOM, L, UJ",
@@ -538,7 +529,16 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Density functional.",
         default="revpbe",
         dest="func",
-        choices=["blyp", "bp", "pade", "pbe", "revpbe", "scan", "r2scan", "xtb"],
+        choices=[
+            "blyp",
+            "bp",
+            "pade",
+            "pbe",
+            "revpbe",
+            "scan",
+            "r2scan",
+            "xtb",
+        ],
     )
     p.add_argument(
         "--grid-cutoff",
@@ -639,6 +639,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     )
     p.add_argument(
         "-q",
+        "--queue",
         type=str,
         help="R|Cluster/queue to submit the job to.",
         default="noctua2",
@@ -732,6 +733,15 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Production temperature in K.",
         default=350.0,
         action=action_not_less_than(1),
+    )
+    p.add_argument(
+        "--timestep",
+        type=float,
+        help="R|Time step for the simulation in fs.",
+        default=0.5,
+        dest="timestep",
+        action=action_in_range(0.1, 4.0),
+        metavar="TIME",
     )
     p.add_argument(
         "--type",

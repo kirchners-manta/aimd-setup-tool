@@ -23,7 +23,11 @@ def get_default_sections() -> dict[str, Any]:
     """
 
     sections = {
-        "global": {"add": True, "header": "header.inp", "keywords": "keywords.inp"},
+        "global": {
+            "add": True,
+            "header": "header.inp",
+            "keywords": "keywords.inp",
+        },
         "motion": {
             "add": True,
             "header": "header.inp",
@@ -532,18 +536,22 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
     # add atom types to sections
     for atom in get_atom_types(data["coord"]):
         if f"kind_{atom.lower()}" in sections["force_eval"]["subsys"]:
-            sections["force_eval"]["subsys"][f"kind_{atom.lower()}"]["add"] = True
+            sections["force_eval"]["subsys"][f"kind_{atom.lower()}"][
+                "add"
+            ] = True
         else:
             sys.exit(f"Atom type {atom} not supported by this script.")
     # if the dftu section is requested check if it is supported
     if data["dftu"] is not None:
         for atom in data["dftu"]:
             if atom not in get_atom_types(data["coord"]):
-                sys.exit(f"Atom type {atom} not present in the coordinate file.")
+                sys.exit(
+                    f"Atom type {atom} not present in the coordinate file."
+                )
             else:
-                sections["force_eval"]["subsys"][f"kind_{atom.lower()}"]["dft_plus_u"][
-                    "add"
-                ] = True
+                sections["force_eval"]["subsys"][f"kind_{atom.lower()}"][
+                    "dft_plus_u"
+                ]["add"] = True
 
     # if xtb is used, add the xtb section and deactivate the dft section
     if data["func"] == "xtb":
@@ -551,7 +559,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         sections["force_eval"]["dft"]["xc"]["add"] = False
     # else, add dft functional
     else:
-        sections["force_eval"]["dft"]["xc"]["xc_functional"][data["func"]]["add"] = True
+        sections["force_eval"]["dft"]["xc"]["xc_functional"][data["func"]][
+            "add"
+        ] = True
 
     # check periodic efield
     if data["efield"] is not None:
@@ -619,21 +629,27 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         for i, line in enumerate(lines):
             if "${MAX_DR}" in line:
                 lines[i] = line.replace(
-                    "${MAX_DR}", str(opt_constraints[data["opt_level"]]["max_dr"])
+                    "${MAX_DR}",
+                    str(opt_constraints[data["opt_level"]]["max_dr"]),
                 )
             if "${MAX_FORCE}" in line:
                 lines[i] = line.replace(
-                    "${MAX_FORCE}", str(opt_constraints[data["opt_level"]]["max_force"])
+                    "${MAX_FORCE}",
+                    str(opt_constraints[data["opt_level"]]["max_force"]),
                 )
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_opt")
+                lines[i] = line.replace(
+                    "${PROJECT_NAME}", data["project"] + "_opt"
+                )
             if "${RMS_DR}" in line:
                 lines[i] = line.replace(
-                    "${RMS_DR}", str(opt_constraints[data["opt_level"]]["rms_dr"])
+                    "${RMS_DR}",
+                    str(opt_constraints[data["opt_level"]]["rms_dr"]),
                 )
             if "${RMS_FORCE}" in line:
                 lines[i] = line.replace(
-                    "${RMS_FORCE}", str(opt_constraints[data["opt_level"]]["rms_force"])
+                    "${RMS_FORCE}",
+                    str(opt_constraints[data["opt_level"]]["rms_force"]),
                 )
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
@@ -676,7 +692,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${NSTEPS}" in line:
                 lines[i] = line.replace("${NSTEPS}", str(data["steps_equi"]))
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_eq")
+                lines[i] = line.replace(
+                    "${PROJECT_NAME}", data["project"] + "_eq"
+                )
             if "${REGION_THERMO}" in line:
                 lines[i] = line.replace("${REGION_THERMO}", "MASSIVE")
             if "${SCFGUESS}" in line:
@@ -733,7 +751,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${NSTEPS}" in line:
                 lines[i] = line.replace("${NSTEPS}", str(data["steps_relax"]))
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_relax")
+                lines[i] = line.replace(
+                    "${PROJECT_NAME}", data["project"] + "_relax"
+                )
             if "${REGION_THERMO}" in line:
                 lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
             if "${RESTART_NAME}" in line:
@@ -782,10 +802,14 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # electron density output
         if data["bqb"]:
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
-            sections_prod["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = True
+            sections_prod["force_eval"]["dft"]["print"]["e_density_bqb"][
+                "add"
+            ] = True
         if data["cube"]:
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
-            sections_prod["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
+            sections_prod["force_eval"]["dft"]["print"]["e_density_cube"][
+                "add"
+            ] = True
         # ext_restart
         if data["joblist"][2]:
             sections_prod["ext_restart"]["add"] = True
@@ -802,7 +826,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # replace keywords
         for i, line in enumerate(lines):
             if "${ENSEMBLE}" in line:
-                lines[i] = line.replace("${ENSEMBLE}", data["ensemble"].upper())
+                lines[i] = line.replace(
+                    "${ENSEMBLE}", data["ensemble"].upper()
+                )
             if "${FIELD_STRENGTH}" in line:
                 lines[i] = line.replace(
                     "${FIELD_STRENGTH}", str(data["efield_strength"])
@@ -812,11 +838,15 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     "${FIELD_VECTOR}", efield_vectors[data["efield"]]
                 )
             if "${HISTORY_BQB}" in line:
-                lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
+                lines[i] = line.replace(
+                    "${HISTORY_BQB}", str(data["bqb_history"])
+                )
             if "${NSTEPS}" in line:
                 lines[i] = line.replace("${NSTEPS}", str(data["steps_prod"]))
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_prod")
+                lines[i] = line.replace(
+                    "${PROJECT_NAME}", data["project"] + "_prod"
+                )
             if "${REGION_THERMO}" in line:
                 lines[i] = line.replace("${REGION_THERMO}", "GLOBAL")
             if "${RESTART_NAME}" in line:
@@ -885,19 +915,29 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # electron density
         # bqb file calculation
         sections_bqb["force_eval"]["dft"]["print"]["add"] = True
-        sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = True
+        sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"][
+            "add"
+        ] = True
         # switch to cube file if requested
         if data["cube"]:
-            sections_bqb["force_eval"]["dft"]["print"]["e_density_cube"]["add"] = True
-            sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = False
+            sections_bqb["force_eval"]["dft"]["print"]["e_density_cube"][
+                "add"
+            ] = True
+            sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"][
+                "add"
+            ] = False
 
         for k, vec in enumerate(fields):
 
             if vec in ["", "n"]:
                 # add efield if requested
-                sections_bqb["force_eval"]["dft"]["periodic_efield"]["add"] = False
+                sections_bqb["force_eval"]["dft"]["periodic_efield"][
+                    "add"
+                ] = False
             else:
-                sections_bqb["force_eval"]["dft"]["periodic_efield"]["add"] = True
+                sections_bqb["force_eval"]["dft"]["periodic_efield"][
+                    "add"
+                ] = True
 
             # build default input file
             lines = build_file([""], sections_bqb)
@@ -911,16 +951,21 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                         "${FIELD_STRENGTH}", str(data["efield_strength"])
                     )
                 if "${FIELD_VECTOR}" in line:
-                    lines[i] = line.replace("${FIELD_VECTOR}", efield_vectors[vec])
+                    lines[i] = line.replace(
+                        "${FIELD_VECTOR}", efield_vectors[vec]
+                    )
                 if "${FIRST_SNAPSHOT}" in line:
                     lines[i] = line.replace(
                         "${FIRST_SNAPSHOT}",
                         str(
-                            data["start_from"] + bqb_count * data["steps_bqb"] * stride
+                            data["start_from"]
+                            + bqb_count * data["steps_bqb"] * stride
                         ),
                     )
                 if "${HISTORY_BQB}" in line:
-                    lines[i] = line.replace("${HISTORY_BQB}", str(data["bqb_history"]))
+                    lines[i] = line.replace(
+                        "${HISTORY_BQB}", str(data["bqb_history"])
+                    )
                 if "${LAST_SNAPSHOT}" in line:
                     lines[i] = line.replace(
                         "${LAST_SNAPSHOT}",
@@ -943,7 +988,8 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                         )
                     else:
                         lines[i] = line.replace(
-                            "${PROJECT_NAME}", data["project"] + f"_{bqb_count+1:02d}"
+                            "${PROJECT_NAME}",
+                            data["project"] + f"_{bqb_count+1:02d}",
                         )
                 if "${SCFGUESS}" in line:
                     lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
@@ -982,7 +1028,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 if k == 3:
                     # remove the files from the main directory if they exist there (and were not copied from somewhere else)
                     Path.unlink(Path(f"./{data['coord']}"), missing_ok=True)
-                    Path.unlink(Path(f"./{data['runscript']}"), missing_ok=True)
+                    Path.unlink(
+                        Path(f"./{data['runscript']}"), missing_ok=True
+                    )
                     Path.unlink(Path(f"./{data['reftraj']}"), missing_ok=True)
             else:
                 with open("bqb.inp", "w", encoding="utf-8") as f:
@@ -999,7 +1047,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # electronic density
         if data["bqb"]:
             sections_energy["force_eval"]["dft"]["print"]["add"] = True
-            sections_energy["force_eval"]["dft"]["print"]["e_density_bqb"]["add"] = True
+            sections_energy["force_eval"]["dft"]["print"]["e_density_bqb"][
+                "add"
+            ] = True
         if data["cube"]:
             sections_energy["force_eval"]["dft"]["print"]["add"] = True
             sections_energy["force_eval"]["dft"]["print"]["e_density_cube"][
@@ -1013,7 +1063,9 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             if "${HISTORY_BQB}" in line:
                 lines[i] = line.replace("${HISTORY_BQB}", str(1))
             if "${PROJECT_NAME}" in line:
-                lines[i] = line.replace("${PROJECT_NAME}", data["project"] + "_energy")
+                lines[i] = line.replace(
+                    "${PROJECT_NAME}", data["project"] + "_energy"
+                )
             if "${SCFGUESS}" in line:
                 lines[i] = line.replace("${SCFGUESS}", "ATOMIC")
             if "${TYPE}" in line:
@@ -1075,7 +1127,9 @@ def standard_replacements(
         if "${GRID_N}" in line:
             lines[i] = line.replace("${GRID_N}", str(data["grid_n"]))
         if "${GRID_REL_CUTOFF}" in line:
-            lines[i] = line.replace("${GRID_REL_CUTOFF}", str(data["grid_rel_cutoff"]))
+            lines[i] = line.replace(
+                "${GRID_REL_CUTOFF}", str(data["grid_rel_cutoff"])
+            )
         if "${L_ANG_QUANT_NUM}" in line:
             atom_type = lines[i - 4].split()[1]
             lines[i] = line.replace(
@@ -1097,7 +1151,9 @@ def standard_replacements(
             else:
                 lines[i] = line.replace("${PLUS_U}", "MULLIKEN")
         if "${POISSON_SOLVER}" in line:
-            lines[i] = line.replace("${POISSON_SOLVER}", data["poisson_solver"])
+            lines[i] = line.replace(
+                "${POISSON_SOLVER}", data["poisson_solver"]
+            )
         if "${PP_FUNC}" in line:
             lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
         if "${QS_METHOD}" in line:
@@ -1116,7 +1172,9 @@ def standard_replacements(
                 lines[i] = line.replace("${UKS}", str(data["uks"]).upper())
         if "${U_MINUS_J}" in line:
             atom_type = lines[i - 5].split()[1]
-            lines[i] = line.replace("${U_MINUS_J}", str(data["dftu"][atom_type][1]))
+            lines[i] = line.replace(
+                "${U_MINUS_J}", str(data["dftu"][atom_type][1])
+            )
 
     # remove unnecessary keywords
     for i in sorted(idx_to_remove, reverse=True):

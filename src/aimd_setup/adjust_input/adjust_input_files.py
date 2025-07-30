@@ -14,7 +14,10 @@ from typing import Any
 
 
 def cp_runscript(
-    data: dict[str, Any], template_dir: Path, project_dir: Path, bqb_count: int = -1
+    data: dict[str, Any],
+    template_dir: Path,
+    project_dir: Path,
+    bqb_count: int = -1,
 ) -> None:
     """Copy the runscript to the project directory, and edit the runscript according to user input
 
@@ -80,7 +83,8 @@ def cp_runscript(
                     lines[i] = line.replace("PROJECT_NAME", data["project"])
             if "Part of the AIMD setup tool" in line:
                 lines[i] = line.replace(
-                    "Part of the AIMD setup tool", "Created by the AIMD setup tool"
+                    "Part of the AIMD setup tool",
+                    "Created by the AIMD setup tool",
                 )
             if "N_CPU" in line:
                 # define cpus per node
@@ -129,7 +133,9 @@ def cp_runscript(
         for i, job in enumerate(jobs):
             if data["joblist"][i] == True:
                 if data["queue"] == "noctua2":
-                    lines.insert(ijob + i, f"srun cp2k.psmp {job}.inp >{job}.out\n")
+                    lines.insert(
+                        ijob + i, f"srun cp2k.psmp {job}.inp >{job}.out\n"
+                    )
                 elif data["queue"] in ["bonna", "berta2", "iris2", "hedy2"]:
                     lines.insert(
                         ijob + i,

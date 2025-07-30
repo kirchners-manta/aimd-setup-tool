@@ -40,6 +40,8 @@ def setup_job(args: dict[str, Any]) -> int:
         sys.exit(
             " *** Coordinate file is required through command line or toml file. Exiting."
         )
+    # debug
+    print(args["boxsize"])
     if args["boxsize"] is None:
         with open(args["coord"], encoding="utf-8") as f:
             # read the second line of the coordinate file
@@ -166,7 +168,9 @@ def setup_job(args: dict[str, Any]) -> int:
     print(f"{'Coordinate file:'.ljust(35)}{args['coord']}")
     print(f"{'Charge:'.ljust(35)}{args['charge']}")
     if args["uks"]:
-        print(f"{'Multiplicity:'.ljust(35)}{args['mult']} (open shell calculation)")
+        print(
+            f"{'Multiplicity:'.ljust(35)}{args['mult']} (open shell calculation)"
+        )
     else:
         print(f"{'Multiplicity:'.ljust(35)}{args['mult']}")
     print(f"{'QS method:'.ljust(35)}{qs_method}")
@@ -177,7 +181,10 @@ def setup_job(args: dict[str, Any]) -> int:
         if args["dftu"] is not None:
             print(
                 f"{'DFT+U:'.ljust(35)}",
-                [f"{k}: L={v[0]}, U-J={v[1]} eV" for k, v in args["dftu"].items()],
+                [
+                    f"{k}: L={v[0]}, U-J={v[1]} eV"
+                    for k, v in args["dftu"].items()
+                ],
             )
 
     # arguments that are only needed for a certain type of calculation are printed last
@@ -194,10 +201,14 @@ def setup_job(args: dict[str, Any]) -> int:
         print(f"{'Timestep [fs]:'.ljust(35)}{args['timestep']}")
         if not args["no_equi"]:
             print(f"{'Equilibration steps:'.ljust(35)}{args['steps_equi']}")
-            print(f"{'Equilibration temperature [K]:'.ljust(35)}{args['t_equi']}")
+            print(
+                f"{'Equilibration temperature [K]:'.ljust(35)}{args['t_equi']}"
+            )
         if not args["no_relax"]:
             print(f"{'Relaxation steps:'.ljust(35)}{args['steps_relax']}")
-            print(f"{'Relaxation temperature [K]:'.ljust(35)}{args['t_relax']}")
+            print(
+                f"{'Relaxation temperature [K]:'.ljust(35)}{args['t_relax']}"
+            )
         if not args["no_prod"]:
             print(f"{'Production steps:'.ljust(35)}{args['steps_prod']}")
             print(f"{'Production temperature [K]:'.ljust(35)}{args['t_prod']}")
@@ -222,7 +233,9 @@ def setup_job(args: dict[str, Any]) -> int:
 
         print(f"{'Type of calculation:'.ljust(35)}BQB file production")
         print(f"{'Reference trajectory:'.ljust(35)}{args['reftraj']}")
-        print(f"{'Process Trajectory from step:'.ljust(35)}{args['start_from']}")
+        print(
+            f"{'Process Trajectory from step:'.ljust(35)}{args['start_from']}"
+        )
         print(f"{'Bqb files:'.ljust(35)}{args['n_bqb']}")
         print(f"{'Steps per bqb file:'.ljust(35)}{args['steps_bqb']}")
         print(f"{'Spectrum:'.ljust(35)}{args['spectrum']}")
@@ -235,7 +248,9 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_bqb = False
         exec_energy = True
 
-        print(f"{'Type of calculation:'.ljust(35)}Single point energy calculation")
+        print(
+            f"{'Type of calculation:'.ljust(35)}Single point energy calculation"
+        )
         print(f"{'Energy convergence [Hartree]:'.ljust(35)}{args['e_conv']}")
 
     elif args["type"] == "adapt-sampl":
@@ -274,7 +289,9 @@ def setup_job(args: dict[str, Any]) -> int:
     # electric field settings
     if args["efield"] is not None:
         print(f"{'Periodic E-field:'.ljust(35)}{args['efield']}")
-        print(f"{'E-field strength [a.u.]:'.ljust(35)}{args['efield_strength']}")
+        print(
+            f"{'E-field strength [a.u.]:'.ljust(35)}{args['efield_strength']}"
+        )
 
     # HPC information
     print(f"{'CP2K version:'.ljust(35)}{args['cp2k_version']}")
