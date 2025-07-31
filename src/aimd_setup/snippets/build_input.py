@@ -174,16 +174,31 @@ def get_default_sections() -> dict[str, Any]:
                         "add": False,
                         "header": "header.inp",
                         "keywords": "keywords.inp",
+                        "each": {
+                            "add": True,
+                            "header": "header.inp",
+                            "keywords": "keywords.inp",
+                        },
                     },
                     "e_density_cube": {
                         "add": False,
                         "header": "header.inp",
                         "keywords": "keywords.inp",
+                        "each": {
+                            "add": True,
+                            "header": "header.inp",
+                            "keywords": "keywords.inp",
+                        },
                     },
                     "voronoi": {
-                        "add": True,
+                        "add": False,
                         "header": "header.inp",
                         "keywords": "keywords.inp",
+                        "each": {
+                            "add": True,
+                            "header": "header.inp",
+                            "keywords": "keywords.inp",
+                        },
                     },
                 },
                 "qs": {
@@ -800,16 +815,20 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # enable wannier centers if requested
         sections_prod["force_eval"]["dft"]["localize"]["add"] = data["wannier"]
         # electron density output
-        if data["bqb"]:
+        if any([data["bqb"], data["cube"], data["voronoi"]]):
             sections_prod["force_eval"]["dft"]["print"]["add"] = True
-            sections_prod["force_eval"]["dft"]["print"]["e_density_bqb"][
-                "add"
-            ] = True
-        if data["cube"]:
-            sections_prod["force_eval"]["dft"]["print"]["add"] = True
-            sections_prod["force_eval"]["dft"]["print"]["e_density_cube"][
-                "add"
-            ] = True
+            if data["bqb"]:
+                sections_prod["force_eval"]["dft"]["print"]["e_density_bqb"][
+                    "add"
+                ] = True
+            if data["cube"]:
+                sections_prod["force_eval"]["dft"]["print"]["e_density_cube"][
+                    "add"
+                ] = True
+            if data["voronoi"]:
+                sections_prod["force_eval"]["dft"]["print"]["voronoi"][
+                    "add"
+                ] = True
         # ext_restart
         if data["joblist"][2]:
             sections_prod["ext_restart"]["add"] = True
@@ -874,6 +893,10 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                             i + j + 1,
                             f"{'      '}{lines_to_add[j].split('#')[0].rstrip()}",
                         )
+            if "${PRINT_WANNIER_EVERY}" in line:
+                lines[i] = line.replace(
+                    "${PRINT_WANNIER_EVERY}", str(data["print_wannier_every"])
+                )
 
         # standard replacements
         lines = standard_replacements(lines, data)
@@ -1156,6 +1179,18 @@ def standard_replacements(
             )
         if "${PP_FUNC}" in line:
             lines[i] = line.replace("${PP_FUNC}", data["pp_func"])
+        if "${PRINT_BQB_EVERY}" in line:
+            lines[i] = line.replace(
+                "${PRINT_BQB_EVERY}", str(data["print_bqb_every"])
+            )
+        if "${PRINT_CUBE_EVERY}" in line:
+            lines[i] = line.replace(
+                "${PRINT_CUBE_EVERY}", str(data["print_cube_every"])
+            )
+        if "${PRINT_VORONOI_EVERY}" in line:
+            lines[i] = line.replace(
+                "${PRINT_VORONOI_EVERY}", str(data["print_voronoi_every"])
+            )
         if "${QS_METHOD}" in line:
             if data["qs_method"] == "GPW":
                 idx_to_remove.append(i)

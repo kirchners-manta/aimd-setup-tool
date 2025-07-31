@@ -25,6 +25,4 @@ def console_entry_point(argv: Sequence[str] | None = None) -> int:
     args.update(toml_options)
 
     # hand over arguments to setup function
-    setup_job(args)
-
-    return 0
+    return setup_job(args)

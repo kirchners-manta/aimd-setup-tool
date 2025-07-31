@@ -442,7 +442,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         "--cp2k-version",
         type=str,
         help="R|Version of CP2K to use.",
-        default="2023.1",
+        default="2025.1",
         dest="cp2k_version",
         choices=["2023.1", "2024.3", "2025.1"],
     )
@@ -545,7 +545,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         type=int,
         metavar="CUTOFF",
         help="R|Electron density integration grid cutoff in Ry.",
-        default=280,
+        default=400,
         dest="grid_cutoff",
         action=action_not_less_than(100),
     )
@@ -554,7 +554,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         type=int,
         metavar="N",
         help="R|Number of grids for the electron density integration.",
-        default=5,
+        default=4,
         dest="grid_n",
         action=action_not_less_than(1),
     )
@@ -636,6 +636,42 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         default="xyz",
         dest="pbc",
         choices=["xyz", "none"],
+    )
+    p.add_argument(
+        "--print-bqb-every",
+        type=int,
+        metavar="N",
+        help="R|Print BQB file every N steps.",
+        default=1,
+        dest="print_bqb_every",
+        action=action_not_less_than(1),
+    )
+    p.add_argument(
+        "--print-cube-every",
+        type=int,
+        metavar="N",
+        help="R|Print cube file every N steps.",
+        default=1,
+        dest="print_cube_every",
+        action=action_not_less_than(1),
+    )
+    p.add_argument(
+        "--print-voronoi-every",
+        type=int,
+        metavar="N",
+        help="R|Print Voronoi file every N steps.",
+        default=1,
+        dest="print_voronoi_every",
+        action=action_not_less_than(1),
+    )
+    p.add_argument(
+        "--print-wannier-every",
+        type=int,
+        metavar="N",
+        help="R|Perform Wannier localization every N steps.",
+        default=1,
+        dest="print_wannier_every",
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "-q",
@@ -767,7 +803,13 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         dest="velocity",
     )
     p.add_argument(
-        "-w",
+        "--voronoi",
+        help="R|Calculate Voronoi tessellation in production run.",
+        default=False,
+        action="store_true",
+        dest="voronoi",
+    )
+    p.add_argument(
         "--wannier",
         help="R|Calculate Wannier functions in production run.",
         default=False,
