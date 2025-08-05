@@ -40,7 +40,10 @@ def cp_runscript(
             "2025.1": "chem/CP2K/2025.1-foss-2023b-gcc-openmpi-openblas",
         },
         "bonna": {},
-        "marvin": {},
+        "marvin": {
+            "2024.3": "/opt/software/ag_mctc_kirchner/cp2k-2024.3",
+            "2025.2": "/opt/software/ag_mctc_kirchner/cp2k-2025.2",
+        },
         "berta2": {
             "2024.3": "/software/cluster-2/cp2k-2024.3_berta",
         },
@@ -93,7 +96,7 @@ def cp_runscript(
                 elif data["queue"] == "noctua2":
                     cpuspernode = 128
                 elif data["queue"] == "marvin":
-                    cpuspernode = 64
+                    cpuspernode = 96
                 elif data["queue"] == "berta2":
                     cpuspernode = 32
                 elif data["queue"] == "iris2":
@@ -130,16 +133,21 @@ def cp_runscript(
 
         jobs = ["geoopt", "eq", "relax", "prod", "bqb", "energy"]
 
-        for i, job in enumerate(jobs):
-            if data["joblist"][i] == True:
+        for j, job in enumerate(jobs):
+            if data["joblist"][j] == True:
                 if data["queue"] == "noctua2":
                     lines.insert(
-                        ijob + i, f"srun cp2k.psmp {job}.inp >{job}.out\n"
+                        ijob + j, f"srun cp2k.psmp {job}.inp >{job}.out\n"
                     )
                 elif data["queue"] in ["bonna", "berta2", "iris2", "hedy2"]:
                     lines.insert(
-                        ijob + i,
+                        ijob + j,
                         f"mpirun {cp2k_version_strings[data['queue']][data['cp2k_version']]}/cp2k.psmp {job}.inp >{job}.out\n",
+                    )
+                elif data["queue"] == "marvin":
+                    lines.insert(
+                        ijob + j,
+                        f"mpirun {cp2k_version_strings[data['queue']][data['cp2k_version']]}/exe/local/cp2k.psmp {job}.inp >{job}.out\n",
                     )
 
         with open(data["runscript"], "w") as g:

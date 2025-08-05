@@ -444,7 +444,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Version of CP2K to use.",
         default="2025.1",
         dest="cp2k_version",
-        choices=["2023.1", "2024.3", "2025.1"],
+        choices=["2023.1", "2024.3", "2025.1", "2025.2"],
     )
     p.add_argument(
         "--cpu",
@@ -680,7 +680,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         help="R|Cluster/queue to submit the job to.",
         default="noctua2",
         dest="queue",
-        choices=["noctua2", "hedy2", "iris2", "berta2", "bonna"],
+        choices=["noctua2", "marvin", "hedy2", "iris2", "berta2", "bonna"],
     )
     p.add_argument(
         "--reftraj",
