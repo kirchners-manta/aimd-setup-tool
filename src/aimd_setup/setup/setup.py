@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from ..adjust_input import cp_runscript
 from ..functions import make_project_dir
 from ..snippets import generate_input_files
@@ -87,6 +89,10 @@ def setup_job(args: dict[str, Any]) -> int:
         qs_method = "XTB"
     else:
         qs_method = "GPW"
+
+    # seed
+    if args["random_seed"]:
+        args["seed"] = np.random.randint(1, 1000000)
 
     # capitalize variables
     args["thermo"] = args["thermo"].upper()
@@ -178,6 +184,7 @@ def setup_job(args: dict[str, Any]) -> int:
         )
     else:
         print(f"{'Multiplicity:'.ljust(40)}{args['mult']}")
+    print(f"{'Seed:'.ljust(40)}{args['seed']}")
     print(f"{'QS method:'.ljust(40)}{qs_method}")
     if qs_method == "GPW":
         print(f"{'Density functional:'.ljust(40)}{args['func'].upper()}")
@@ -191,6 +198,9 @@ def setup_job(args: dict[str, Any]) -> int:
                     for k, v in args["dftu"].items()
                 ],
             )
+        print(f"{'Grids:'.ljust(40)}{args['grid_n']}")
+        print(f"{'Grids cutoff [Ry]:'.ljust(40)}{args['grid_cutoff']}")
+        print(f"{'Grids rel cutoff [Ry]:'.ljust(40)}{args['grid_rel_cutoff']}")
 
     # arguments that are only needed for a certain type of calculation are printed last
     if args["type"] == "aimd":

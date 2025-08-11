@@ -1193,9 +1193,14 @@ def standard_replacements(
             )
         if "${QS_METHOD}" in line:
             if data["qs_method"] == "GPW":
-                idx_to_remove.append(i)
+                idx_to_remove.append(i)  # remove if default
             else:
                 lines[i] = line.replace("${QS_METHOD}", data["qs_method"])
+        if "${SEED}" in line:
+            if data["seed"] == 2000:
+                idx_to_remove.append(i)  # remove if default
+            else:
+                lines[i] = line.replace("${SEED}", str(data["seed"]))
         if "${SIMBOX_XYZ}" in line:
             lines[i] = line.replace("${SIMBOX_XYZ}", data["coord"])
         if "${TIMESTEP}" in line:

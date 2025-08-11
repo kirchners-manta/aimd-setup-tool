@@ -4,3 +4,4 @@ PREFERRED_FFT_LIBRARY FFTW      # use FFTW for FFTs
 PRINT_LEVEL LOW                 # print level, low is sufficient
 PROJECT ${PROJECT_NAME}         # project name
 RUN_TYPE ${TYPE}                # job type, e.g. MD, ENERGY_FORCE, GEO_OPT
+SEED ${SEED}                    # seed for random number generator of CP2K

@@ -683,11 +683,27 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         choices=["noctua2", "marvin", "hedy2", "iris2", "berta2", "bonna"],
     )
     p.add_argument(
+        "--random-seed",
+        help="R|Use a random seed for the simulation (overwrites given seed).\nIf a defined seed is desired, call --seed option.",
+        default=False,
+        dest="random_seed",
+        action="store_true",
+    )
+    p.add_argument(
         "--reftraj",
         type=is_file,
         metavar="FILE",
         help="R|Reference trajectory file to calculate the spectrum from.",
         dest="reftraj",
+    )
+    p.add_argument(
+        "--seed",
+        type=int,
+        metavar="N",
+        help="R|Seed for the simulation passed to CP2K (will be overwritten by random seed).\nIf a random seed is desired, call --random-seed option.",
+        default=2000,
+        dest="seed",
+        action=action_not_less_than(1),
     )
     p.add_argument(
         "--start-from",
