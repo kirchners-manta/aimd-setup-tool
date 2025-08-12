@@ -39,7 +39,9 @@ def cp_runscript(
             "2023.1": "chem/CP2K/2023.1-foss-2022b-gcc-openmpi-openblas",
             "2025.1": "chem/CP2K/2025.1-foss-2023b-gcc-openmpi-openblas",
         },
-        "bonna": {},
+        "bonna": {
+            "2024.3": "home/chemie/install_cp2k/cp2k-2024.3",
+        },
         "marvin": {
             "2024.3": "/opt/software/ag_mctc_kirchner/cp2k-2024.3",
             "2025.2": "/opt/software/ag_mctc_kirchner/cp2k-2025.2",
@@ -139,12 +141,12 @@ def cp_runscript(
                     lines.insert(
                         ijob + j, f"srun cp2k.psmp {job}.inp >{job}.out\n"
                     )
-                elif data["queue"] in ["bonna", "berta2", "iris2", "hedy2"]:
+                elif data["queue"] in ["berta2", "iris2", "hedy2"]:
                     lines.insert(
                         ijob + j,
                         f"mpirun {cp2k_version_strings[data['queue']][data['cp2k_version']]}/cp2k.psmp {job}.inp >{job}.out\n",
                     )
-                elif data["queue"] == "marvin":
+                elif data["queue"] in ["marvin", "bonna"]:
                     lines.insert(
                         ijob + j,
                         f"mpirun {cp2k_version_strings[data['queue']][data['cp2k_version']]}/exe/local/cp2k.psmp {job}.inp >{job}.out\n",

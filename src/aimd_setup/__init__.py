@@ -14,4 +14,3 @@ It is published under the MIT license.
 from .__version__ import __version__
 
 __all__ = ["__version__"]
-# from .cli import console_entry_point

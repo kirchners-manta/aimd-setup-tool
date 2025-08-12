@@ -535,6 +535,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
             "pade",
             "pbe",
             "revpbe",
+            "pbe0",
             "scan",
             "r2scan",
             "xtb",

@@ -260,6 +260,10 @@ def get_default_sections() -> dict[str, Any]:
                             "add": False,
                             "header": "header.inp",
                         },
+                        "pbe0": {
+                            "add": False,
+                            "header": "header.inp",
+                        },
                         "r2scan": {
                             "add": False,
                             "header": "header.inp",
