@@ -31,8 +31,10 @@ A full list of options can be obtained by calling
 aimd_setup -h
 ```
 Two options are always required: `-p` (project name) and `-c` (input coordinate file in `.xyz` format).
-A new directory will be created for the project, and the input coordinate file will be copied to this directory.
+A new directory will be created for the project, using the specified name, and the input coordinate file will be copied to this directory.
 The box geometry is also required via the `-b` (box length) option, unless the box size is specified in the second line of the coordinate file.
+If the box is cubic, a single value can be given, otherwise a list of three values (box lengths in x, y, and z direction) has to be provided.
+Boxes with non-orthogonal angles are currently not supported.
 Thus, a very simple call of the program could look like this:
 ```bash
 aimd_setup -p my_project -c input.xyz -b 10.0
@@ -48,7 +50,23 @@ project = "test"
 coord   = "input.xyz"
 boxsize = [10.0, 11.0, 12.0]
 ```
+Also note that the program will print a list of options used for the setup to the terminal - checking this list is a good idea to ensure that the intended options were used.
+
+One of the most important options is the `--type` option, which specifies the type of calculation to be set up.
+Currently, four types are implemented:
+- `aimd`: AIMD simulation (default).
+- `bqb`: Calculation of vibrational spectra from an existing AIMD trajectory.
+- `energy`: Single-point energy calculation.
+- `geoopt`: Geometry optimization.
+If the `aimd` type is chosen, three input files will be created in the project directory:
+- `eq.inp`: First equilibration run at elevated temperature.
+- `relax.inp`: Second equilibration run at target temperature (which we call relaxation here, not to be confused with geometry optimization).
+- `prod.inp`: Production run at target temperature.
+These runs can be further customized using various options, e.g., to set the length of each run or the target temperature (see `aimd_setup -h` for details).
+Either of these runs can also be skipped using the `--no-equi` or `--no-relax` or `--no-prod` flags, respectively.
+
+The cluster on which the calculations will be run can be specified using the `-q`/`--queue` option and the CP2K version using the `--cp2k-version` option.
 
 ## Contributors
 
-- [Tom Frömbgen](https://github.com/tomfroembgen): [froembgen@thch.uni-bonn.de](mailto:froembgen@thch.uni-bonn.de)
+- [Tom Frömbgen](https://github.com/tomfroembgen): [tomfroe@uni-bonn.de](mailto:tomfroe@uni-bonn.de)
