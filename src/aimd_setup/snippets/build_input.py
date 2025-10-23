@@ -325,6 +325,10 @@ def get_default_sections() -> dict[str, Any]:
                     "add": False,
                     "header": "header.inp",
                 },
+                "kind_na": {
+                    "add": False,
+                    "header": "header.inp",
+                },
                 "kind_mg": {
                     "add": False,
                     "header": "header.inp",
