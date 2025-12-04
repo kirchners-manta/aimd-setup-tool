@@ -37,6 +37,7 @@ def cp_runscript(
     cp2k_version_strings = {
         "noctua2": {
             "2023.1": "chem/CP2K/2023.1-foss-2022b-gcc-openmpi-openblas",
+            "2024.2": "chem/CP2K/2024.2-foss-2023b-gcc-openmpi-openblas",
             "2025.1": "chem/CP2K/2025.1-foss-2023b-gcc-openmpi-openblas",
         },
         "bonna": {

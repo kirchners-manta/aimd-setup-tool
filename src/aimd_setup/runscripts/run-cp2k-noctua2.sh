@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Part of the AIMD setup tool
-# CP2K 2023.1 run script
+# CP2K run script
 
-#SBATCH -t 14-00:00:00
+#SBATCH -t 21-00:00:00
 #SBATCH -p normal
 #SBATCH --ntasks-per-node=N_CPU
 #SBATCH --cpus-per-task=1
