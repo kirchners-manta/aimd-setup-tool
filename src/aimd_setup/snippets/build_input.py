@@ -601,13 +601,6 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
             "xyz": "1.0 1.0 1.0",
         }
 
-        if data["type"] == "bqb":
-            # "n" means no electric field and is the case for ir, vcd and dipoles
-            # "x", "y", "z" are the three components of the electric field needed for raman and roa
-            fields = ["n", "x", "y", "z"]
-    else:
-        fields = [""]
-
     # add poisson section if system is not fully periodic
     if data["pbc"] == "none":
         sections["force_eval"]["dft"]["poisson"]["add"] = True
@@ -921,18 +914,23 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         if data["spectrum"] == "ir":
             stride = 8
             overlap = 0
+            fields = [""]
         elif data["spectrum"] == "raman":
             stride = 8
             overlap = 0
+            fields = ["n", "x", "y", "z"]
         elif data["spectrum"] == "vcd":
             stride = 1
             overlap = 2
+            fields = [""]
         elif data["spectrum"] == "roa":
             stride = 1
             overlap = 2
+            fields = ["n", "x", "y", "z"]
         elif data["spectrum"] == "dipoles":
             stride = 1
             overlap = 0
+            fields = [""]
 
         # motion
         # change ensemble
@@ -949,11 +947,19 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"][
             "add"
         ] = True
+        # add voronoi file if requested
+        if data["voronoi"]:
+            sections_bqb["force_eval"]["dft"]["print"]["voronoi"]["add"] = True
         # switch to cube file if requested
         if data["cube"]:
             sections_bqb["force_eval"]["dft"]["print"]["e_density_cube"][
                 "add"
             ] = True
+            sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"][
+                "add"
+            ] = False
+        # if user specifically requests no bqb, then turn it off
+        if not data["bqb"]:
             sections_bqb["force_eval"]["dft"]["print"]["e_density_bqb"][
                 "add"
             ] = False
@@ -1056,7 +1062,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                     f"sed -i 's@{data['project']}_{bqb_count+1:02d}@{data['project']}_{bqb_count+1:02d}_{vec}@g' ./{vec}_field/{data['runscript']}"
                 )
 
-                if k == 3:
+                if k == len(fields) - 1:
                     # remove the files from the main directory if they exist there (and were not copied from somewhere else)
                     Path.unlink(Path(f"./{data['coord']}"), missing_ok=True)
                     Path.unlink(

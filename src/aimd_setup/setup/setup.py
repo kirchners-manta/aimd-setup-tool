@@ -269,6 +269,23 @@ def setup_job(args: dict[str, Any]) -> int:
         print(f"{'Steps per bqb file:'.ljust(40)}{args['steps_bqb']}")
         print(f"{'Spectrum:'.ljust(40)}{args['spectrum']}")
 
+        if args["bqb"]:
+            print(
+                f"{'Print BQB file every [steps]:'.ljust(40)}{args['print_bqb_every']}"
+            )
+        if args["cube"]:
+            print(
+                f"{'Print cube file every [steps]:'.ljust(40)}{args['print_cube_every']}"
+            )
+        if args["voronoi"]:
+            print(
+                f"{'Print Voronoi file every [steps]:'.ljust(40)}{args['print_voronoi_every']}"
+            )
+        if args["wannier"]:
+            print(
+                f"{'Wannier localization every [steps]:'.ljust(40)}{args['print_wannier_every']}"
+            )
+
     elif args["type"] == "energy":
         exec_geoopt = False
         exec_eq = False
@@ -416,7 +433,7 @@ def setup_job(args: dict[str, Any]) -> int:
                 bqb_count=i,
             )
             generate_input_files(data=args, bqb_count=i)
-            os.chdir("..")
+            os.chdir(project_dir)
 
         # in the end, change back to the directory from which the script was called
         os.chdir(start_dir)
