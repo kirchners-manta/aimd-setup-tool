@@ -1,7 +1,7 @@
 # AIMD Setup Tool
 ---
 
-![Python versions](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)
+![Python versions](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -53,9 +53,12 @@ boxsize = [10.0, 11.0, 12.0]
 Also note that the program will print a list of options used for the setup to the terminal - checking this list is a good idea to ensure that the intended options were used.
 
 One of the most important options is the `--type` option, which specifies the type of calculation to be set up.
-Currently, four types are implemented:
+Currently, five types are implemented:
 - `aimd`: AIMD simulation (default).
-- `bqb`: Calculation of vibrational spectra from an existing AIMD trajectory.
+- `reftraj`: Electronic structure along an existing AIMD trajectory (CP2K's `REFTRAJ` ensemble), for vibrational spectra.
+  The trajectory is split into chunks (`--n-chunks`, `--steps-chunk`), each set up in its own directory `reftraj_XX`.
+  Formerly called `bqb`; `--type bqb` still works but is deprecated.
+- `adapt-sampl`: Adaptive sampling.
 - `energy`: Single-point energy calculation.
 - `geoopt`: Geometry optimization.
 If the `aimd` type is chosen, three input files will be created in the project directory:

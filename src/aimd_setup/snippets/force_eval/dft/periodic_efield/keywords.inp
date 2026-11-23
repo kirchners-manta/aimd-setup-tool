@@ -1,2 +1,0 @@
-INTENSITY ${FIELD_STRENGTH} # Intensity of the electric field in atomic units
-POLARISATION ${FIELD_VECTOR} # Polarisation vector of the electric field

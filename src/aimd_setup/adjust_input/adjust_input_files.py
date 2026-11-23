@@ -17,7 +17,7 @@ def cp_runscript(
     data: dict[str, Any],
     template_dir: Path,
     project_dir: Path,
-    bqb_count: int = -1,
+    chunk: int = -1,
 ) -> None:
     """Copy the runscript to the project directory, and edit the runscript according to user input
 
@@ -29,8 +29,8 @@ def cp_runscript(
         path to the directory containing the template files
     project_dir : str
         path to the directory where the files should be copied to
-    bqb_count : int
-        Counter for the number of BQB calculations
+    chunk : int
+        Index of the trajectory chunk of a reftraj calculation, -1 for other types
     """
 
     # dictionary with the cp2k version strings
@@ -81,9 +81,9 @@ def cp_runscript(
                 ijob = i
 
             if "PROJECT_NAME" in line:
-                if bqb_count >= 0:
+                if chunk >= 0:
                     lines[i] = line.replace(
-                        "PROJECT_NAME", data["project"] + f"_{bqb_count+1:02d}"
+                        "PROJECT_NAME", data["project"] + f"_{chunk+1:02d}"
                     )
                 else:
                     lines[i] = line.replace("PROJECT_NAME", data["project"])
@@ -134,7 +134,7 @@ def cp_runscript(
                     cp2k_version_strings[data["queue"]][data["cp2k_version"]],
                 )
 
-        jobs = ["geoopt", "eq", "relax", "prod", "bqb", "energy"]
+        jobs = ["geoopt", "eq", "relax", "prod", "reftraj", "energy"]
 
         for j, job in enumerate(jobs):
             if data["joblist"][j] == True:

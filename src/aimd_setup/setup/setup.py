@@ -13,8 +13,8 @@ from typing import Any
 import numpy as np
 
 from ..adjust_input import cp_runscript
+from ..cp2k_input import generate_input_files
 from ..functions import make_project_dir
-from ..snippets import generate_input_files
 
 # import toml
 
@@ -73,6 +73,25 @@ def setup_job(args: dict[str, Any]) -> int:
                 "Invalid box dimensions. Provide either one (cubic) or three (orthorhombic) box lengths."
             )
 
+    # "bqb" is the former name of the reftraj type
+    if args["type"] == "bqb":
+        print(
+            " *** Warning: '--type bqb' is deprecated, use '--type reftraj'.",
+            file=sys.stderr,
+        )
+        args["type"] = "reftraj"
+
+    # density output defaults depend on the job type; --[no-]voronoi and
+    # --[no-]bqb override them. Spectra are computed from the small .voronoi files
+    # where possible; VCD and ROA need the full density (BQB) for magnetic moments.
+    if args["voronoi"] is None:
+        args["voronoi"] = args["type"] == "reftraj"
+    if args["bqb"] is None:
+        args["bqb"] = args["type"] == "reftraj" and args["spectrum"] in (
+            "vcd",
+            "roa",
+        )
+
     # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
     if args["func"] == "revpbe":
         pp_func = "PBE"
@@ -117,8 +136,8 @@ def setup_job(args: dict[str, Any]) -> int:
     # get basename of the coordinate file
     args["coord"] = abs_coord.name
 
-    # if bqb calculation, get absolute path of the reference trajectory file
-    if args["type"] == "bqb":
+    # if reftraj calculation, get absolute path of the reference trajectory file
+    if args["type"] == "reftraj":
         # get absolute path of the reference trajectory file
         abs_reftraj = Path(args["reftraj"]).resolve()
 
@@ -154,7 +173,7 @@ def setup_job(args: dict[str, Any]) -> int:
 
     # adjust bqb history parameter if necessary
     if (
-        (args["type"] == "bqb" and args["steps_bqb"] < 10)
+        (args["type"] == "reftraj" and args["steps_chunk"] < 10)
         or args["type"] == "adapt-sampl"
         or (args["type"] == "aimd" and args["bqb"] and args["steps_prod"] < 10)
     ):
@@ -209,7 +228,7 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_eq = not args["no_equi"]
         exec_relax = not args["no_relax"]
         exec_prod = not args["no_prod"]
-        exec_bqb = False
+        exec_reftraj = False
         exec_energy = False
 
         print(f"{'Type of calculation:'.ljust(40)}AIMD simulation")
@@ -219,14 +238,23 @@ def setup_job(args: dict[str, Any]) -> int:
             print(
                 f"{'Equilibration temperature [K]:'.ljust(40)}{args['t_equi']}"
             )
+            print(
+                f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_equi']}"
+            )
         if not args["no_relax"]:
             print(f"{'Relaxation steps:'.ljust(40)}{args['steps_relax']}")
             print(
                 f"{'Relaxation temperature [K]:'.ljust(40)}{args['t_relax']}"
             )
+            print(
+                f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_relax']}"
+            )
         if not args["no_prod"]:
             print(f"{'Production steps:'.ljust(40)}{args['steps_prod']}")
             print(f"{'Production temperature [K]:'.ljust(40)}{args['t_prod']}")
+            print(
+                f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_prod']}"
+            )
         if not args["no_equi"]:
             print(f"{'Ensemble in equilibration:'.ljust(40)}NVT")
             print(f"{'Thermostat:'.ljust(40)}{args['thermo']}")
@@ -252,22 +280,25 @@ def setup_job(args: dict[str, Any]) -> int:
                 f"{'Wannier localization every [steps]:'.ljust(40)}{args['print_wannier_every']}"
             )
 
-    elif args["type"] == "bqb":
+    elif args["type"] == "reftraj":
         exec_geoopt = False
         exec_eq = False
         exec_relax = False
         exec_prod = False
-        exec_bqb = True
+        exec_reftraj = True
         exec_energy = False
 
-        print(f"{'Type of calculation:'.ljust(40)}BQB file production")
+        print(
+            f"{'Type of calculation:'.ljust(40)}Electronic structure along a trajectory (REFTRAJ)"
+        )
         print(f"{'Reference trajectory:'.ljust(40)}{args['reftraj']}")
         print(
             f"{'Process Trajectory from step:'.ljust(40)}{args['start_from']}"
         )
-        print(f"{'Bqb files:'.ljust(40)}{args['n_bqb']}")
-        print(f"{'Steps per bqb file:'.ljust(40)}{args['steps_bqb']}")
+        print(f"{'Trajectory chunks:'.ljust(40)}{args['n_chunks']}")
+        print(f"{'Steps per chunk:'.ljust(40)}{args['steps_chunk']}")
         print(f"{'Spectrum:'.ljust(40)}{args['spectrum']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv']}")
 
         if args["bqb"]:
             print(
@@ -291,20 +322,20 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_eq = False
         exec_relax = False
         exec_prod = False
-        exec_bqb = False
+        exec_reftraj = False
         exec_energy = True
 
         print(
             f"{'Type of calculation:'.ljust(40)}Single point energy calculation"
         )
-        print(f"{'Energy convergence [Hartree]:'.ljust(40)}{args['e_conv']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv']}")
 
     elif args["type"] == "adapt-sampl":
         exec_geoopt = False
         exec_eq = False
         exec_relax = False
         exec_prod = True
-        exec_bqb = False
+        exec_reftraj = False
         exec_energy = False
 
         # set extra arguments specific to this type of calculation
@@ -319,6 +350,7 @@ def setup_job(args: dict[str, Any]) -> int:
         print(f"{'Type of calculation:'.ljust(40)}Adaptive sampling")
         print(f"{'Production steps:'.ljust(40)}{args['steps_prod']}")
         print(f"{'Production temperature [K]:'.ljust(40)}{args['t_prod']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_prod']}")
         print(f"{'Print BQB file:'.ljust(40)}{args['bqb']}")
 
     elif args["type"] == "geoopt":
@@ -326,11 +358,12 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_eq = False
         exec_relax = False
         exec_prod = False
-        exec_bqb = False
+        exec_reftraj = False
         exec_energy = False
 
         print(f"{'Type of calculation:'.ljust(40)}Geometry optimization")
         print(f"{'Convergence criteria:'.ljust(40)}{args['opt_level']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv']}")
 
     # electric field settings
     if args["efield"] is not None:
@@ -352,7 +385,7 @@ def setup_job(args: dict[str, Any]) -> int:
         exec_eq,
         exec_relax,
         exec_prod,
-        exec_bqb,
+        exec_reftraj,
         exec_energy,
     ]
 
@@ -407,32 +440,32 @@ def setup_job(args: dict[str, Any]) -> int:
         # in the end, change back to the directory from which the script was called
         os.chdir(start_dir)
 
-    elif args["type"] == "bqb":
+    elif args["type"] == "reftraj":
         # generate a project directory
         make_project_dir(project_dir, args["overwrite"])
 
         # change to the project directory and copy coords
         os.chdir(project_dir)
 
-        # generate subdirectories for the bqb jobs
-        for i in range(args["n_bqb"]):
-            bqb_path = Path("bqb_" + f"{i+1:02d}")
-            bqb_path.mkdir(parents=True, exist_ok=True)
-            shutil.copy(abs_coord, bqb_path)
+        # generate one subdirectory per trajectory chunk
+        for i in range(args["n_chunks"]):
+            chunk_path = Path(f"reftraj_{i+1:02d}")
+            chunk_path.mkdir(parents=True, exist_ok=True)
+            shutil.copy(abs_coord, chunk_path)
 
             # copy velocities if given
             if args["velocity"] is not None:
-                shutil.copy(abs_velocity, bqb_path)
+                shutil.copy(abs_velocity, chunk_path)
 
-            shutil.copy(abs_reftraj, bqb_path)
-            os.chdir(bqb_path)
+            shutil.copy(abs_reftraj, chunk_path)
+            os.chdir(chunk_path)
             cp_runscript(
                 data=args,
                 template_dir=script_dir,
                 project_dir=Path("."),
-                bqb_count=i,
+                chunk=i,
             )
-            generate_input_files(data=args, bqb_count=i)
+            generate_input_files(data=args, chunk=i)
             os.chdir(project_dir)
 
         # in the end, change back to the directory from which the script was called
