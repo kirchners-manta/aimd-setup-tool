@@ -320,7 +320,7 @@ def dft_section(
         "MAX_SCF": 20,
         "SCF_GUESS": scf_guess,
         "OT": {"MINIMIZER": "DIIS", "PRECONDITIONER": "FULL_SINGLE_INVERSE"},
-        # the outer EPS_SCF must not be smaller than the inner one
+        # the outer EPS_SCF must be smaller than or equal to the inner one
         "OUTER_SCF": {"MAX_SCF": 20, "EPS_SCF": 1.0e-6},
     }
 
@@ -463,7 +463,12 @@ def velocity_section(velocity_file: str) -> Section:
     return {"_lines": [line for line in stripped if line]}
 
 
-def md_section(data: dict[str, Any], ensemble: str, steps: int) -> Section:
+def md_section(
+    data: dict[str, Any],
+    ensemble: str,
+    steps: int,
+    temperature: float | None = None,
+) -> Section:
     """Build the MD section without thermostat.
 
     Parameters
@@ -474,6 +479,11 @@ def md_section(data: dict[str, Any], ensemble: str, steps: int) -> Section:
         CP2K ensemble, e.g. NVT, NVE, REFTRAJ.
     steps : int
         Number of MD steps.
+    temperature : float | None, optional
+        Temperature in K: the target temperature of NVT runs, and in all ensembles
+        the temperature of the initial velocities when CP2K generates them (no
+        restart or velocity file). None leaves the keyword out (CP2K default:
+        300 K).
 
     Returns
     -------
@@ -490,20 +500,20 @@ def md_section(data: dict[str, Any], ensemble: str, steps: int) -> Section:
         "STEPS": steps,
         "TIMESTEP": data["timestep"],
     }
+    if temperature is not None:
+        md["TEMPERATURE"] = temperature
     return md
 
 
-def thermostat_keywords(
-    data: dict[str, Any], temperature: float, region: str, timecon: int
+def thermostat_section(
+    data: dict[str, Any], region: str, timecon: int
 ) -> Section:
-    """Build the temperature keyword and THERMOSTAT section of the MD section.
+    """Build the THERMOSTAT section of the MD section.
 
     Parameters
     ----------
     data : dict[str, Any]
         Setup options.
-    temperature : float
-        Target temperature in K.
     region : str
         Thermostat region: MASSIVE (one per degree of freedom, fast equilibration)
         or GLOBAL.
@@ -513,16 +523,14 @@ def thermostat_keywords(
     Returns
     -------
     Section
-        Entries to merge into the MD section.
+        The THERMOSTAT section.
     """
+    # the time constant belongs in the subsection of the chosen type (NOSE or
+    # CSVR); CP2K ignores the subsections of other types
     return {
-        "TEMPERATURE": temperature,
-        "THERMOSTAT": {
-            "REGION": region,
-            "TYPE": data["thermo"],
-            # written for every thermostat type, as in earlier versions of this tool
-            "NOSE": {"TIMECON": timecon},
-        },
+        "REGION": region,
+        "TYPE": data["thermo"],
+        data["thermo"]: {"TIMECON": timecon},
     }
 
 
@@ -622,8 +630,8 @@ def equilibration_input(data: dict[str, Any]) -> Section:
     Section
         The complete input tree.
     """
-    md = md_section(data, "NVT", data["steps_equi"])
-    md |= thermostat_keywords(data, data["t_equi"], "MASSIVE", 10)
+    md = md_section(data, "NVT", data["steps_equi"], data["t_equi"])
+    md["THERMOSTAT"] = thermostat_section(data, "MASSIVE", 10)
     force_eval = force_eval_section(data, "ATOMIC", data["efield"])
     if data["velocity"] is not None:
         force_eval["SUBSYS"]["VELOCITY"] = velocity_section(data["velocity"])
@@ -649,8 +657,8 @@ def relaxation_input(data: dict[str, Any], restart: str | None) -> Section:
     Section
         The complete input tree.
     """
-    md = md_section(data, "NVT", data["steps_relax"])
-    md |= thermostat_keywords(data, data["t_relax"], "GLOBAL", 50)
+    md = md_section(data, "NVT", data["steps_relax"], data["t_relax"])
+    md["THERMOSTAT"] = thermostat_section(data, "GLOBAL", 50)
     scf_guess = "ATOMIC" if restart is None else "RESTART"
     tree: Section = {
         "GLOBAL": global_section(data, f"{data['project']}_relax", "MD"),
@@ -677,9 +685,9 @@ def production_input(data: dict[str, Any], restart: str | None) -> Section:
     Section
         The complete input tree.
     """
-    md = md_section(data, data["ensemble"], data["steps_prod"])
+    md = md_section(data, data["ensemble"], data["steps_prod"], data["t_prod"])
     if data["ensemble"] != "NVE":
-        md |= thermostat_keywords(data, data["t_prod"], "GLOBAL", 100)
+        md["THERMOSTAT"] = thermostat_section(data, "GLOBAL", 100)
     # adaptive sampling runs are too short to need restart files
     motion_print = motion_print_section(
         forces_velocities=True, restart=data["type"] != "adapt-sampl"

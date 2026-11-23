@@ -50,6 +50,8 @@ CASES: dict[str, list[str]] = {
         "-c", WATER, "--no-relax", "--ensemble", "nve", "--vel", VEL,
         "--pbc", "none", "--mult", "2",
     ],
+    # CSVR thermostat: the time constant must go to the CSVR subsection
+    "aimd_csvr": ["-c", WATER, "--thermo", "csvr", "--no-relax", "--steps-equi", "100"],
     # r2SCAN with TZV2P basis and a non-default seed
     "aimd_r2scan": [
         "-c", WATER, "--no-equi", "--no-relax", "--func", "r2scan",
