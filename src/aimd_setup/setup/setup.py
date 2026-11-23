@@ -81,6 +81,17 @@ def setup_job(args: dict[str, Any]) -> int:
         )
         args["type"] = "reftraj"
 
+    # density output defaults depend on the job type; --[no-]voronoi and
+    # --[no-]bqb override them. Spectra are computed from the small .voronoi files
+    # where possible; VCD and ROA need the full density (BQB) for magnetic moments.
+    if args["voronoi"] is None:
+        args["voronoi"] = args["type"] == "reftraj"
+    if args["bqb"] is None:
+        args["bqb"] = args["type"] == "reftraj" and args["spectrum"] in (
+            "vcd",
+            "roa",
+        )
+
     # if REVPBE, use PBE for the pseudopotential, because CP2K does not have a REVPBE pseudopotential
     if args["func"] == "revpbe":
         pp_func = "PBE"

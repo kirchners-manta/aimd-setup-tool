@@ -80,6 +80,14 @@
       &END XC_GRID
     &END XC
     &PRINT
+      &VORONOI
+        APPEND
+        FILENAME =traj.voronoi
+        OUTPUT_EMP
+        &EACH
+          MD 1
+        &END EACH
+      &END VORONOI
     &END PRINT
   &END DFT
   &SUBSYS

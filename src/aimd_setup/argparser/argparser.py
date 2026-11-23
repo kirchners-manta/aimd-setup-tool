@@ -424,10 +424,10 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--bqb",
-        help="R|Write BQB file during production run (can produce large file).\nDefault for type 'bqb'.",
+        help="R|Write the electron density as BQB file (large files).\nDefault: on for type 'reftraj' with '--spec vcd' or 'roa'\n(magnetic moments in TRAVIS need the density), otherwise off.",
         dest="bqb",
-        action="store_true",
-        default=False,
+        action=argparse.BooleanOptionalAction,
+        default=None,
     )
     p.add_argument(
         "--chrg",
@@ -830,9 +830,9 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--voronoi",
-        help="R|Calculate Voronoi tessellation in production run.",
-        default=False,
-        action="store_true",
+        help="R|Write Voronoi integration results (.voronoi, for TRAVIS).\nDefault: on for type 'reftraj', otherwise off.",
+        default=None,
+        action=argparse.BooleanOptionalAction,
         dest="voronoi",
     )
     p.add_argument(

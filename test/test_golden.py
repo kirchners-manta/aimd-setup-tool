@@ -71,10 +71,15 @@ CASES: dict[str, list[str]] = {
         "-c", WATER, "--type", "geoopt", "--func", "xtb", "--opt-level", "tight",
         "-q", "berta2", "--cp2k-version", "2024.3", "--cpu", "32",
     ],
-    # IR spectrum: two chunks of a reference trajectory, with Voronoi output
+    # IR spectrum: two chunks of a reference trajectory (Voronoi output by default)
     "reftraj_ir": [
         "-c", WATER, "--type", "reftraj", "--reftraj", TRAJ, "--n-chunks", "2",
-        "--start-from", "100", "--voronoi",
+        "--start-from", "100",
+    ],
+    # VCD spectrum: BQB density (for magnetic moments) and Voronoi output by default
+    "reftraj_vcd": [
+        "-c", WATER, "--type", "reftraj", "--reftraj", TRAJ, "--spec", "vcd",
+        "--n-chunks", "1",
     ],
     # Raman spectrum: one subdirectory per field direction, on marvin
     "reftraj_raman": [
@@ -284,3 +289,15 @@ def test_renamed_toml_option_exits(
     )
     with pytest.raises(SystemExit, match="'n_bqb' was renamed to 'n_chunks'"):
         console_entry_point(["-i", str(config)])
+
+
+def test_reftraj_output_can_be_switched_off(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """--no-voronoi and --no-bqb override the defaults of a VCD reftraj job."""
+    monkeypatch.chdir(tmp_path)
+    argv = ["-p", "off", "-c", WATER, "--type", "reftraj", "--reftraj", TRAJ]
+    argv += ["--spec", "vcd", "--n-chunks", "1", "--no-voronoi", "--no-bqb"]
+    assert console_entry_point(argv) == 0
+    tree, _ = parse_cp2k_input(tmp_path / "off" / "reftraj_01" / "reftraj.inp")
+    assert tree["force_eval"]["dft"]["print"] == {}
