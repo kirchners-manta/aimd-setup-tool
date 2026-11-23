@@ -30,10 +30,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -46,9 +46,11 @@ jobs:
       - name: Unittests with tox
         run: tox -e py
 
-      # Coverage does not work for private repos
+      # Codecov needs the repository upload token (secret CODECOV_TOKEN);
+      # without it the upload is rejected, which does not fail the job
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
         with:
-          files: ./coverage.xml # optional
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
