@@ -71,14 +71,14 @@ CASES: dict[str, list[str]] = {
         "-c", WATER, "--type", "geoopt", "--func", "xtb", "--opt-level", "tight",
         "-q", "berta2", "--cp2k-version", "2024.3", "--cpu", "32",
     ],
-    # IR spectrum: two BQB chunks from a reference trajectory, with Voronoi output
-    "bqb_ir": [
-        "-c", WATER, "--type", "bqb", "--reftraj", TRAJ, "--n-bqb", "2",
+    # IR spectrum: two chunks of a reference trajectory, with Voronoi output
+    "reftraj_ir": [
+        "-c", WATER, "--type", "reftraj", "--reftraj", TRAJ, "--n-chunks", "2",
         "--start-from", "100", "--voronoi",
     ],
     # Raman spectrum: one subdirectory per field direction, on marvin
-    "bqb_raman": [
-        "-c", WATER, "--type", "bqb", "--reftraj", TRAJ, "--spec", "raman",
+    "reftraj_raman": [
+        "-c", WATER, "--type", "reftraj", "--reftraj", TRAJ, "--spec", "raman",
         "-q", "marvin", "--cp2k-version", "2025.2", "--cpu", "192",
     ],
     # adaptive sampling: two-step production run started from velocities
@@ -258,3 +258,29 @@ def test_functional_input_valid(
     tree, _ = parse_cp2k_input(tmp_path / func / "energy.inp")
     assert "xc_functional" in tree["force_eval"]["dft"]["xc"]
     assert tree["force_eval"]["dft"]["periodic_efield"]["intensity"] > 0
+
+
+def test_deprecated_type_bqb(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """'--type bqb' still sets up a reftraj job, with a deprecation warning."""
+    monkeypatch.chdir(tmp_path)
+    argv = ["-p", "old", "-c", WATER, "--type", "bqb", "--reftraj", TRAJ]
+    assert console_entry_point([*argv, "--n-chunks", "1"]) == 0
+    assert "deprecated" in capsys.readouterr().err
+    assert (tmp_path / "old" / "reftraj_01" / "reftraj.inp").is_file()
+
+
+def test_renamed_toml_option_exits(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An old option name in a TOML file stops the setup instead of being ignored."""
+    monkeypatch.chdir(tmp_path)
+    config = tmp_path / "config.toml"
+    config.write_text(
+        f'project = "x"\ncoord = {WATER!r}\nn_bqb = 2\n', encoding="utf-8"
+    )
+    with pytest.raises(SystemExit, match="'n_bqb' was renamed to 'n_chunks'"):
+        console_entry_point(["-i", str(config)])

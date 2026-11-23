@@ -372,7 +372,7 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
 
     p = argparse.ArgumentParser(
         prog=name,
-        description="Script to setup AIMD simulations or BQB file productions with CP2K.",
+        description="Script to set up AIMD simulations and related calculations with CP2K.",
         epilog="Written for the Kirchner group at University of Bonn, by Tom Frömbgen.",
         formatter_class=lambda prog: Formatter(prog, max_help_position=80),
         add_help=False,
@@ -587,12 +587,12 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         action=action_not_less_than(1),
     )
     p.add_argument(
-        "--n-bqb",
+        "--n-chunks",
         type=int,
         metavar="N",
-        help="R|Number of bqb files to generate.",
+        help="R|Number of trajectory chunks for type 'reftraj' (one job each).",
         default=6,
-        dest="n_bqb",
+        dest="n_chunks",
         action=action_not_less_than(1),
     )
     p.add_argument(
@@ -733,12 +733,12 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         choices=["ir", "vcd", "raman", "roa", "dipoles"],
     )
     p.add_argument(
-        "--steps-bqb",
+        "--steps-chunk",
         type=int,
         metavar="N",
-        help="R|Number of steps per bqb file (without overlap).",
+        help="R|Number of steps per trajectory chunk for type 'reftraj' (without overlap).",
         default=10000,
-        dest="steps_bqb",
+        dest="steps_chunk",
         action=action_not_less_than(1),
     )
     p.add_argument(
@@ -808,9 +808,9 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
     p.add_argument(
         "--type",
         type=str,
-        help="R|Type of calculation to perform.\nAIMD: AIMD simulation.\nBQB: BQB file production.\nENERGY: Single point energy calculation.\nADAPT-SAMPL: Adaptive sampling.\nGEOOPT: Geometry optimization.",
+        help="R|Type of calculation to perform.\nAIMD: AIMD simulation.\nREFTRAJ: Electronic structure along an existing trajectory, for spectra.\n  (BQB: deprecated name of REFTRAJ.)\nENERGY: Single point energy calculation.\nADAPT-SAMPL: Adaptive sampling.\nGEOOPT: Geometry optimization.",
         dest="type",
-        choices=["aimd", "bqb", "energy", "adapt-sampl", "geoopt"],
+        choices=["aimd", "reftraj", "bqb", "energy", "adapt-sampl", "geoopt"],
         default="aimd",
     )
     p.add_argument(

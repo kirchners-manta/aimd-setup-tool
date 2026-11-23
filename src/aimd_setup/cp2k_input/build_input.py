@@ -733,8 +733,8 @@ def production_input(data: dict[str, Any], restart: str | None) -> Section:
     return tree
 
 
-def bqb_input(
-    data: dict[str, Any], bqb_count: int, field: str, project: str
+def reftraj_input(
+    data: dict[str, Any], chunk: int, field: str, project: str
 ) -> Section:
     """Build the input that recomputes densities along a reference trajectory.
 
@@ -742,7 +742,7 @@ def bqb_input(
     ----------
     data : dict[str, Any]
         Setup options.
-    bqb_count : int
+    chunk : int
         Index of the trajectory chunk handled by this input.
     field : str
         Field direction: "" (no field), "n" (zero-field reference) or a key of
@@ -756,13 +756,13 @@ def bqb_input(
         The complete input tree.
     """
     stride, overlap, _ = SPECTRUM_SETTINGS[data["spectrum"]]
-    chunk_start = data["start_from"] + bqb_count * data["steps_bqb"] * stride
-    md = md_section(data, "REFTRAJ", data["steps_bqb"] + overlap)
+    chunk_start = data["start_from"] + chunk * data["steps_chunk"] * stride
+    md = md_section(data, "REFTRAJ", data["steps_chunk"] + overlap)
     md["REFTRAJ"] = {
         "EVAL_ENERGY_FORCES": None,
         "FIRST_SNAPSHOT": chunk_start,
         "LAST_SNAPSHOT": chunk_start
-        + data["steps_bqb"] * stride
+        + data["steps_chunk"] * stride
         + overlap
         - stride,
         "STRIDE": stride,
@@ -829,8 +829,8 @@ def write_input(path: str | Path, tree: Section) -> None:
     Path(path).write_text(input_to_string(tree), encoding="utf-8")
 
 
-def write_bqb_inputs(data: dict[str, Any], bqb_count: int) -> None:
-    """Write the input(s) for one trajectory chunk of a BQB calculation.
+def write_reftraj_inputs(data: dict[str, Any], chunk: int) -> None:
+    """Write the input(s) for one trajectory chunk of a reftraj calculation.
 
     Spectra that need several field directions (Raman, ROA) get one subdirectory per
     direction, each with its own copy of coordinates, trajectory and runscript.
@@ -839,22 +839,24 @@ def write_bqb_inputs(data: dict[str, Any], bqb_count: int) -> None:
     ----------
     data : dict[str, Any]
         Setup options.
-    bqb_count : int
+    chunk : int
         Index of the trajectory chunk.
     """
     _, _, fields = SPECTRUM_SETTINGS[data["spectrum"]]
-    job_name = f"{data['project']}_{bqb_count+1:02d}"
+    job_name = f"{data['project']}_{chunk+1:02d}"
 
     if len(fields) == 1:
-        write_input("bqb.inp", bqb_input(data, bqb_count, fields[0], job_name))
+        write_input(
+            "reftraj.inp", reftraj_input(data, chunk, fields[0], job_name)
+        )
         return
 
     for field in fields:
         field_dir = Path(f"{field}_field")
         field_dir.mkdir()
         write_input(
-            field_dir / "bqb.inp",
-            bqb_input(data, bqb_count, field, f"{job_name}_{field}"),
+            field_dir / "reftraj.inp",
+            reftraj_input(data, chunk, field, f"{job_name}_{field}"),
         )
         for file in (data["coord"], data["reftraj"], data["runscript"]):
             shutil.copy2(file, field_dir)
@@ -871,19 +873,19 @@ def write_bqb_inputs(data: dict[str, Any], bqb_count: int) -> None:
         Path(file).unlink(missing_ok=True)
 
 
-def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
+def generate_input_files(data: dict[str, Any], chunk: int = 0) -> None:
     """Generate the CP2K input files in the current directory.
 
     Parameters
     ----------
     data : dict[str, Any]
         Setup options. ``data["joblist"]`` holds one bool per job, in this order:
-        geometry optimization, equilibration, relaxation, production, BQB
+        geometry optimization, equilibration, relaxation, production, reftraj
         calculation, single point energy.
-    bqb_count : int, optional
-        Index of the trajectory chunk for BQB calculations, by default 0.
+    chunk : int, optional
+        Index of the trajectory chunk for reftraj calculations, by default 0.
     """
-    run_geoopt, run_eq, run_relax, run_prod, run_bqb, run_energy = data[
+    run_geoopt, run_eq, run_relax, run_prod, run_reftraj, run_energy = data[
         "joblist"
     ]
     project = data["project"]
@@ -903,7 +905,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         else:
             restart = None
         write_input("prod.inp", production_input(data, restart))
-    if run_bqb:
-        write_bqb_inputs(data, bqb_count)
+    if run_reftraj:
+        write_reftraj_inputs(data, chunk)
     if run_energy:
         write_input("energy.inp", energy_input(data))
