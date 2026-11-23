@@ -804,7 +804,7 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
         # motion
         # if NVE ensemble is selected, remove thermostat
         if data["ensemble"] == "NVE":
-            sections_prod["motion"]["thermostat"]["add"] = False
+            sections_prod["motion"]["md"]["thermostat"]["add"] = False
         # print forces and velocities
         sections_prod["motion"]["print"]["forces"]["add"] = True
         sections_prod["motion"]["print"]["velocities"]["add"] = True
