@@ -5,7 +5,6 @@ Script to build input files for CP2K simulations, based on pre-defined input sni
 from __future__ import annotations
 
 import copy
-import os
 import shutil
 import sys
 from pathlib import Path
@@ -1057,9 +1056,16 @@ def generate_input_files(data: dict[str, Any], bqb_count: int = 0) -> None:
                 shutil.copy2(data["reftraj"], f"{vec}_field/")
                 shutil.copy2(data["runscript"], f"{vec}_field/")
 
-                # adjust the runscript and copy it
-                os.system(
-                    f"sed -i 's@{data['project']}_{bqb_count+1:02d}@{data['project']}_{bqb_count+1:02d}_{vec}@g' ./{vec}_field/{data['runscript']}"
+                # give each field its own job name in the copied runscript;
+                # plain Python instead of `sed -i`, which differs between
+                # GNU and BSD (macOS) and does not exist on Windows
+                runscript = Path(f"{vec}_field") / data["runscript"]
+                job_name = f"{data['project']}_{bqb_count+1:02d}"
+                runscript.write_text(
+                    runscript.read_text(encoding="utf-8").replace(
+                        job_name, f"{job_name}_{vec}"
+                    ),
+                    encoding="utf-8",
                 )
 
                 if k == len(fields) - 1:
