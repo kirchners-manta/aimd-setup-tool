@@ -1,5 +1,0 @@
-EVAL_ENERGY_FORCES                # evaluate energy and forces
-FIRST_SNAPSHOT ${FIRST_SNAPSHOT}  # first snapshot
-LAST_SNAPSHOT ${LAST_SNAPSHOT}    # last snapshot
-STRIDE ${STRIDE}                  # stride, distance between snapshots
-TRAJ_FILE_NAME ${TRAJ_FILE_NAME}

@@ -1,3 +1,6 @@
+# golden test references must stay byte-identical to the generated output
+exclude: ^test/data/golden/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -15,13 +18,13 @@ repos:
     rev: v2.7.0
     hooks:
       - id: setup-cfg-fmt
-        args: [--include-version-classifiers, --min-py-version, "3.8", --max-py-version, "3.12"]
+        args: [--include-version-classifiers, --min-py-version, "3.11", --max-py-version, "3.13"]
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.19.1
     hooks:
       - id: pyupgrade
-        args: [--py38-plus]
+        args: [--py311-plus]
 
   - repo: https://github.com/pycqa/isort
     rev: 6.0.0
@@ -39,3 +42,4 @@ repos:
     rev: v1.15.0
     hooks:
       - id: mypy
+        additional_dependencies: [pycp2k==0.3.0]

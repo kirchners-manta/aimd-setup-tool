@@ -1,3 +1,0 @@
-TEMPERATURE ${TEMP}         # temperature in K
-&THERMOSTAT
-&END THERMOSTAT

@@ -1,3 +1,0 @@
-EPS_SCF 1.0E-6              # SCF convergence threshold
-MAX_SCF 20                  # maximum number of SCF cycles
-SCF_GUESS ${SCFGUESS}           # restart from previous SCF cycle
