@@ -45,12 +45,3 @@ jobs:
       # with '-e py' tox runs the python version of the current environment
       - name: Unittests with tox
         run: tox -e py
-
-      # Codecov needs the repository upload token (secret CODECOV_TOKEN);
-      # without it the upload is rejected, which does not fail the job
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
-        if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
-        with:
-          files: ./coverage.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
