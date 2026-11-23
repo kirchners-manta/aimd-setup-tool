@@ -1,3 +1,6 @@
+# golden test references must stay byte-identical to the generated output
+exclude: ^test/data/golden/
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0

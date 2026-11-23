@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Created by the AIMD setup tool
+# CP2K 2024.3 run script
+
+#SBATCH --partition=long
+#SBATCH --account=ag_mctc_kirchner
+#SBATCH --ntasks=32
+#SBATCH --time=7-00:00:00
+#SBATCH --nodes=2
+#SBATCH --job-name="energy_dftu"
+
+export OMP_NUM_THREADS=1
+
+#load modules
+module load OpenMPI/4.1.6-GCC-13.2.0
+source home/chemie/install_cp2k/cp2k-2024.3/tools/toolchain/install/setup
+
+# execute job
+mpirun home/chemie/install_cp2k/cp2k-2024.3/exe/local/cp2k.psmp energy.inp >energy.out
