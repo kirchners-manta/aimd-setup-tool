@@ -1,3 +1,0 @@
-CUTOFF ${GRID_CUTOFF}                  # cutoff for multigrid
-NGRIDS ${GRID_N}                    # number of multigrid levels
-REL_CUTOFF ${GRID_REL_CUTOFF}               # relative cutoff for multigrid

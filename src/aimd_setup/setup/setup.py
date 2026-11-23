@@ -13,8 +13,8 @@ from typing import Any
 import numpy as np
 
 from ..adjust_input import cp_runscript
+from ..cp2k_input import generate_input_files
 from ..functions import make_project_dir
-from ..snippets import generate_input_files
 
 # import toml
 

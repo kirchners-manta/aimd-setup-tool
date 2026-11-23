@@ -5,14 +5,23 @@ generated file with a stored reference in ``test/data/golden/<case>/``.
 The references record the current behavior. They guard against unintended changes, for
 example when the input generation is rewritten. After an intentional change, regenerate
 them with ``pytest test/test_golden.py --update-golden`` and review the diff in git.
+
+CP2K inputs are compared by content, not by text: both files are parsed with
+cp2k-input-tools, which also validates them against the CP2K input schema. Keyword and
+section order, indentation, letter case and number formatting therefore do not matter.
+Other files (runscripts, copied coordinates) must match exactly.
 """
 
 from __future__ import annotations
 
+import functools
+import io
 import shutil
 from pathlib import Path
+from typing import Any
 
 import pytest
+from cp2k_input_tools.parser import CP2KInputParserSimplified
 
 from aimd_setup.cli import console_entry_point
 
@@ -91,6 +100,50 @@ def relative_files(directory: Path) -> list[Path]:
     )
 
 
+def parse_cp2k_input(path: Path) -> tuple[dict[str, Any], list[str]]:
+    """Parse and validate a CP2K input file with cp2k-input-tools.
+
+    The parser of cp2k-input-tools (0.9.3) rejects the valid keyword
+    ``IONS+CENTERS`` because it stops reading a keyword name at ``+``. Such lines are
+    therefore removed before parsing and returned separately for comparison.
+
+    Parameters
+    ----------
+    path : Path
+        CP2K input file.
+
+    Returns
+    -------
+    tuple[dict[str, Any], list[str]]
+        The parsed input tree, and the stripped ``IONS+CENTERS`` lines.
+    """
+    lines = path.read_text(encoding="utf-8").splitlines()
+    ions_centers = [
+        line.strip()
+        for line in lines
+        if line.strip().upper().startswith("IONS+CENTERS")
+    ]
+    kept = [
+        line
+        for line in lines
+        if not line.strip().upper().startswith("IONS+CENTERS")
+    ]
+    tree = cp2k_parser().parse(io.StringIO("\n".join(kept)))
+    return tree, ions_centers
+
+
+@functools.cache
+def cp2k_parser() -> CP2KInputParserSimplified:
+    """Create the parser once; loading the CP2K schema takes several seconds.
+
+    Returns
+    -------
+    CP2KInputParserSimplified
+        Parser that validates against the schema bundled with cp2k-input-tools.
+    """
+    return CP2KInputParserSimplified()
+
+
 @pytest.mark.parametrize("case", CASES)
 def test_golden(
     case: str,
@@ -116,18 +169,22 @@ def test_golden(
     ), f"No golden files for '{case}'. Run with --update-golden."
     assert relative_files(generated) == relative_files(golden)
     for rel in relative_files(golden):
-        # read_text normalizes line endings, so the comparison also holds on Windows
-        assert (generated / rel).read_text(encoding="utf-8") == (
-            golden / rel
-        ).read_text(
-            encoding="utf-8"
-        ), f"{case}/{rel} differs from the golden file"
+        if rel.suffix == ".inp":
+            same = parse_cp2k_input(generated / rel) == parse_cp2k_input(
+                golden / rel
+            )
+        else:
+            # read_text normalizes line endings, so this also holds on Windows
+            same = (generated / rel).read_text(encoding="utf-8") == (
+                golden / rel
+            ).read_text(encoding="utf-8")
+        assert same, f"{case}/{rel} differs from the golden file"
 
 
 def test_unsupported_element_exits(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """An element without a KIND snippet stops the setup with a clear message."""
+    """An element without pseudopotential data stops the setup."""
     monkeypatch.chdir(tmp_path)
     coord = tmp_path / "xe.xyz"
     coord.write_text("1\n10.0 10.0 10.0\nXe 0.0 0.0 0.0\n", encoding="utf-8")
@@ -181,3 +238,18 @@ def test_toml_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     energy = (tmp_path / "toml" / "energy.inp").read_text(encoding="utf-8")
     assert "ABC 10.0 11.0 12.0" in energy
     assert "MULTIPLICITY 3" in energy
+
+
+@pytest.mark.parametrize(
+    "func", ["blyp", "bp", "pade", "pbe", "revpbe", "pbe0", "scan", "r2scan"]
+)
+def test_functional_input_valid(
+    func: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Every density functional gives a valid input, also with an E-field."""
+    monkeypatch.chdir(tmp_path)
+    argv = ["-p", func, "-c", WATER, "--type", "energy", "--func", func]
+    assert console_entry_point([*argv, "--efield", "x"]) == 0
+    tree, _ = parse_cp2k_input(tmp_path / func / "energy.inp")
+    assert "xc_functional" in tree["force_eval"]["dft"]["xc"]
+    assert tree["force_eval"]["dft"]["periodic_efield"]["intensity"] > 0

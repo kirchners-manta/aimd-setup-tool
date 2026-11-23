@@ -1,4 +1,0 @@
-&KIND Na
-  BASIS_SET ORB ${BASIS}                  # basis set
-  POTENTIAL GTH-${PP_FUNC}-q9         # pseudopotential
-&END KIND
