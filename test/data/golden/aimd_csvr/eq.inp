@@ -54,7 +54,7 @@
       EXTRAPOLATION_ORDER 4
     &END QS
     &SCF
-      EPS_SCF 1e-06
+      EPS_SCF 1e-05
       MAX_SCF 20
       SCF_GUESS ATOMIC
       &OT
@@ -63,7 +63,7 @@
       &END OT
       &OUTER_SCF
         MAX_SCF 20
-        EPS_SCF 1e-06
+        EPS_SCF 1e-05
       &END OUTER_SCF
     &END SCF
     &XC

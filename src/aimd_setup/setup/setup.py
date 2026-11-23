@@ -219,14 +219,23 @@ def setup_job(args: dict[str, Any]) -> int:
             print(
                 f"{'Equilibration temperature [K]:'.ljust(40)}{args['t_equi']}"
             )
+            print(
+                f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_equi']}"
+            )
         if not args["no_relax"]:
             print(f"{'Relaxation steps:'.ljust(40)}{args['steps_relax']}")
             print(
                 f"{'Relaxation temperature [K]:'.ljust(40)}{args['t_relax']}"
             )
+            print(
+                f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_relax']}"
+            )
         if not args["no_prod"]:
             print(f"{'Production steps:'.ljust(40)}{args['steps_prod']}")
             print(f"{'Production temperature [K]:'.ljust(40)}{args['t_prod']}")
+            print(
+                f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_prod']}"
+            )
         if not args["no_equi"]:
             print(f"{'Ensemble in equilibration:'.ljust(40)}NVT")
             print(f"{'Thermostat:'.ljust(40)}{args['thermo']}")
@@ -268,6 +277,7 @@ def setup_job(args: dict[str, Any]) -> int:
         print(f"{'Bqb files:'.ljust(40)}{args['n_bqb']}")
         print(f"{'Steps per bqb file:'.ljust(40)}{args['steps_bqb']}")
         print(f"{'Spectrum:'.ljust(40)}{args['spectrum']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv']}")
 
         if args["bqb"]:
             print(
@@ -297,7 +307,7 @@ def setup_job(args: dict[str, Any]) -> int:
         print(
             f"{'Type of calculation:'.ljust(40)}Single point energy calculation"
         )
-        print(f"{'Energy convergence [Hartree]:'.ljust(40)}{args['e_conv']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv']}")
 
     elif args["type"] == "adapt-sampl":
         exec_geoopt = False
@@ -319,6 +329,7 @@ def setup_job(args: dict[str, Any]) -> int:
         print(f"{'Type of calculation:'.ljust(40)}Adaptive sampling")
         print(f"{'Production steps:'.ljust(40)}{args['steps_prod']}")
         print(f"{'Production temperature [K]:'.ljust(40)}{args['t_prod']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv_prod']}")
         print(f"{'Print BQB file:'.ljust(40)}{args['bqb']}")
 
     elif args["type"] == "geoopt":
@@ -331,6 +342,7 @@ def setup_job(args: dict[str, Any]) -> int:
 
         print(f"{'Type of calculation:'.ljust(40)}Geometry optimization")
         print(f"{'Convergence criteria:'.ljust(40)}{args['opt_level']}")
+        print(f"{'SCF convergence (EPS_SCF):'.ljust(40)}{args['e_conv']}")
 
     # electric field settings
     if args["efield"] is not None:

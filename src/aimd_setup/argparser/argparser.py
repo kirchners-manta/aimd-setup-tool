@@ -480,29 +480,38 @@ def parser(name: str = "aimd-setup") -> argparse.ArgumentParser:
         choices=["x", "y", "z", "xy", "xz", "yz", "xyz"],
     )
     p.add_argument(
+        "--e-conv",
+        type=float,
+        metavar="EPS",
+        dest="e_conv",
+        help="R|SCF convergence threshold (EPS_SCF of the inner and outer SCF loop) for single point energy, geometry optimization and reftraj jobs.",
+        default=1.0e-6,
+        action=action_not_more_than(1e-4),
+    )
+    p.add_argument(
         "--e-conv-equi",
         type=float,
-        metavar="CUTOFF",
-        dest="e_conv",
-        help="R|Energy convergence criterion in Hartree.",
+        metavar="EPS",
+        dest="e_conv_equi",
+        help="R|SCF convergence threshold (EPS_SCF of the inner and outer SCF loop) for the equilibration run.",
         default=1.0e-6,
         action=action_not_more_than(1e-4),
     )
     p.add_argument(
         "--e-conv-relax",
         type=float,
-        metavar="CUTOFF",
-        dest="e_conv",
-        help="R|Energy convergence criterion in Hartree.",
+        metavar="EPS",
+        dest="e_conv_relax",
+        help="R|SCF convergence threshold (EPS_SCF of the inner and outer SCF loop) for the relaxation run.",
         default=1.0e-6,
         action=action_not_more_than(1e-4),
     )
     p.add_argument(
         "--e-conv-prod",
         type=float,
-        metavar="CUTOFF",
-        dest="e_conv",
-        help="R|Energy convergence criterion in Hartree.",
+        metavar="EPS",
+        dest="e_conv_prod",
+        help="R|SCF convergence threshold (EPS_SCF of the inner and outer SCF loop) for the production run (also adaptive sampling).",
         default=1.0e-6,
         action=action_not_more_than(1e-4),
     )

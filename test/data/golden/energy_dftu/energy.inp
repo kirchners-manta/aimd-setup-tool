@@ -10,31 +10,22 @@
   METHOD QS
   &DFT
     BASIS_SET_FILE_NAME BASIS_MOLOPT
+    POTENTIAL_FILE_NAME GTH_POTENTIALS
     CHARGE 1
     MULTIPLICITY 5
+    UKS .TRUE.
     PLUS_U_METHOD MULLIKEN
-    POTENTIAL_FILE_NAME GTH_POTENTIALS
-    UKS TRUE
     &MGRID
       CUTOFF 400
       NGRIDS 4
       REL_CUTOFF 60
     &END MGRID
-    &PRINT
-      &E_DENSITY_CUBE
-        APPEND
-        FILENAME =edens.cube
-        &EACH
-          MD 1
-        &END EACH
-      &END E_DENSITY_CUBE
-    &END PRINT
     &QS
-      EPS_DEFAULT 1.0E-12
+      EPS_DEFAULT 1e-12
       EXTRAPOLATION_ORDER 4
     &END QS
     &SCF
-      EPS_SCF 1.0E-6
+      EPS_SCF 1e-07
       MAX_SCF 20
       SCF_GUESS ATOMIC
       &OT
@@ -43,7 +34,7 @@
       &END OT
       &OUTER_SCF
         MAX_SCF 20
-        EPS_SCF 1.0E-6
+        EPS_SCF 1e-07
       &END OUTER_SCF
     &END SCF
     &XC
@@ -65,6 +56,15 @@
         XC_SMOOTH_RHO NN10
       &END XC_GRID
     &END XC
+    &PRINT
+      &E_DENSITY_CUBE
+        APPEND
+        FILENAME =edens.cube
+        &EACH
+          MD 1
+        &END EACH
+      &END E_DENSITY_CUBE
+    &END PRINT
   &END DFT
   &SUBSYS
     &CELL

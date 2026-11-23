@@ -64,7 +64,7 @@
       EXTRAPOLATION_ORDER 4
     &END QS
     &SCF
-      EPS_SCF 1e-06
+      EPS_SCF 1e-07
       MAX_SCF 20
       SCF_GUESS RESTART
       &OT
@@ -73,7 +73,7 @@
       &END OT
       &OUTER_SCF
         MAX_SCF 20
-        EPS_SCF 1e-06
+        EPS_SCF 1e-07
       &END OUTER_SCF
     &END SCF
     &XC

@@ -255,7 +255,7 @@ def subsys_section(data: dict[str, Any]) -> Section:
 
 
 def dft_section(
-    data: dict[str, Any], scf_guess: str, efield: str | None
+    data: dict[str, Any], scf_guess: str, efield: str | None, eps_scf: float
 ) -> Section:
     """Build the DFT section (or its xTB variant).
 
@@ -268,6 +268,8 @@ def dft_section(
     efield : str | None
         Direction of a periodic electric field (key of ``EFIELD_VECTORS``), or None
         for no field.
+    eps_scf : float
+        SCF convergence threshold, used for the inner and the outer SCF loop.
 
     Returns
     -------
@@ -316,12 +318,14 @@ def dft_section(
         }
 
     dft["SCF"] = {
-        "EPS_SCF": 1.0e-6,
+        "EPS_SCF": eps_scf,
         "MAX_SCF": 20,
         "SCF_GUESS": scf_guess,
         "OT": {"MINIMIZER": "DIIS", "PRECONDITIONER": "FULL_SINGLE_INVERSE"},
-        # the outer EPS_SCF must be smaller than or equal to the inner one
-        "OUTER_SCF": {"MAX_SCF": 20, "EPS_SCF": 1.0e-6},
+        # with OT, each outer iteration rebuilds the preconditioner and restarts
+        # the inner loop; the outer EPS_SCF must be smaller than or equal to the
+        # inner one, and the inner one limits what the outer loop can reach
+        "OUTER_SCF": {"MAX_SCF": 20, "EPS_SCF": eps_scf},
     }
 
     if data["func"] != "xtb":
@@ -341,7 +345,7 @@ def dft_section(
 
 
 def force_eval_section(
-    data: dict[str, Any], scf_guess: str, efield: str | None
+    data: dict[str, Any], scf_guess: str, efield: str | None, eps_scf: float
 ) -> Section:
     """Build the FORCE_EVAL section.
 
@@ -353,6 +357,8 @@ def force_eval_section(
         Initial guess of the wave function, ATOMIC or RESTART.
     efield : str | None
         Direction of a periodic electric field, or None for no field.
+    eps_scf : float
+        SCF convergence threshold.
 
     Returns
     -------
@@ -361,7 +367,7 @@ def force_eval_section(
     """
     return {
         "METHOD": "QS",
-        "DFT": dft_section(data, scf_guess, efield),
+        "DFT": dft_section(data, scf_guess, efield, eps_scf),
         "SUBSYS": subsys_section(data),
     }
 
@@ -613,7 +619,9 @@ def geoopt_input(data: dict[str, Any]) -> Section:
                 "TYPE": "MINIMIZATION",
             }
         },
-        "FORCE_EVAL": force_eval_section(data, "ATOMIC", data["efield"]),
+        "FORCE_EVAL": force_eval_section(
+            data, "ATOMIC", data["efield"], data["e_conv"]
+        ),
     }
 
 
@@ -632,7 +640,9 @@ def equilibration_input(data: dict[str, Any]) -> Section:
     """
     md = md_section(data, "NVT", data["steps_equi"], data["t_equi"])
     md["THERMOSTAT"] = thermostat_section(data, "MASSIVE", 10)
-    force_eval = force_eval_section(data, "ATOMIC", data["efield"])
+    force_eval = force_eval_section(
+        data, "ATOMIC", data["efield"], data["e_conv_equi"]
+    )
     if data["velocity"] is not None:
         force_eval["SUBSYS"]["VELOCITY"] = velocity_section(data["velocity"])
     return {
@@ -663,7 +673,9 @@ def relaxation_input(data: dict[str, Any], restart: str | None) -> Section:
     tree: Section = {
         "GLOBAL": global_section(data, f"{data['project']}_relax", "MD"),
         "MOTION": {"MD": md, "PRINT": motion_print_section()},
-        "FORCE_EVAL": force_eval_section(data, scf_guess, data["efield"]),
+        "FORCE_EVAL": force_eval_section(
+            data, scf_guess, data["efield"], data["e_conv_relax"]
+        ),
     }
     if restart is not None:
         tree["EXT_RESTART"] = ext_restart_section(restart)
@@ -694,7 +706,9 @@ def production_input(data: dict[str, Any], restart: str | None) -> Section:
     )
 
     scf_guess = "ATOMIC" if restart is None else "RESTART"
-    force_eval = force_eval_section(data, scf_guess, data["efield"])
+    force_eval = force_eval_section(
+        data, scf_guess, data["efield"], data["e_conv_prod"]
+    )
     if data["wannier"]:
         force_eval["DFT"]["LOCALIZE"] = localize_section(data)
     density_print = density_print_section(
@@ -756,7 +770,7 @@ def bqb_input(
     }
 
     efield = None if field in ("", "n") else field
-    force_eval = force_eval_section(data, "ATOMIC", efield)
+    force_eval = force_eval_section(data, "ATOMIC", efield, data["e_conv"])
     # the PRINT section is written even if empty, as in earlier versions
     force_eval["DFT"]["PRINT"] = density_print_section(
         data,
@@ -786,7 +800,9 @@ def energy_input(data: dict[str, Any]) -> Section:
     Section
         The complete input tree.
     """
-    force_eval = force_eval_section(data, "ATOMIC", data["efield"])
+    force_eval = force_eval_section(
+        data, "ATOMIC", data["efield"], data["e_conv"]
+    )
     density_print = density_print_section(
         data, bqb=data["bqb"], cube=data["cube"], voronoi=False, bqb_history=1
     )

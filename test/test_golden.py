@@ -50,8 +50,11 @@ CASES: dict[str, list[str]] = {
         "-c", WATER, "--no-relax", "--ensemble", "nve", "--vel", VEL,
         "--pbc", "none", "--mult", "2",
     ],
-    # CSVR thermostat: the time constant must go to the CSVR subsection
-    "aimd_csvr": ["-c", WATER, "--thermo", "csvr", "--no-relax", "--steps-equi", "100"],
+    # CSVR thermostat (time constant in the CSVR subsection); per-stage EPS_SCF
+    "aimd_csvr": [
+        "-c", WATER, "--thermo", "csvr", "--no-relax", "--steps-equi", "100",
+        "--e-conv-equi", "1e-5", "--e-conv-prod", "1e-7",
+    ],
     # r2SCAN with TZV2P basis and a non-default seed
     "aimd_r2scan": [
         "-c", WATER, "--no-equi", "--no-relax", "--func", "r2scan",
@@ -60,7 +63,7 @@ CASES: dict[str, list[str]] = {
     # single point with DFT+U, charge, multiplicity, cube output, two nodes on bonna
     "energy_dftu": [
         "-c", FEOH, "-b", "10.0", "--type", "energy", "--dftu", "Fe", "2", "4.0",
-        "--mult", "5", "--chrg", "1", "--cube",
+        "--mult", "5", "--chrg", "1", "--cube", "--e-conv", "1e-7",
         "-q", "bonna", "--cp2k-version", "2024.3", "--cpu", "64",
     ],
     # geometry optimization with xTB on berta2
